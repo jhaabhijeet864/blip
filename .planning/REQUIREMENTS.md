@@ -1,60 +1,79 @@
-# Requirements: Blip / Snapper (blip-cam)
+# Requirements: Blip (Milestone v2.0: Full Native Rust + Tauri Core)
 
-**Defined:** 2026-10-29
+**Defined:** 2026-10-29  
+**Milestone:** v2.0  
 **Core Value:** Users can effortlessly choose, configure, and trigger fluid cinematic disappearance effects (Thanos Snap ash disintegration or Goku Instant Transmission) using natural hand gestures in Google Meet without manual coding or terminal commands.
 
-## v1 Requirements
+---
 
-Requirements for initial release (Milestone 1 — The Viral Flagships). Each maps directly to roadmap phases.
+## Validated Requirements (v1.0 Milestone Complete)
 
-### Core Virtual Camera & Video Pipeline
+- [x] **VCAM-01**: Stream processed frames via Virtual Camera (`pyvirtualcam`) compatible with Google Meet and Zoom — Phase 2
+- [x] **VISION-01**: Real-time 3D hand tracking (21 landmarks) with MediaPipe Hands — Phase 2
+- [x] **VISION-02**: Real-time person segmentation and edge matting with MediaPipe Selfie Segmentation — Phase 2
+- [x] **CALIB-01**: 3-second countdown background plate capture and lighting compensation — Phase 2
+- [x] **GEST-01**: Thanos Finger Snap detection (thumb-middle contact + velocity release) — Phase 3
+- [x] **GEST-02**: Goku Instant Transmission detection (two fingers to temple/forehead) — Phase 3
+- [x] **FX-01**: Thanos Snap particle ash disintegration effect (2,000+ drifting particles) — Phase 3
+- [x] **FX-02**: Goku Instant Transmission speedline anime flash vanishing effect — Phase 3
+- [x] **FX-03**: Fluid Reappearance mechanic (re-trigger gesture or hotkey restore) — Phase 3
+- [x] **GUI-01**: Modern dark-mode CustomTkinter desktop interface with live preview canvas — Phase 4
+- [x] **GUI-02**: Gesture-to-Effect mapping matrix with cooldown/sensitivity sliders — Phase 4
+- [x] **PACK-01**: One-click standalone executable packaging via PyInstaller — Phase 5
+- [x] **OSS-01**: Production-grade open-source repository assets (MIT License, README, CI/CD, issue templates, Contributing, Security, and Code of Conduct) — Phase 1
 
-- [x] **VCAM-01**: Application can capture physical webcam feed at 720p/1080p and 30 FPS.
-- [x] **VCAM-02**: Application outputs processed video to an OS virtual camera (`pyvirtualcam`), recognized automatically by Google Meet and Zoom.
-- [x] **VCAM-03**: Application detects whether a Virtual Camera driver (e.g. OBS VirtualCam) is installed and provides clear guidance if missing.
+---
 
-### Vision & Tracking
+## Active Requirements (Milestone v2.0: Native Rust + Tauri Core)
 
-- [x] **VISN-01**: Real-time 21-landmark hand detection using MediaPipe Hands with normalized 3D coordinates.
-- [x] **VISN-02**: Real-time person silhouette extraction using MediaPipe Selfie Segmentation with edge feathering.
-- [x] **VISN-03**: Background plate calibration module with a 3-second countdown timer and adaptive lighting compensation.
+### 1. Native Rust Video Capture & Virtual Camera Engine
 
-### Flagship Gesture Recognizers
+- [ ] **RCAP-01**: Native Windows Media Foundation (MSMF) camera capture using `nokhwa` at 720p/1080p and 30/60 FPS.
+- [ ] **RDEV-01**: Hardware camera enumeration with friendly names, automatically distinguishing genuine physical webcams from phone bridges (`DroidCam`, `Iriun`) and virtual devices.
+- [ ] **RDEV-02**: Dynamic thread-safe camera hot-swapping without process restart or DirectShow COM lock contention.
+- [ ] **RVCAM-01**: High-throughput DirectShow virtual camera output via `virtualcam` crate targeting the OBS Virtual Camera shared memory queue.
+- [ ] **RVCAM-02**: Pre-flight driver health inspection with fallback diagnostics when OBS Virtual Camera driver is absent.
 
-- [x] **GEST-01**: Thanos Finger Snap detector (detects thumb-middle contact and explosive velocity release).
-- [x] **GEST-02**: Goku Instant Transmission detector (detects index + middle finger raised to temple/forehead).
-- [x] **GEST-03**: Gesture debounce finite state machine (prevents flutter, supports cooldown periods).
+### 2. Embedded ONNX Neural Vision & Kinematics
 
-### Flagship Visual Effects (FX) Engine
+- [ ] **RONNX-01**: In-memory ONNX Runtime (`ort`) inference engine for 21 3D hand landmarks at >=30 FPS.
+- [ ] **RONNX-02**: Real-time person silhouette matting and alpha mask generation with bilinear upsampling and gaussian edge feathering.
+- [ ] **RGST-01**: Native Rust Thanos Finger Snap kinematics detector (thumb-middle contact, pinch hold, explosive velocity release).
+- [ ] **RGST-02**: Native Rust Goku Instant Transmission detector (dual-finger temple/forehead proximity).
+- [ ] **RGST-03**: Finite state machine debounce, streak tracking, and configurable cooldown timers.
 
-- [x] **EFFX-01**: Thanos Snap effect: Progressive particle ash disintegration (2,000+ particles) drifting upward with wind curl noise to empty background.
-- [x] **EFFX-02**: Goku Instant Transmission effect: High-speed anime radial blur lines, pop flash, and instantaneous vanishing.
-- [x] **EFFX-03**: Reappearance mechanism: Re-triggering gesture or hotkey smoothly restores the user.
+### 3. High-Performance SIMD Effects Engine & Background Plate
 
-### Desktop GUI & UX
+- [ ] **RSIMD-01**: SIMD/vectorized Thanos ash particle disintegration engine (2,500+ particles) with upward curl noise and organic vertical erosion using `glam` and `rayon`.
+- [ ] **RSIMD-02**: Goku Instant Transmission anime speedlines, expanding shockwave ring, exposure flash, and instant vanish.
+- [ ] **RBG-01**: Background clean plate capture with 3-second countdown and real-time LAB color space luminance compensation.
+- [ ] **RREV-01**: Fluid manual and auto reappear mechanics restoring the live camera feed smoothly.
 
-- [x] **DGUI-01**: Modern CustomTkinter dark-mode desktop window with responsive layout.
-- [x] **DGUI-02**: Live video preview canvas showing real-time camera output and detection markers.
-- [x] **DGUI-03**: Gesture-to-Effect mapping matrix (select dropdowns for Snap vs IT).
-- [x] **DGUI-04**: Calibration control ("Calibrate Background" with 3-second visual countdown).
-- [x] **DGUI-05**: Settings persistence: User gesture mappings and preferences saved to JSON config.
-- [x] **DGUI-06**: Global keyboard shortcut override (e.g., `Ctrl+Alt+S`) for manual triggering.
+### 4. Tauri v2 Desktop Shell & UI Ergonomics
 
-### Open-Source & Distribution Standard
+- [ ] **TAURI-01**: Lightweight Tauri v2 application shell with native Windows WebView2 integration (<50MB RAM footprint).
+- [ ] **TUI-01**: Modern Google Meet-inspired dark-mode interface built with React 19, Vite, and Tailwind CSS.
+- [ ] **TUI-02**: Real-time low-latency video preview rendered onto an HTML5 `<canvas>` via binary buffer streaming.
+- [ ] **TUI-03**: Mouse-draggable vertical splitter dividing the video stage and settings panel with persistent width storage.
+- [ ] **TUI-04**: Gesture-to-Effect mapping matrix, live FPS / landmark HUD toggle, and calibration controls.
+- [ ] **TCFG-01**: JSON user configuration persistence (`~/.blip/config.json`) with backwards compatibility.
 
-- [x] **OPNS-01**: 10/10 GitHub repository documentation: Comprehensive `README.md` with demo badges, viral demo GIF placeholder, quickstart, Google Meet setup guide, and architecture diagrams.
-- [x] **OPNS-02**: Full community governance: `LICENSE` (MIT), `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, and `SECURITY.md`.
-- [x] **OPNS-03**: GitHub Actions CI workflow for automated linting, test suites, and cross-platform verification.
-- [x] **OPNS-04**: PyInstaller standalone executable build script for one-click Windows deployment.
+### 5. Packaging & Distribution
 
-## v2 Requirements
+- [ ] **RDIST-01**: Compact standalone single executable distribution (<25MB) bundled via Tauri CLI.
+- [ ] **RTEST-01**: Automated Rust unit and integration test suite (`cargo test`) verifying capture, kinematics, and effect pipelines.
+- [ ] **RCI-01**: GitHub Actions workflow for automated cross-platform Rust compilation, clippy linting, and testing on push/PR.
 
-Deferred to future releases (Milestone 2+ / Community Contributions):
+---
+
+## Future Requirements (v2.1+)
 
 - **GEST-EXT**: Peace sign, Open Palm, and Fist Clench gesture detectors.
 - **EFFX-EXT**: Ninja smoke bomb cloud poof and Cyberpunk hologram glitch de-rezz effects.
-- **SND-01**: Optional audio sound effect playback on virtual microphone.
-- **MUTE-01**: Automatic Google Meet mute toggle sync on disappear.
+- **SND-01**: Optional synthesized audio cues on virtual microphone input.
+- **MUTE-01**: OS-level global meeting mute synchronization on disappear.
+
+---
 
 ## Out of Scope
 
@@ -64,22 +83,18 @@ Deferred to future releases (Milestone 2+ / Community Contributions):
 | Cloud AI / Remote Server Streaming | Introduces video latency, bandwidth costs, and severe privacy violations. |
 | Full 3D VTuber Rigging | Scope creep; focus is specifically on hilarious, snappy disappearance tricks. |
 
+---
+
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| OPNS-01, OPNS-02 | Phase 1 | Complete |
-| VCAM-01, VCAM-02, VCAM-03, VISN-01, VISN-02, VISN-03 | Phase 2 | Complete |
-| GEST-01, GEST-02, GEST-03 | Phase 3 | Complete |
-| EFFX-01, EFFX-02, EFFX-03 | Phase 3 | Complete |
-| DGUI-01, DGUI-02, DGUI-03, DGUI-04, DGUI-05, DGUI-06 | Phase 4 | Complete |
-| OPNS-03, OPNS-04 | Phase 5 | Complete |
+| RCAP-01, RDEV-01, RDEV-02, RVCAM-01, RVCAM-02 | Phase 6 | Planned |
+| RONNX-01, RONNX-02, RGST-01, RGST-02, RGST-03 | Phase 7 | Planned |
+| RSIMD-01, RSIMD-02, RBG-01, RREV-01 | Phase 8 | Planned |
+| TAURI-01, TUI-01, TUI-02, TUI-03, TUI-04, TCFG-01 | Phase 9 | Planned |
+| RDIST-01, RTEST-01, RCI-01 | Phase 10 | Planned |
 
 **Coverage:**
-- v1 requirements: 20 total
-- Mapped to phases: 20
-- Completed: 20 / 20 (100%) ✓
-
----
-*Requirements defined: 2026-10-29*
-*Last updated: 2026-10-29 after refinement to Thanos Snap & Goku IT*
+- Active requirements: 19 total
+- Mapped to phases: 19 / 19 (100%) ✓
