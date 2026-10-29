@@ -39,8 +39,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 12-01: Wire browser MediaPipe Tasks Vision WASM loader, hand landmark tracker, and selfie segmentation alpha matting.
-- [ ] 12-02: Implement Web Audio transient click detector and dual visual+audio snap kinematics state machine.
+- [x] 12-01: Wire browser MediaPipe Tasks Vision WASM loader, hand landmark tracker, and selfie segmentation alpha matting.
+- [x] 12-02: Implement Web Audio transient click detector and dual visual+audio snap kinematics state machine.
 
 ---
 

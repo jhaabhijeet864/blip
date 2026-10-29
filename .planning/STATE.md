@@ -9,20 +9,20 @@ See: `.planning/PROJECT.md` (updated 2026-10-29)
 
 ## Current Position
 
-Phase: 11 of 14 (WebRTC Interceptor & Extension Shell)
+Phase: 12 of 14 (Browser Vision & Dual-Trigger Kinematics)
 Plan: 2 of 2 in current phase
-Status: Phase 11 Complete — Ready for Phase 12 (Browser Vision & Dual-Trigger Kinematics)
-Last activity: 2026-10-29 — Completed Phase 11 with Manifest V3 scaffolding, main-world getUserMedia stream interceptor, and 8 automated tests passing.
+Status: Phase 12 Complete — Ready for Phase 13 (Canvas Shaders, Clean Plate & Auto-Mute)
+Last activity: 2026-10-29 — Completed Phase 12 with browser vision detector, Web Audio transient click detector, dual-trigger kinematics, and 20 automated tests passing.
 
-Progress: [███░░░░░░░] 25% (Milestone v3.0)
+Progress: [█████░░░░░] 50% (Milestone v3.0)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed (Milestones v1.0, v2.0 & v3.0): 19
+- Total plans completed (Milestones v1.0, v2.0 & v3.0): 21
 - Milestone v1.0: 5 phases completed
 - Milestone v2.0: 5 phases completed
-- Milestone v3.0: 1 of 4 phases completed
+- Milestone v3.0: 2 of 4 phases completed
 
 **By Phase:**
 
@@ -39,7 +39,7 @@ Progress: [███░░░░░░░] 25% (Milestone v3.0)
 | 9. Modern Tauri v2 Desktop Shell | 2/2 | 0.2h | 0.1h | Complete |
 | 10. Packaging, Verification & CI/CD | 1/1 | 0.1h | 0.1h | Complete |
 | 11. WebRTC Interceptor & Extension Shell | 2/2 | 0.1h | 0.1h | Complete |
-| 12. Browser Vision & Dual-Trigger Kinematics | 0/2 | — | — | Planned |
+| 12. Browser Vision & Dual-Trigger Kinematics | 2/2 | 0.1h | 0.1h | Complete |
 | 13. Canvas Shaders, Clean Plate & Auto-Mute | 0/2 | — | — | Planned |
 | 14. Popup UI, Web Showcase & Packaging | 0/2 | — | — | Planned |
 

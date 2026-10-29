@@ -5,6 +5,8 @@ import {
   DEFAULT_BLIP_CONFIG,
   GestureEffectType,
 } from "./types";
+import { AudioClickDetector } from "./audio/click-detector";
+import { DualTriggerSnapKinematics } from "./gestures/snap-kinematics";
 
 export interface StreamInterceptorOptions {
   onFrame?: (video: HTMLVideoElement, ctx: CanvasRenderingContext2D, width: number, height: number) => void;
@@ -21,6 +23,9 @@ export class BlipStreamInterceptor {
     fps: 0,
     lastGestureTime: 0,
   };
+
+  private kinematics: DualTriggerSnapKinematics;
+  private audioDetector: AudioClickDetector;
 
   private originalGetUserMedia: typeof navigator.mediaDevices.getUserMedia | null = null;
   private hiddenVideo: HTMLVideoElement | null = null;
@@ -54,6 +59,21 @@ export class BlipStreamInterceptor {
   }
 
   constructor(options?: StreamInterceptorOptions) {
+    this.kinematics = new DualTriggerSnapKinematics(0.06, 1500);
+    this.audioDetector = new AudioClickDetector(this.config.audioClickThreshold);
+
+    this.audioDetector.setOnClickCallback((event) => {
+      this.kinematics.registerAudioClick(event.timestamp);
+    });
+
+    this.kinematics.setOnGestureTriggered((event) => {
+      if (this.state.isVanished) {
+        this.triggerReappear();
+      } else {
+        this.triggerVanish(event.type);
+      }
+    });
+
     if (typeof window !== "undefined") {
       this.initMessageListener();
     }
@@ -135,6 +155,10 @@ export class BlipStreamInterceptor {
     // 5. Transfer real audio tracks into synthetic stream
     for (const audioTrack of realStream.getAudioTracks()) {
       this.syntheticStream.addTrack(audioTrack);
+    }
+
+    if (realStream.getAudioTracks().length > 0) {
+      this.audioDetector.start(realStream);
     }
 
     this.hiddenVideo.onloadedmetadata = () => {
@@ -438,6 +462,7 @@ export class BlipStreamInterceptor {
 
   public destroy(): void {
     this.isDestroyed = true;
+    this.audioDetector.stop();
     if (this.animationFrameId !== null) {
       this.safeCancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
