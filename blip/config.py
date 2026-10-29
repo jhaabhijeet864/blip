@@ -22,15 +22,18 @@ def get_default_config_path() -> Path:
 @dataclass
 class BlipConfig:
     """User preferences and runtime configuration."""
+
     camera_index: int = 0
     camera_width: int = 1280
     camera_height: int = 720
     target_fps: int = 30
     vcam_backend: str = "obs"  # "obs", "unityvideo", or "v4l2loopback"
-    gesture_mappings: dict[str, str] = field(default_factory=lambda: {
-        "snap": "thanos_dust",
-        "instant_transmission": "instant_transmission"
-    })
+    gesture_mappings: dict[str, str] = field(
+        default_factory=lambda: {
+            "snap": "thanos_dust",
+            "instant_transmission": "instant_transmission",
+        }
+    )
     cooldown_seconds: float = 1.5
     hotkey: str = "<ctrl>+<alt>+s"
     particle_count: int = 2500
