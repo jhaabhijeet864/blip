@@ -1,0 +1,62 @@
+# GitHub Automated Release Notes Configuration
+# Documentation: https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes
+
+changelog:
+  exclude:
+    labels:
+      - skip-changelog
+      - ignore
+      - no-release
+      - duplicate
+      - invalid
+      - question
+    authors:
+      - dependabot[bot]
+      - github-actions[bot]
+  categories:
+    - title: '🚀 New Features & Capabilities'
+      labels:
+        - feature
+        - feat
+        - enhancement
+    - title: '🐛 Bug Fixes & Stability'
+      labels:
+        - bug
+        - fix
+        - bugfix
+    - title: '⚡ Performance Optimizations'
+      labels:
+        - perf
+        - performance
+        - optimization
+    - title: '🎨 UI, Visual Effects & Showcase'
+      labels:
+        - ui
+        - effects
+        - web
+        - frontend
+        - style
+    - title: '📹 Camera, Video & Gesture Pipeline'
+      labels:
+        - camera
+        - devices
+        - vision
+        - gestures
+    - title: '📚 Documentation & Usage Guides'
+      labels:
+        - documentation
+        - docs
+    - title: '🛠️ Maintenance, Tooling & CI/CD'
+      labels:
+        - chore
+        - ci
+        - build
+        - refactor
+        - test
+    - title: '📦 Dependency Updates'
+      labels:
+        - dependencies
+        - deps
+    - title: '🔄 Other Changes'
+      labels:
+        - '*'

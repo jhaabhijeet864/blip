@@ -164,6 +164,11 @@ def main(args: list[str] | None = None) -> int:
         action="store_true",
         help="Skip running pytest verification before release (not recommended)",
     )
+    parser.add_argument(
+        "--preview-notes",
+        action="store_true",
+        help="Preview detailed release notes markdown for this target version",
+    )
 
     parsed = parser.parse_args(args)
 
@@ -176,6 +181,27 @@ def main(args: list[str] | None = None) -> int:
         target_version = calculate_bump(current_ver, parsed.bump)
 
     print(f"Target release version: v{target_version}")
+
+    if parsed.preview_notes:
+        try:
+            from scripts.generate_release_notes import (
+                build_release_notes,
+                get_git_commits,
+                get_previous_tag,
+            )
+
+            prev_tag = get_previous_tag(f"v{target_version}")
+            commits = get_git_commits(prev_tag, "HEAD")
+            notes = build_release_notes(
+                tag=f"v{target_version}",
+                previous_tag=prev_tag,
+                commits=commits,
+            )
+            print("\n--- [RELEASE NOTES PREVIEW] ---")
+            print(notes)
+            print("--- [END PREVIEW] ---\n")
+        except Exception as e:
+            print(f"Warning: Could not generate release notes preview: {e}", file=sys.stderr)
 
     # Check git status
     if not parsed.dry_run and not check_git_clean():
