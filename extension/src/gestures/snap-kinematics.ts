@@ -1,7 +1,7 @@
 import { BrowserVisionDetector } from "../vision/vision-detector";
 import { HandLandmarks } from "../vision/types";
 
-export type GestureEventType = "snap" | "goku";
+export type GestureEventType = "snap";
 
 export interface GestureTriggerEvent {
   type: GestureEventType;

@@ -23,50 +23,6 @@ export class BrowserVisionDetector {
     return this.calculateDistance2D(thumbTip, middleTip);
   }
 
-  public static calculateDualFingertipDistance(hand: HandLandmarks): number {
-    if (!hand || hand.length < 21) {
-      return 1.0;
-    }
-    const indexTip = hand[HandLandmarkIndex.INDEX_FINGER_TIP];
-    const middleTip = hand[HandLandmarkIndex.MIDDLE_FINGER_TIP];
-    return this.calculateDistance2D(indexTip, middleTip);
-  }
-
-  public static isTempleTouchPose(hand: HandLandmarks): boolean {
-    if (!hand || hand.length < 21) {
-      return false;
-    }
-
-    const indexTip = hand[HandLandmarkIndex.INDEX_FINGER_TIP];
-    const middleTip = hand[HandLandmarkIndex.MIDDLE_FINGER_TIP];
-    const ringTip = hand[HandLandmarkIndex.RING_FINGER_TIP];
-    const pinkyTip = hand[HandLandmarkIndex.PINKY_TIP];
-    const ringPip = hand[HandLandmarkIndex.RING_FINGER_PIP];
-    const pinkyPip = hand[HandLandmarkIndex.PINKY_PIP];
-    const wrist = hand[HandLandmarkIndex.WRIST];
-
-    // 1. Index and middle tips close together
-    const dualTipDist = this.calculateDistance2D(indexTip, middleTip);
-    if (dualTipDist > 0.08) {
-      return false;
-    }
-
-    // 2. Fingertips raised high in head/temple zone (upper 45% of camera frame)
-    if (indexTip.y > 0.45 || middleTip.y > 0.45) {
-      return false;
-    }
-
-    // 3. Wrist is distinctly lower than fingertips
-    if (wrist.y < indexTip.y + 0.12) {
-      return false;
-    }
-
-    // 4. Ring and pinky fingers are curled downward
-    const ringCurled = ringTip.y >= ringPip.y - 0.04;
-    const pinkyCurled = pinkyTip.y >= pinkyPip.y - 0.04;
-    return ringCurled && pinkyCurled;
-  }
-
   public static createSilhouetteAlphaMask(
     currentFrame: ImageData,
     backgroundPlate: ImageData | null,

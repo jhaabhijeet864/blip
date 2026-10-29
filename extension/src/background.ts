@@ -29,8 +29,8 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
 chrome.runtime.onMessage.addListener((message: BlipMessage, _sender, sendResponse) => {
   if (message.source === "blip-extension-popup") {
-    // Relay to active tab
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    // Relay to active tab in last focused window
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
       const activeTabId = tabs[0]?.id;
       if (activeTabId) {
         chrome.tabs.sendMessage(activeTabId, message, (response) => {
@@ -47,7 +47,7 @@ chrome.runtime.onMessage.addListener((message: BlipMessage, _sender, sendRespons
 
 chrome.commands.onCommand.addListener((command) => {
   if (command === "toggle-vanish") {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
       const activeTabId = tabs[0]?.id;
       if (activeTabId) {
         chrome.tabs.sendMessage(activeTabId, {

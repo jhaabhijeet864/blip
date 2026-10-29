@@ -97,6 +97,11 @@ describe("BlipStreamInterceptor WebRTC Interception", () => {
             videoWidth: 1280,
             videoHeight: 720,
             play: vi.fn().mockResolvedValue(undefined),
+            pause: vi.fn(),
+            setAttribute: vi.fn(),
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+            parentNode: null,
           };
         }
         return {};

@@ -31,34 +31,6 @@ describe("BrowserVisionDetector", () => {
     expect(dist).toBeCloseTo(0.03, 3);
   });
 
-  it("identifies authentic Goku temple-touch pose", () => {
-    const hand = createMockHand();
-    // Index and middle fingertips close together near temple/forehead (y = 0.22)
-    hand[HandLandmarkIndex.INDEX_FINGER_TIP] = { x: 0.72, y: 0.22, z: 0 };
-    hand[HandLandmarkIndex.MIDDLE_FINGER_TIP] = { x: 0.74, y: 0.23, z: 0 };
-
-    // Ring and pinky curled down
-    hand[HandLandmarkIndex.RING_FINGER_PIP] = { x: 0.68, y: 0.35, z: 0 };
-    hand[HandLandmarkIndex.RING_FINGER_TIP] = { x: 0.68, y: 0.42, z: 0 };
-    hand[HandLandmarkIndex.PINKY_PIP] = { x: 0.66, y: 0.38, z: 0 };
-    hand[HandLandmarkIndex.PINKY_TIP] = { x: 0.66, y: 0.45, z: 0 };
-
-    // Wrist low
-    hand[HandLandmarkIndex.WRIST] = { x: 0.7, y: 0.55, z: 0 };
-
-    const isTemple = BrowserVisionDetector.isTempleTouchPose(hand);
-    expect(isTemple).toBe(true);
-  });
-
-  it("rejects temple pose when fingers are held too low in the frame", () => {
-    const hand = createMockHand();
-    hand[HandLandmarkIndex.INDEX_FINGER_TIP] = { x: 0.5, y: 0.65, z: 0 }; // Too low!
-    hand[HandLandmarkIndex.MIDDLE_FINGER_TIP] = { x: 0.52, y: 0.65, z: 0 };
-
-    const isTemple = BrowserVisionDetector.isTempleTouchPose(hand);
-    expect(isTemple).toBe(false);
-  });
-
   it("creates accurate silhouette alpha mask with plate subtraction", () => {
     const w = 10;
     const h = 10;

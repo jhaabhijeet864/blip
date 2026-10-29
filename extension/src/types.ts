@@ -1,6 +1,5 @@
 export type BlipActionType =
   | "BLIP_TRIGGER_SNAP"
-  | "BLIP_TRIGGER_GOKU"
   | "BLIP_TRIGGER_REAPPEAR"
   | "BLIP_CALIBRATE"
   | "BLIP_UPDATE_CONFIG"
@@ -10,7 +9,7 @@ export type BlipActionType =
   | "BLIP_LOG";
 
 export type DustDirection = "up" | "left" | "right" | "radial";
-export type GestureEffectType = "snap" | "goku";
+export type GestureEffectType = "snap";
 
 export interface BlipConfig {
   enabled: boolean;
@@ -35,7 +34,7 @@ export const DEFAULT_BLIP_CONFIG: BlipConfig = {
 export interface BlipState {
   isIntercepted: boolean;
   isVanished: boolean;
-  currentEffect: "none" | "snap" | "goku";
+  currentEffect: "none" | "snap";
   hasBackgroundPlate: boolean;
   fps: number;
   lastGestureTime: number;

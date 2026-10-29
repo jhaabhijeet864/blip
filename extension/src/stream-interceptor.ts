@@ -8,7 +8,6 @@ import {
 import { AudioClickDetector } from "./audio/click-detector";
 import { DualTriggerSnapKinematics } from "./gestures/snap-kinematics";
 import { CanvasParticlePool } from "./effects/particles";
-import { GokuSpeedlinesRenderer } from "./effects/goku-speedlines";
 import { BackgroundPlateManager } from "./effects/plate-manager";
 import { MeetingMuteManager } from "./effects/mute-manager";
 
@@ -31,7 +30,6 @@ export class BlipStreamInterceptor {
   private kinematics: DualTriggerSnapKinematics;
   private audioDetector: AudioClickDetector;
   private particlePool: CanvasParticlePool;
-  private speedlinesRenderer: GokuSpeedlinesRenderer;
   private plateManager: BackgroundPlateManager;
   private muteManager: MeetingMuteManager;
 
@@ -70,7 +68,6 @@ export class BlipStreamInterceptor {
     this.kinematics = new DualTriggerSnapKinematics(0.06, 1500);
     this.audioDetector = new AudioClickDetector(this.config.audioClickThreshold);
     this.particlePool = new CanvasParticlePool(3000);
-    this.speedlinesRenderer = new GokuSpeedlinesRenderer(48);
     this.plateManager = new BackgroundPlateManager();
     this.muteManager = new MeetingMuteManager();
 
@@ -141,13 +138,29 @@ export class BlipStreamInterceptor {
   }
 
   private setupProcessingPipeline(realStream: MediaStream): void {
-    // 1. Create hidden video element to render raw camera stream
+    // 1. Create off-screen video element attached to DOM to guarantee hardware decoding in Chromium
     this.hiddenVideo = document.createElement("video");
+    this.hiddenVideo.id = "blip-internal-camera-feed";
     this.hiddenVideo.autoplay = true;
     this.hiddenVideo.muted = true;
     this.hiddenVideo.playsInline = true;
-    this.hiddenVideo.style.display = "none";
+    if (typeof this.hiddenVideo.setAttribute === "function") {
+      this.hiddenVideo.setAttribute("playsinline", "");
+      this.hiddenVideo.setAttribute("webkit-playsinline", "");
+    }
+    this.hiddenVideo.style.position = "fixed";
+    this.hiddenVideo.style.top = "-9999px";
+    this.hiddenVideo.style.left = "-9999px";
+    this.hiddenVideo.style.width = "640px";
+    this.hiddenVideo.style.height = "360px";
+    this.hiddenVideo.style.opacity = "0";
+    this.hiddenVideo.style.pointerEvents = "none";
+    this.hiddenVideo.style.zIndex = "-99999";
     this.hiddenVideo.srcObject = realStream;
+
+    if (typeof document !== "undefined" && (document.body || document.documentElement)) {
+      (document.body || document.documentElement).appendChild(this.hiddenVideo);
+    }
 
     // 2. Create offscreen canvas for rendering effects
     this.processingCanvas = document.createElement("canvas");
@@ -173,16 +186,24 @@ export class BlipStreamInterceptor {
       this.audioDetector.start(realStream);
     }
 
-    this.hiddenVideo.onloadedmetadata = () => {
+    const updateDimensions = () => {
       if (this.hiddenVideo && this.processingCanvas && this.backgroundPlateCanvas) {
         const w = this.hiddenVideo.videoWidth || 1280;
         const h = this.hiddenVideo.videoHeight || 720;
-        this.processingCanvas.width = w;
-        this.processingCanvas.height = h;
-        this.backgroundPlateCanvas.width = w;
-        this.backgroundPlateCanvas.height = h;
+        if (w > 0 && h > 0) {
+          this.processingCanvas.width = w;
+          this.processingCanvas.height = h;
+          this.backgroundPlateCanvas.width = w;
+          this.backgroundPlateCanvas.height = h;
+        }
       }
     };
+
+    if (typeof this.hiddenVideo.addEventListener === "function") {
+      this.hiddenVideo.addEventListener("loadedmetadata", updateDimensions);
+      this.hiddenVideo.addEventListener("canplay", updateDimensions);
+    }
+    updateDimensions();
 
     this.hiddenVideo.play().catch(() => {
       // Autoplay handled by browser permission grant
@@ -224,7 +245,7 @@ export class BlipStreamInterceptor {
       return;
     }
 
-    // Case 2: Transition effect active (Snap or Goku)
+    // Case 2: Transition effect active (Thanos Snap Vanish)
     if (this.state.currentEffect !== "none") {
       this.renderEffectFrame(w, h);
       return;
@@ -268,20 +289,6 @@ export class BlipStreamInterceptor {
       // Render drifting ash particles with particle pool
       this.particlePool.update(1 / 30, performance.now() / 1000);
       this.particlePool.render(this.processingCtx);
-    } else if (this.state.currentEffect === "goku") {
-      // Goku Instant Transmission: Anime speedlines + white exposure flash
-      if (this.state.hasBackgroundPlate && this.backgroundPlateCanvas) {
-        this.processingCtx.drawImage(this.backgroundPlateCanvas, 0, 0, w, h);
-      }
-
-      this.processingCtx.save();
-      const flashAlpha = Math.max(0, 1.0 - this.effectProgress * 2);
-      this.processingCtx.globalAlpha = flashAlpha;
-      this.processingCtx.drawImage(this.hiddenVideo, 0, 0, w, h);
-      this.processingCtx.restore();
-
-      // Radial speedlines
-      this.speedlinesRenderer.render(this.processingCtx, w, h, this.effectProgress);
     }
 
     if (this.effectProgress >= 1.0) {
@@ -345,17 +352,36 @@ export class BlipStreamInterceptor {
     this.broadcastState();
   }
 
-  public captureBackgroundPlate(): boolean {
-    if (!this.hiddenVideo || !this.backgroundPlateCtx || !this.backgroundPlateCanvas) {
+  public captureBackgroundPlate(sourceVideo?: HTMLVideoElement): boolean {
+    const video = sourceVideo || this.hiddenVideo;
+    if (!video || !this.backgroundPlateCtx || !this.backgroundPlateCanvas) {
       return false;
     }
 
-    const w = this.backgroundPlateCanvas.width;
-    const h = this.backgroundPlateCanvas.height;
-    this.backgroundPlateCtx.drawImage(this.hiddenVideo, 0, 0, w, h);
-    this.state.hasBackgroundPlate = true;
-    this.broadcastState();
-    return true;
+    const w = video.videoWidth || this.backgroundPlateCanvas.width || 1280;
+    const h = video.videoHeight || this.backgroundPlateCanvas.height || 720;
+    this.backgroundPlateCanvas.width = w;
+    this.backgroundPlateCanvas.height = h;
+
+    try {
+      this.backgroundPlateCtx.drawImage(video, 0, 0, w, h);
+      this.state.hasBackgroundPlate = true;
+      this.broadcastState();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  public getBackgroundPlateDataUrl(): string | null {
+    if (!this.state.hasBackgroundPlate || !this.backgroundPlateCanvas) {
+      return null;
+    }
+    try {
+      return this.backgroundPlateCanvas.toDataURL("image/jpeg", 0.85);
+    } catch {
+      return null;
+    }
   }
 
   public setMicrophoneMuted(muted: boolean): void {
@@ -431,9 +457,6 @@ export class BlipStreamInterceptor {
         case "BLIP_TRIGGER_SNAP":
           this.triggerVanish("snap");
           break;
-        case "BLIP_TRIGGER_GOKU":
-          this.triggerVanish("goku");
-          break;
         case "BLIP_TRIGGER_REAPPEAR":
           this.triggerReappear();
           break;
@@ -453,6 +476,16 @@ export class BlipStreamInterceptor {
     if (this.animationFrameId !== null) {
       this.safeCancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
+    }
+    if (this.hiddenVideo) {
+      if (typeof this.hiddenVideo.pause === "function") {
+        this.hiddenVideo.pause();
+      }
+      this.hiddenVideo.srcObject = null;
+      if (this.hiddenVideo.parentNode && typeof this.hiddenVideo.parentNode.removeChild === "function") {
+        this.hiddenVideo.parentNode.removeChild(this.hiddenVideo);
+      }
+      this.hiddenVideo = null;
     }
     if (this.realStream) {
       for (const track of this.realStream.getTracks()) {

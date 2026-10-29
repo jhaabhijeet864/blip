@@ -48,9 +48,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       payload,
       timestamp: Date.now(),
     };
-    chrome.runtime.sendMessage(message, (response) => {
-      if (chrome.runtime.lastError) {
-        // Tab not listening or not on meeting page
+
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+      const activeTabId = tabs[0]?.id;
+      if (activeTabId) {
+        chrome.tabs.sendMessage(activeTabId, message, () => {
+          if (chrome.runtime.lastError) {
+            chrome.runtime.sendMessage(message);
+          }
+        });
+      } else {
+        chrome.runtime.sendMessage(message);
       }
     });
   }
@@ -75,14 +83,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     sendTabMessage("BLIP_TRIGGER_REAPPEAR");
   });
 
+  let calibTimer: number | null = null;
   btnCalibrate.addEventListener("click", () => {
-    sendTabMessage("BLIP_CALIBRATE");
-    btnCalibrate.textContent = "Calibrating...";
-    setTimeout(() => {
-      btnCalibrate.textContent = "Plate Captured!";
-      setTimeout(() => {
-        btnCalibrate.textContent = "Calibrate Room Plate (3s)";
-      }, 1500);
+    if (calibTimer !== null) return;
+
+    let countdown = 3;
+    btnCalibrate.disabled = true;
+    btnCalibrate.textContent = `Step aside! ${countdown}...`;
+
+    sendTabMessage("BLIP_CALIBRATE_START", { seconds: countdown });
+
+    calibTimer = window.setInterval(() => {
+      countdown--;
+      if (countdown > 0) {
+        btnCalibrate.textContent = `Step aside! ${countdown}...`;
+      } else {
+        clearInterval(calibTimer!);
+        calibTimer = null;
+
+        // Perform plate snapshot now that user has stepped aside
+        sendTabMessage("BLIP_CALIBRATE");
+        btnCalibrate.textContent = "Captured! Sit down";
+
+        setTimeout(() => {
+          btnCalibrate.disabled = false;
+          btnCalibrate.textContent = "Calibrate Room Plate (3s)";
+        }, 2500);
+      }
     }, 1000);
   });
 

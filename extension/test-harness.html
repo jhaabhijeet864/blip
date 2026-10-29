@@ -434,6 +434,13 @@
           <div class="diag-label">ACTIVE VIDEO TRACK</div>
           <div class="diag-val" id="diag-track">None</div>
         </div>
+        <div class="diag-item" style="grid-column: 1 / -1;">
+          <div class="diag-label">CAPTURED EMPTY ROOM PLATE PREVIEW</div>
+          <div id="plate-preview-container" style="margin-top: 6px; display: flex; align-items: center; gap: 12px;">
+            <img id="plate-preview-img" style="width: 140px; aspect-ratio: 16/9; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); display: none; background: #000;" />
+            <div id="plate-preview-status" style="font-size: 11px; color: var(--muted);">Click "Calibrate Room Plate (3s)", step aside for 3s, and your empty room snapshot will appear here.</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -542,7 +549,15 @@
 
           // Trigger capture on interceptor
           if (window.__BLIP_INTERCEPTOR__) {
-            window.__BLIP_INTERCEPTOR__.captureBackgroundPlate();
+            window.__BLIP_INTERCEPTOR__.captureBackgroundPlate(video);
+            const dataUrl = window.__BLIP_INTERCEPTOR__.getBackgroundPlateDataUrl();
+            if (dataUrl) {
+              const previewImg = document.getElementById("plate-preview-img");
+              const previewStatus = document.getElementById("plate-preview-status");
+              previewImg.src = dataUrl;
+              previewImg.style.display = "block";
+              previewStatus.innerHTML = '<span style="color: var(--success); font-weight: 700;">Plate Active!</span> Empty room verified. Now click <b>Snap to Dust</b> (or press S) to vanish.';
+            }
           } else {
             window.postMessage({
               source: "blip-extension-popup",

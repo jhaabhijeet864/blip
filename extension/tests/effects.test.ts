@@ -1,6 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { CanvasParticlePool } from "../src/effects/particles";
-import { GokuSpeedlinesRenderer } from "../src/effects/goku-speedlines";
 
 describe("CanvasParticlePool", () => {
   it("spawns particles matching silhouette mask and samples video frame colors", () => {
@@ -58,30 +57,6 @@ describe("CanvasParticlePool", () => {
     pool.update(0.1, 0); // 100ms exceeds 50ms life
     expect(pool.getActiveCount()).toBe(0);
     expect(pool.isAlive()).toBe(false);
-  });
-});
-
-describe("GokuSpeedlinesRenderer", () => {
-  it("computes radial anime speedlines without errors", () => {
-    const renderer = new GokuSpeedlinesRenderer(36);
-    const mockCtx = {
-      save: vi.fn(),
-      restore: vi.fn(),
-      beginPath: vi.fn(),
-      moveTo: vi.fn(),
-      lineTo: vi.fn(),
-      stroke: vi.fn(),
-      arc: vi.fn(),
-      fillRect: vi.fn(),
-      fillStyle: "",
-      strokeStyle: "",
-      lineWidth: 1,
-    } as unknown as CanvasRenderingContext2D;
-
-    renderer.render(mockCtx, 1280, 720, 0.25);
-    expect(mockCtx.save).toHaveBeenCalled();
-    expect(mockCtx.stroke).toHaveBeenCalled();
-    expect(mockCtx.restore).toHaveBeenCalled();
   });
 });
 
