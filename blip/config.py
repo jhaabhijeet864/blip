@@ -42,6 +42,7 @@ class BlipConfig:
     sound_enabled: bool = True
     theme: str = "dark"
     sidebar_width: int = 340
+    auto_gestures_enabled: bool = False
 
     @classmethod
     def load(cls, path: Path | None = None) -> BlipConfig:

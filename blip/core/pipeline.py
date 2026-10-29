@@ -224,8 +224,10 @@ class VideoPipeline:
         hands_data: list[HandLandmarkData] = []
         detected_gesture: str | None = None
 
+        auto_gestures = getattr(self.config, "auto_gestures_enabled", False)
         if (
-            self.hand_tracker
+            auto_gestures
+            and self.hand_tracker
             and not self.bg_manager.is_calibrating()
             and self.state in (PipelineState.NORMAL, PipelineState.DISAPPEARED)
         ):

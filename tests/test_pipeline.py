@@ -154,6 +154,7 @@ def test_pipeline_process_frame_calibration():
 def test_pipeline_disappearing_and_disappeared_lifecycle():
     """Verify full gesture trigger to disappearing, disappeared, and reappear."""
     pipeline = VideoPipeline()
+    pipeline.config.auto_gestures_enabled = True
     effect = ThanosSnapEffect(duration_frames=2, particle_count=100)
     pipeline.effects_map = {"thanos_dust": effect}
 
@@ -218,6 +219,7 @@ def test_pipeline_reappear_with_effect():
 def test_pipeline_gesture_cooldown():
     """Verify rapid consecutive gestures are suppressed by cooldown."""
     pipeline = VideoPipeline()
+    pipeline.config.auto_gestures_enabled = True
     pipeline.config.cooldown_seconds = 2.0
     pipeline.hand_tracker = MagicMock()
     pipeline.hand_tracker.process.return_value = [
@@ -292,3 +294,15 @@ def test_pipeline_open_camera_fallback():
             cap = pipeline._open_camera(index=None)
             assert cap is mock_good_cap
             assert pipeline.config.camera_index == 1
+
+
+def test_pipeline_auto_gestures_disabled_prevents_firing():
+    """Verify gestures are ignored when auto_gestures_enabled is False."""
+    pipeline = VideoPipeline()
+    pipeline.config.auto_gestures_enabled = False
+    pipeline.hand_tracker = MagicMock()
+    pipeline.gesture_evaluator = MagicMock(return_value="snap")
+    frame = np.full((720, 1280, 3), 100, dtype=np.uint8)
+    pipeline.process_frame(frame, now=10.0)
+    assert pipeline.state == PipelineState.NORMAL
+    pipeline.hand_tracker.process.assert_not_called()

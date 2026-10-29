@@ -439,7 +439,42 @@ class BlipApp(ctk.CTk):
             text="GESTURE TRIGGERS",
             font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11, weight="bold"),
             text_color=Theme.TEXT_MUTED,
-        ).pack(anchor="w", padx=14, pady=(12, 8))
+        ).pack(anchor="w", padx=14, pady=(12, 4))
+
+        # Master toggle for automatic gesture firing
+        auto_row = ctk.CTkFrame(card_gestures, fg_color="transparent")
+        auto_row.pack(fill="x", padx=14, pady=(0, 8))
+
+        self.auto_gesture_switch = ctk.CTkSwitch(
+            auto_row,
+            text="Auto-Fire on Gestures",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=12, weight="bold"),
+            text_color=Theme.TEXT_PRIMARY,
+            command=self._on_auto_gesture_toggled,
+        )
+        if getattr(self.config, "auto_gestures_enabled", False):
+            self.auto_gesture_switch.select()
+        else:
+            self.auto_gesture_switch.deselect()
+        self.auto_gesture_switch.pack(anchor="w", pady=(0, 2))
+
+        self.auto_gesture_hint = ctk.CTkLabel(
+            auto_row,
+            text=(
+                "⚡ Active: Dissolves when snap or temple tap is recognized."
+                if getattr(self.config, "auto_gestures_enabled", False)
+                else "🔒 Restricted: Auto-fire paused. Use dock buttons or hotkey."
+            ),
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=10),
+            text_color=(
+                Theme.STATUS_LIVE
+                if getattr(self.config, "auto_gestures_enabled", False)
+                else Theme.TEXT_MUTED
+            ),
+            wraplength=260,
+            justify="left",
+        )
+        self.auto_gesture_hint.pack(anchor="w", pady=(0, 4))
 
         effect_options = [name for _, name in self.effect_registry.list_effects()]
         self.key_by_name = {name: k for k, name in self.effect_registry.list_effects()}
@@ -588,6 +623,23 @@ class BlipApp(ctk.CTk):
         except Exception:
             pass
 
+    def _on_auto_gesture_toggled(self) -> None:
+        """Toggle automatic gesture sensing and firing."""
+        is_on = bool(self.auto_gesture_switch.get())
+        self.config.auto_gestures_enabled = is_on
+        self.pipeline.config.auto_gestures_enabled = is_on
+        self.config.save()
+        if is_on:
+            self.auto_gesture_hint.configure(
+                text="⚡ Active: Dissolves when snap or temple tap is recognized.",
+                text_color=Theme.STATUS_LIVE,
+            )
+        else:
+            self.auto_gesture_hint.configure(
+                text="🔒 Restricted: Auto-fire paused. Use dock buttons or hotkey.",
+                text_color=Theme.TEXT_MUTED,
+            )
+
     def _on_theme_changed(self, choice: str) -> None:
         """Switch appearance mode dynamically between Light and Dark."""
         mode = "light" if "Light" in choice else "dark"
@@ -706,7 +758,14 @@ class BlipApp(ctk.CTk):
         # Update State badge with contextual styling
         state = self.pipeline.state
         if state == PipelineState.NORMAL:
-            self.status_badge.configure(text="● LIVE STREAMING", text_color=Theme.STATUS_LIVE)
+            if getattr(self.config, "auto_gestures_enabled", False):
+                self.status_badge.configure(
+                    text="● LIVE • GESTURES ON", text_color=Theme.STATUS_LIVE
+                )
+            else:
+                self.status_badge.configure(
+                    text="● LIVE (SAFE • MANUAL ONLY)", text_color=Theme.STATUS_LIVE
+                )
         elif state == PipelineState.CALIBRATING:
             rem = self.pipeline.bg_manager.countdown_remaining
             self.status_badge.configure(

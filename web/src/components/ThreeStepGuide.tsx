@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Camera, Hand, Video, ArrowRight } from "lucide-react";
+import { Camera, Hand, Video } from "lucide-react";
 
 export default function ThreeStepGuide() {
   const steps = [
@@ -30,15 +30,15 @@ export default function ThreeStepGuide() {
 
   return (
     <section id="how-it-works" className="py-24 bg-[#09090b] relative">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16">
+      <div className="max-w-[1400px] mx-auto px-6 sm:px-10 lg:px-16">
+        <div className="text-center max-w-4xl mx-auto mb-16">
           <span className="text-xs uppercase tracking-wider font-bold text-amber-400">
             Frictionless Setup
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-2">
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mt-2">
             Up and running in 30 seconds.
           </h2>
-          <p className="mt-3 text-base text-zinc-400">
+          <p className="mt-4 text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto">
             No complex configuration. Built for everyday video calls.
           </p>
         </div>
@@ -49,28 +49,28 @@ export default function ThreeStepGuide() {
             return (
               <div
                 key={idx}
-                className="rounded-2xl p-7 bg-[#121214] border border-zinc-800/80 hover:border-zinc-700 transition-all flex flex-col justify-between relative group"
+                className="rounded-2xl p-8 sm:p-9 bg-[#121214] border border-zinc-800/80 hover:border-zinc-700 transition-all flex flex-col justify-between relative group"
               >
                 <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <span className="text-3xl font-black font-mono text-zinc-700 group-hover:text-amber-400/80 transition-colors">
+                  <div className="flex items-center justify-between mb-8">
+                    <span className="text-4xl font-black font-mono text-zinc-700 group-hover:text-amber-400/80 transition-colors">
                       {step.num}
                     </span>
-                    <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300">
-                      <Icon className="w-5 h-5 text-zinc-300" />
+                    <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300">
+                      <Icon className="w-6 h-6 text-zinc-300" />
                     </div>
                   </div>
 
-                  <h3 className="text-xl font-bold text-white mb-2.5">
+                  <h3 className="text-2xl font-bold text-white mb-3">
                     {step.title}
                   </h3>
-                  <p className="text-sm text-zinc-400 leading-relaxed mb-6">
+                  <p className="text-sm sm:text-base text-zinc-400 leading-relaxed mb-8">
                     {step.desc}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-zinc-900 text-xs text-zinc-500 font-medium flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <div className="pt-5 border-t border-zinc-900 text-xs sm:text-sm text-zinc-500 font-medium flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
                   {step.tip}
                 </div>
               </div>

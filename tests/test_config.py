@@ -15,6 +15,7 @@ def test_config_default_initialization():
     assert cfg.vcam_backend == "obs"
     assert cfg.cooldown_seconds == 1.5
     assert cfg.particle_count == 1500
+    assert cfg.auto_gestures_enabled is False
 
 
 def test_config_save_and_reload(tmp_path):

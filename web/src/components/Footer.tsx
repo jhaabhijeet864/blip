@@ -1,15 +1,22 @@
 "use client";
 
 import React from "react";
-import { Zap, Heart, Github, ExternalLink } from "lucide-react";
+import Image from "next/image";
+import { Github } from "lucide-react";
 
 export default function Footer() {
   return (
     <footer className="py-12 bg-[#09090b] border-t border-zinc-900 text-xs text-zinc-500">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-md bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-            <Zap className="w-4 h-4 text-amber-400" />
+      <div className="max-w-[1400px] mx-auto px-6 sm:px-10 lg:px-16 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1.5 overflow-hidden">
+            <Image
+              src="/logo.svg"
+              alt="Blip Logo"
+              width={22}
+              height={22}
+              className="w-full h-full object-contain"
+            />
           </div>
           <div>
             <span className="font-bold text-white tracking-tight">BLIP</span>
@@ -22,7 +29,7 @@ export default function Footer() {
             href="https://github.com/jhaabhijeet864/blip"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-zinc-300 transition-colors flex items-center gap-1"
+            className="hover:text-zinc-300 transition-colors flex items-center gap-1.5"
           >
             <Github className="w-3.5 h-3.5" />
             GitHub

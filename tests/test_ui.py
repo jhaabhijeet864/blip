@@ -90,6 +90,20 @@ def test_blip_app_initialization_and_events(
         assert app.config.sound_enabled is True
         assert app.pipeline.sound_manager.enabled is True
 
+    # Test auto gesture toggle
+    app.auto_gesture_switch = MagicMock()
+    app.auto_gesture_hint = MagicMock()
+    app.auto_gesture_switch.get.return_value = 1
+    with patch.object(cfg, "save"):
+        app._on_auto_gesture_toggled()
+        assert app.config.auto_gestures_enabled is True
+        assert app.pipeline.config.auto_gestures_enabled is True
+
+        app.auto_gesture_switch.get.return_value = 0
+        app._on_auto_gesture_toggled()
+        assert app.config.auto_gestures_enabled is False
+        assert app.pipeline.config.auto_gestures_enabled is False
+
     # Test camera device selection
     dev2 = CameraDevice(index=2, name="Logitech Brio", is_active=True, is_virtual=False)
     app.camera_device_map = {dev2.display_label: dev2}

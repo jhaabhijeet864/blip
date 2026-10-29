@@ -9,7 +9,7 @@ export default function FaqSection() {
   const faqs = [
     {
       q: "Will people in my meeting know I'm using Blip?",
-      a: "No! Google Meet, Zoom, and Teams simply treat Blip as a regular webcam device. Everyone in the call just sees you dissolve or teleport away into your empty chair, exactly like a camera feed.",
+      a: "No! Google Meet, Zoom, and Teams simply treat Blip as a regular webcam device. Everyone in the call just sees you dissolve or teleport away into your empty chair, exactly like a natural camera feed.",
     },
     {
       q: "Do I need a green screen or special studio lighting?",
@@ -35,20 +35,20 @@ export default function FaqSection() {
 
   return (
     <section id="faq" className="py-24 bg-[#0c0c0e] relative border-t border-zinc-900">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-16">
+      <div className="max-w-5xl mx-auto px-6 sm:px-10 lg:px-16">
+        <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-xs uppercase tracking-wider font-bold text-amber-400">
             Common Questions
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-2">
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mt-2">
             Frequently Asked Questions
           </h2>
-          <p className="mt-3 text-base text-zinc-400">
+          <p className="mt-4 text-base sm:text-lg text-zinc-400">
             Everything you need to know about using Blip on your calls.
           </p>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3.5">
           {faqs.map((faq, idx) => {
             const isOpen = openIdx === idx;
             return (
@@ -58,18 +58,18 @@ export default function FaqSection() {
               >
                 <button
                   onClick={() => setOpenIdx(isOpen ? null : idx)}
-                  className="w-full p-5 text-left flex items-center justify-between text-sm sm:text-base font-bold text-white hover:text-amber-400 transition-colors"
+                  className="w-full p-5 sm:p-6 text-left flex items-center justify-between text-base sm:text-lg font-bold text-white hover:text-amber-400 transition-colors"
                 >
                   <span>{faq.q}</span>
                   <ChevronDown
-                    className={`w-4 h-4 text-zinc-400 transition-transform duration-200 shrink-0 ml-4 ${
+                    className={`w-5 h-5 text-zinc-400 transition-transform duration-200 shrink-0 ml-4 ${
                       isOpen ? "rotate-180 text-amber-400" : ""
                     }`}
                   />
                 </button>
 
                 {isOpen && (
-                  <div className="px-5 pb-5 text-xs sm:text-sm text-zinc-400 leading-relaxed border-t border-zinc-800/60 pt-3">
+                  <div className="px-5 pb-5 sm:px-6 sm:pb-6 text-sm text-zinc-400 leading-relaxed border-t border-zinc-800/60 pt-4">
                     {faq.a}
                   </div>
                 )}
