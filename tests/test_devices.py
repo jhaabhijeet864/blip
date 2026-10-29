@@ -17,12 +17,14 @@ from blip.core.devices import (
 
 
 def test_camera_device_display_label():
-    """Verify display_label reflects active, offline, and virtual status correctly."""
+    """Verify display_label reflects active, offline, phone app, and virtual status correctly."""
     d1 = CameraDevice(index=1, name="HP Wide Vision HD Camera", is_active=True, is_virtual=False)
     assert d1.display_label == "HP Wide Vision HD Camera (Active)"
+    assert d1.is_phone_bridge is False
 
     d2 = CameraDevice(index=0, name="DroidCam Video", is_active=False, is_virtual=False)
-    assert d2.display_label == "DroidCam Video (Offline / Disconnected)"
+    assert d2.display_label == "DroidCam Video (Phone App - Offline)"
+    assert d2.is_phone_bridge is True
 
     d3 = CameraDevice(index=2, name="OBS Virtual Camera", is_active=True, is_virtual=True)
     assert d3.display_label == "OBS Virtual Camera (Virtual Device)"

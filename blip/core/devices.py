@@ -5,8 +5,8 @@ Discovers active hardware cameras, friendly names, and handles DirectShow device
 
 from __future__ import annotations
 
-import sys
 from dataclasses import dataclass
+import sys
 from typing import List
 
 import cv2
@@ -23,14 +23,22 @@ class CameraDevice:
     resolution: tuple[int, int] = (1280, 720)
 
     @property
+    def is_phone_bridge(self) -> bool:
+        """Check if device is a phone-to-PC webcam streaming app."""
+        lower = self.name.lower()
+        return any(p in lower for p in ["droid", "iriun", "epoc", "camo"])
+
+    @property
     def display_label(self) -> str:
         """Formatted label for desktop UI dropdown."""
         if self.is_virtual:
             status = "Virtual Device"
+        elif self.is_phone_bridge:
+            status = "Phone App" if self.is_active else "Phone App - Offline"
         elif self.is_active:
             status = "Active"
         else:
-            status = "Offline / Disconnected"
+            status = "Offline"
         return f"{self.name} ({status})"
 
 
@@ -115,29 +123,23 @@ def get_best_default_camera(devices: List[CameraDevice] | None = None) -> int:
     """
     cam_list = devices if devices is not None else get_camera_devices()
 
-    # 1. Best match: Active physical webcam, excluding phone bridges
+    # 1. Best match: Active genuine physical webcam (NOT virtual, NOT phone bridge)
     for dev in cam_list:
-        lower_name = dev.name.lower()
-        is_phone_cam = any(p in lower_name for p in ["droid", "iriun", "epoc", "camo"])
-        if dev.is_active and not dev.is_virtual and not is_phone_cam:
+        if dev.is_active and not dev.is_virtual and not dev.is_phone_bridge:
             return dev.index
 
-    # 2. Secondary match: Any active physical camera
+    # 2. Secondary match: Any genuine physical camera even if transiently busy
+    for dev in cam_list:
+        if not dev.is_virtual and not dev.is_phone_bridge:
+            return dev.index
+
+    # 3. Third match: Any active physical camera (including phone apps)
     for dev in cam_list:
         if dev.is_active and not dev.is_virtual:
             return dev.index
 
-    # 3. Third match: Any active camera
-    for dev in cam_list:
-        if dev.is_active:
-            return dev.index
-
-    # 4. Fallback: First non-virtual camera or 0
-    for dev in cam_list:
-        if not dev.is_virtual:
-            return dev.index
-
-    return 0
+    # 4. Fallback: First camera
+    return cam_list[0].index if cam_list else 0
 
 
 def list_available_cameras(max_tested: int = 5) -> List[int]:
