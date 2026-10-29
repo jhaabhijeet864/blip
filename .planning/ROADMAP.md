@@ -63,8 +63,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 08-01: Implement SIMD particle pool simulation (`glam`/`rayon`) for Thanos dust and Goku anime flash effects.
-- [ ] 08-02: Implement empty room background plate manager with countdown calibration, LAB luminance compensation, and fluid reappearance.
+- [x] 08-01: Implement SIMD particle pool simulation (`glam`/`rayon`) for Thanos dust and Goku anime flash effects.
+- [x] 08-02: Implement empty room background plate manager with countdown calibration, LAB luminance compensation, and fluid reappearance.
 
 ---
 
@@ -115,6 +115,6 @@ Phases execute in numeric order: Phase 6 → Phase 7 → Phase 8 → Phase 9 →
 | 5. Packaging, Testing & CI/CD | 1/1 | Complete | 2026-10-29 |
 | 6. Native Rust Capture & Virtual Camera | 2/2 | Complete | 2026-10-29 |
 | 7. Embedded ONNX Neural Vision & Kinematics | 2/2 | Complete | 2026-10-29 |
-| 8. SIMD Effects & Background Plate | 0/2 | Not Started | — |
+| 8. SIMD Effects & Background Plate | 2/2 | Complete | 2026-10-29 |
 | 9. Modern Tauri v2 Desktop Shell | 0/2 | Not Started | — |
 | 10. Packaging, Verification & CI/CD | 0/1 | Not Started | — |

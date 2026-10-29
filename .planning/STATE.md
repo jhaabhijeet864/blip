@@ -9,19 +9,19 @@ See: `.planning/PROJECT.md` (updated 2026-10-29)
 
 ## Current Position
 
-Phase: 8 of 10 (High-Performance SIMD Effects & Background Plate)
+Phase: 9 of 10 (Modern Tauri v2 Desktop Shell & UI Ergonomics)
 Plan: 0 of 2 in current phase
-Status: Ready to plan Phase 8
-Last activity: 2026-10-29 — Completed Phase 7 (Embedded ONNX Neural Vision & Kinematics) with 20 Rust tests passing 100%.
+Status: Ready to discuss Phase 9
+Last activity: 2026-10-29 — Completed Phase 8 (High-Performance SIMD Effects & Background Plate) with 27 Rust tests passing 100%.
 
-Progress: [███████░░░] 70%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
+- Total plans completed: 9
 - Average duration: 5 min
-- Total execution time: 0.6 hours
+- Total execution time: 0.8 hours
 
 **By Phase:**
 
@@ -32,6 +32,9 @@ Progress: [███████░░░] 70%
 | 3. Flagship Gesture & Effect Engines | 2/2 | 0.2h | 0.1h |
 | 4. Modern Desktop GUI | 1/1 | 0.1h | 0.1h |
 | 5. Packaging, Testing & CI/CD | 1/1 | 0.1h | 0.1h |
+| 6. Native Rust Capture & Virtual Camera | 2/2 | 0.2h | 0.1h |
+| 7. Embedded ONNX Neural Vision & Kinematics | 2/2 | 0.2h | 0.1h |
+| 8. SIMD Effects & Background Plate | 2/2 | 0.2h | 0.1h |
 
 **Recent Trend:**
 - Trend: Stable (Scope refined & approved)
