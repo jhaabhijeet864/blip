@@ -1,11 +1,13 @@
 <div align="center">
 
-# ⚡ Blip
+<img src="assets/logo.svg" alt="Blip Logo" width="110" height="110" />
 
-### *Now you see me. Blip.*
+# Blip
 
-**A viral, high-performance, gesture-triggered virtual camera for Google Meet, Zoom, and Teams.**  
-*Snap your fingers like Thanos to dissolve into ash, or tap your temple like Goku to flash-teleport out of awkward meetings.*
+**Now you see me. Blip.**
+
+A high-performance, gesture-triggered virtual camera for Google Meet, Zoom, and Microsoft Teams.  
+Snap your fingers like Thanos to dissolve into ash, or tap your temple like Goku to teleport out of calls.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
@@ -13,66 +15,49 @@
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)]()
 [![Privacy: 100% Offline](https://img.shields.io/badge/Privacy-100%25%20Offline-success.svg)](SECURITY.md)
 
-[Features](#-features) • [Quickstart](#-quickstart) • [How to Use in Google Meet](#-how-to-use-in-google-meet) • [Architecture](#-architecture) • [Custom Effects](#-adding-custom-effects) • [Contributing](#-contributing)
-
----
-
-```
-        🤌 SNAP FINGERS                👉 TAP TEMPLE
-              │                              │
-              ▼                              ▼
-      🌪️ THANOS DUST                  ⚡ INSTANT TRANSMISSION
-(Dissolve into 3,000 particles)      (Anime speedlines & vanish)
-              │                              │
-              └───────────────┬──────────────┘
-                              ▼
-                 🪑 EMPTY CHAIR REVEALED
-            (Colleagues in disbelief on Meet)
-```
+[Features](#features) • [Quickstart](#quickstart) • [How to Use in Google Meet](#how-to-use-in-google-meet) • [Architecture](#architecture) • [Custom Effects](#adding-custom-effects) • [Contributing](#contributing)
 
 </div>
 
 ---
 
-## 💡 What is Blip?
+## Overview
 
-Ever been trapped in a meeting that could have been an email? Or wanted to make your team's standup unforgettable?
+Blip is a standalone desktop application that outputs an OS-level virtual camera stream. It runs local computer vision to track hand gestures in real time. When triggered, it executes cinematic visual effects and swaps your live silhouette for a pre-captured empty background frame, vanishing you from video calls in real time.
 
-**Blip** is a standalone desktop application that creates an OS-level **Virtual Camera**. It runs local computer vision to watch for specific hand gestures. The moment you trigger one, it renders real-time cinematic visual effects and swaps your live silhouette for a pre-captured empty background frame—making you disappear on screen in real time.
-
-Unlike fragile browser extensions that break with Google Meet updates, Blip acts as a **hardware-like virtual camera**. It works natively inside **Google Meet, Zoom, Microsoft Teams, Discord, Slack, and OBS**.
+Because Blip operates as a standard virtual camera device, it works natively with Google Meet, Zoom, Microsoft Teams, Discord, Slack, and OBS without requiring browser extensions or DOM tampering.
 
 ---
 
-## ✨ Features
+## Features
 
-- **🤌 The Thanos Snap:** MediaPipe detects thumb-and-middle-finger velocity flick. Your silhouette disintegrates into 2,000+ ash particles simulating wind drift before vanishing into your empty chair.
-- **⚡ Goku's Instant Transmission:** Two fingers to the temple triggers radial anime speed lines, a blinding flash overexposure, and an instantaneous cut to the empty room.
-- **✨ Fluid Reappearance:** Snap or tap again (or hit `Ctrl+Alt+S`) to seamlessly restore your video feed with zero glitching.
-- **📸 3-Second Background Calibration:** Step out of the frame, hit "Calibrate", and Blip captures a pristine, lighting-compensated clean plate of your empty room.
-- **🖥️ Zero-Terminal Desktop GUI:** Modern dark-mode interface built with CustomTkinter—live video canvas preview, sensitivity sliders, and dropdown selectors.
-- **🔒 100% Local & Private:** Zero cloud calls. No telemetry. Your camera stream never touches the internet.
-- **🧩 Modular Effect Engine:** Add your own movie/anime disappearance effects in just 20 lines of clean Python.
+- **The Thanos Snap:** MediaPipe detects thumb-and-middle-finger velocity flick. The silhouette dissolves into 2,000+ ash particles simulating wind drift before revealing the empty room plate.
+- **Goku Instant Transmission:** Two fingers extended to the temple trigger radial speed lines, a flash overexposure, and an instantaneous cut to the empty room.
+- **Fluid Reappearance:** Re-trigger the gesture or press `Ctrl+Alt+S` to restore the live camera feed without glitching.
+- **3-Second Background Calibration:** Step out of the frame, click Calibrate, and Blip captures a denoised, lighting-compensated clean plate of the empty room.
+- **Desktop GUI:** Dark-mode interface built with CustomTkinter featuring live canvas preview, sensitivity sliders, and dropdown selectors.
+- **100% Local and Private:** Zero cloud calls and no telemetry. Processing runs entirely on-device.
+- **Modular Effect Engine:** Extendable architecture allowing custom disappearance effects in clean Python.
 
 ---
 
-## 🚀 Quickstart
+## Quickstart
 
 ### Prerequisites
-1. **Python 3.10 or 3.11** installed.
-2. **Virtual Camera Driver:**
-   - **Windows:** [OBS Studio](https://obsproject.com/) (recommended — comes with OBS VirtualCam pre-installed) or Unity Virtual Camera.
-   - **Linux:** `v4l2loopback` (`sudo apt install v4l2loopback-dkms`)
-   - **macOS:** OBS VirtualCam DAL plugin.
+- Python 3.10 or 3.11
+- Virtual camera driver:
+  - Windows: OBS Studio (comes with OBS VirtualCam pre-installed) or Unity Virtual Camera.
+  - Linux: `v4l2loopback` (`sudo apt install v4l2loopback-dkms`)
+  - macOS: OBS VirtualCam DAL plugin
 
 ### Installation
 
 ```bash
-# 1. Clone the repository
+# Clone repository
 git clone https://github.com/jhaabhijeet864/blip.git
 cd blip
 
-# 2. Create and activate a virtual environment
+# Create and activate virtual environment
 python -m venv .venv
 
 # On Windows (PowerShell):
@@ -80,30 +65,29 @@ python -m venv .venv
 # On macOS / Linux:
 source .venv/bin/activate
 
-# 3. Upgrade pip and install dependencies
+# Install dependencies
 pip install --upgrade pip
 pip install -r requirements.txt
 pip install -e .
 
-# 4. Launch Blip!
+# Launch Blip
 python -m blip
 ```
 
 ---
 
-## 🎥 How to Use in Google Meet
+## How to Use in Google Meet
 
-1. Launch **Blip** on your desktop.
-2. In the Blip window, click **"📸 Calibrate Background"**. A 3-second countdown will begin—briefly lean or step out of camera view so Blip can snapshot your empty room.
-3. Click **"🚀 Start Virtual Camera"**.
-4. Open **Google Meet** in your browser (Chrome, Edge, Brave, or Firefox).
-5. In Google Meet, click **More Options (⋮) > Settings > Video**.
-6. Under **Camera**, select **"OBS Virtual Camera"** (or your active virtual camera device).
-7. Sit in front of the camera, join your meeting, and **snap your fingers**! 🤌🌪️
+1. Launch Blip on your desktop.
+2. In the Blip window, click **Calibrate Background**. A 3-second countdown will begin; step or lean out of camera view while Blip snapshots the empty room.
+3. Open **Google Meet** in your browser (Chrome, Edge, Brave, or Firefox).
+4. In Google Meet, open **More Options > Settings > Video**.
+5. Under **Camera**, select **OBS Virtual Camera** (or your active virtual camera device).
+6. Join your call, face the camera, and snap your fingers or tap your temple.
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -119,7 +103,7 @@ flowchart LR
     subgraph Core ["Blip Engine"]
         FSM["Gesture FSM\n(Debounce & Cooldown)"]
         FX["FX Engine\n(NumPy Vectorized Ash / Anime)"]
-        BG["Plate Manager\n(Empty Chair Cache)"]
+        BG["Plate Manager\n(Empty Room Cache)"]
     end
 
     subgraph Output ["Output Sink"]
@@ -140,9 +124,9 @@ flowchart LR
 
 ---
 
-## 🧩 Adding Custom Effects
+## Adding Custom Effects
 
-Blip's effect engine is designed for community expansion. To create a new disappearance trick:
+Blip uses an open effect architecture. To create a new disappearance effect:
 
 ```python
 # blip/effects/mario_pipe.py
@@ -154,21 +138,20 @@ class MarioPipeEffect(BaseEffect):
         super().__init__(name="Mario Warp Pipe", duration_frames=duration_frames)
 
     def render(self, frame: np.ndarray, mask: np.ndarray, background: np.ndarray) -> np.ndarray:
-        # Translate person silhouette downwards into an imaginary pipe
         progress = self.current_frame / self.duration_frames
         shift_y = int(frame.shape[0] * progress)
-        # Combine shifted person over background plate...
+        # Shift silhouette downward over background plate...
         return output_frame
 ```
 
-Register it in `blip/effects/registry.py` and open a Pull Request!
+Register the class in `blip/effects/registry.py` and open a Pull Request.
 
 ---
 
-## 🧪 Running Tests
+## Running Tests
 
 ```bash
-# Run full unit test suite
+# Run test suite
 pytest
 
 # Run linter
@@ -177,36 +160,33 @@ ruff check .
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
-- [x] **v0.1.0 (Current):** Open-source foundation, MediaPipe pipeline, Thanos Snap & Goku Instant Transmission, CustomTkinter desktop UI, virtual camera output.
-- [ ] **v0.2.0:** Sound effects sync (audio cue via virtual microphone).
+- [x] **v0.1.0:** Open-source foundation, MediaPipe pipeline, Thanos Snap, Goku Instant Transmission, CustomTkinter desktop UI, virtual camera output.
+- [ ] **v0.2.0:** Audio cue integration via virtual microphone.
 - [ ] **v0.3.0:** Ninja Smoke Bomb and Cyberpunk Glitch community effects.
-- [ ] **v1.0.0:** One-click standalone `.exe` installer (Inno Setup / PyInstaller release bundle).
+- [ ] **v1.0.0:** Standalone executable distribution (PyInstaller).
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-Please review our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md).
+Review the [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before submitting pull requests.
 
 ---
 
-## 🛡️ Security & Privacy
+## Security and Privacy
 
-Blip takes camera privacy seriously. Read our [Security Policy](SECURITY.md) for details on our strict zero-telemetry and offline guarantee.
+Blip does not send video or telemetry to external servers. Review the [Security Policy](SECURITY.md) for details on the local-first architecture.
 
 ---
 
-## 📄 License
+## License
 
-Distributed under the MIT License. See [`LICENSE`](LICENSE) for more information.
+Distributed under the MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
 <div align="center">
-Made with ⚡ by <a href="https://github.com/jhaabhijeet864">Abhijeet Jha</a> and the open-source community.
+Maintained by <a href="https://github.com/jhaabhijeet864">Abhijeet Jha</a> and the open-source community.
 </div>
-
