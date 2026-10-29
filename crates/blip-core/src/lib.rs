@@ -2,6 +2,9 @@
 
 pub mod capture;
 pub mod device;
+pub mod diagnostics;
+pub mod pipeline;
+pub mod vcam;
 
 use thiserror::Error;
 
