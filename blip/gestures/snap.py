@@ -12,6 +12,8 @@ from typing import Any
 
 from blip.gestures.base import BaseGesture, GestureResult
 from blip.vision.hand_tracker import (
+    INDEX_TIP,
+    MIDDLE_MCP,
     MIDDLE_TIP,
     THUMB_TIP,
     WRIST,
@@ -28,71 +30,116 @@ def euclidean_dist(p1, p2) -> float:
 
 class SnapGesture(BaseGesture):
     """
-    Detects the classic finger snap by analyzing thumb-middle finger contact phase
-    followed by rapid flick velocity into the palm.
+    Precision two-phase finger snap gesture detector:
+    Phase 1 (Tension/Loading): Thumb pad and middle fingertip press together (pinched).
+            Index finger is excluded to prevent false positives from 'OK' gestures.
+    Phase 2 (Snap/Strike): Rapid flick velocity where middle finger strikes down
+            into the palm / releases away from thumb within 1-3 frames.
     """
 
-    def __init__(self, min_confidence: float = 0.8):
+    def __init__(self, min_confidence: float = 0.85):
         super().__init__(name="snap", min_confidence=min_confidence)
-        # History of thumb-to-middle distances: (timestamp, distance)
-        self.history: deque[tuple[float, float]] = deque(maxlen=10)
-        self.is_pinched = False
+        # History stores tuples of (timestamp, thumb_middle_dist, wrist_x, wrist_y)
+        self.history: deque[tuple[float, float, float, float]] = deque(maxlen=6)
+        self.is_pinched: bool = False
         self.pinch_start_time: float = 0.0
 
     def reset(self) -> None:
-        """Reset internal history."""
+        """Reset internal detector state."""
         self.history.clear()
         self.is_pinched = False
         self.pinch_start_time = 0.0
 
     def detect(self, landmarks: list[Any], image_shape: tuple[int, int]) -> GestureResult:
         if len(landmarks) < 21:
+            self.reset()
             return GestureResult(gesture_name=self.name, is_detected=False, confidence=0.0)
 
         now = time.time()
+        wrist = landmarks[WRIST]
         thumb_tip = landmarks[THUMB_TIP]
         middle_tip = landmarks[MIDDLE_TIP]
-        wrist = landmarks[WRIST]
+        index_tip = landmarks[INDEX_TIP]
+        middle_mcp = landmarks[MIDDLE_MCP]
 
         # Normalization factor: hand span from wrist to middle knuckle
-        hand_scale = euclidean_dist(wrist, landmarks[9])
+        hand_scale = euclidean_dist(wrist, middle_mcp)
         if hand_scale < 1e-4:
+            self.reset()
             return GestureResult(gesture_name=self.name, is_detected=False, confidence=0.0)
 
-        # Normalized distance between thumb and middle fingertip
-        dist = euclidean_dist(thumb_tip, middle_tip) / hand_scale
-        self.history.append((now, dist))
+        # Normalized distances
+        dist_tm = euclidean_dist(thumb_tip, middle_tip) / hand_scale
+        dist_ti = euclidean_dist(thumb_tip, index_tip) / hand_scale
 
-        # Thresholds scaled to hand size
-        PINCH_THRESHOLD = 0.32
-        RELEASE_THRESHOLD = 0.65
+        # Index finger exclusion: in a snap, index finger is NOT touching thumb
+        index_free = dist_ti > (dist_tm * 1.15) or dist_ti > 0.28
 
-        # Check if thumb and middle finger are currently in contact (pinched)
-        if dist < PINCH_THRESHOLD:
+        PINCH_THRESH = 0.36
+        SNAP_RELEASE_THRESH = 0.48
+
+        # 1. Phase 1: Contact / Tension loading
+        if dist_tm < PINCH_THRESH and index_free:
             if not self.is_pinched:
                 self.is_pinched = True
                 self.pinch_start_time = now
-            return GestureResult(gesture_name=self.name, is_detected=False, confidence=0.5)
+            self.history.append((now, dist_tm, wrist.x, wrist.y))
+            return GestureResult(
+                gesture_name=self.name,
+                is_detected=False,
+                confidence=0.5,
+                metadata={"is_armed": True, "dist": dist_tm},
+            )
 
-        # If we were previously pinched and now distance exploded within 600ms
-        if self.is_pinched and (now - self.pinch_start_time) < 0.6:
-            # Check velocity of release in recent history
-            if len(self.history) >= 2:
-                prev_time, prev_dist = self.history[0]
-                dt = max(1e-4, now - prev_time)
-                velocity = (dist - prev_dist) / dt
+        # 2. Phase 2: Explosive Snap Release
+        if self.is_pinched:
+            pinch_duration = now - self.pinch_start_time
 
-                if dist > RELEASE_THRESHOLD and velocity > 1.5:
+            # Must have held tension briefly (>= 30ms) to ensure deliberate gesture
+            if 0.03 <= pinch_duration <= 2.5 and self.history:
+                prev_time, prev_dist, prev_wx, prev_wy = self.history[-1]
+                dt = max(0.01, now - prev_time)
+                instant_velocity = (dist_tm - prev_dist) / dt
+                single_frame_jump = dist_tm - prev_dist
+
+                # Wrist stability check: reject camera shake / arm waving
+                wrist_jump = math.hypot(wrist.x - prev_wx, wrist.y - prev_wy)
+
+                # Snap firing criteria:
+                # 1. Middle finger is now separated (>= SNAP_RELEASE_THRESH)
+                # 2. Explosive single-frame or 2-frame jump (jump >= 0.20, velocity >= 4.5)
+                # 3. Wrist did not violently jerk across screen (< 0.20)
+                if (
+                    dist_tm >= SNAP_RELEASE_THRESH
+                    and single_frame_jump >= 0.20
+                    and instant_velocity >= 4.5
+                    and wrist_jump < 0.20
+                ):
                     self.reset()
                     return GestureResult(
                         gesture_name=self.name,
                         is_detected=True,
-                        confidence=0.92,
-                        metadata={"velocity": velocity, "dist": dist},
+                        confidence=0.95,
+                        metadata={
+                            "velocity": instant_velocity,
+                            "dist": dist_tm,
+                            "jump": single_frame_jump,
+                            "is_armed": False,
+                        },
                     )
 
-        # If too much time has passed without release, reset pinch state
-        if self.is_pinched and (now - self.pinch_start_time) >= 0.6:
-            self.is_pinched = False
+            # Expire pinch if too much time passed or if fingers slowly drifted apart
+            if pinch_duration > 2.5 or (
+                self.history and (now - self.history[-1][0]) > 0.25 and dist_tm >= PINCH_THRESH
+            ):
+                self.is_pinched = False
+                self.history.clear()
 
-        return GestureResult(gesture_name=self.name, is_detected=False, confidence=0.0)
+        # Update history with current non-pinched frame
+        self.history.append((now, dist_tm, wrist.x, wrist.y))
+        return GestureResult(
+            gesture_name=self.name,
+            is_detected=False,
+            confidence=0.0,
+            metadata={"is_armed": False, "dist": dist_tm},
+        )

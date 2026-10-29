@@ -43,3 +43,8 @@ class GestureRegistry:
         for detector in self.detectors.values():
             if hasattr(detector, "reset"):
                 detector.reset()
+
+    def is_snap_armed(self) -> bool:
+        """Check if any hand is currently holding the snap pinch tension."""
+        snap_det = self.detectors.get("snap")
+        return bool(snap_det and getattr(snap_det, "is_pinched", False))
