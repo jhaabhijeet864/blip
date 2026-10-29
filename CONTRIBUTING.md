@@ -119,3 +119,4 @@ ruff check .
 2. Ensure all tests pass.
 3. Commit with clear, concise commit messages following Conventional Commits (e.g., `feat: add Mario warp pipe effect`).
 4. Push to your fork and open a Pull Request against the `main` branch.
+

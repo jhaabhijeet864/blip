@@ -32,3 +32,4 @@ Include the following details in your report:
 - Any proof of concept (PoC) code or logs
 
 You should expect an acknowledgment within 48 hours. Validated vulnerabilities will be remediated in a security patch release as quickly as possible.
+
