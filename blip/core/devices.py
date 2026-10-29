@@ -110,21 +110,29 @@ def get_camera_devices(max_tested: int = 6) -> List[CameraDevice]:
 def get_best_default_camera(devices: List[CameraDevice] | None = None) -> int:
     """
     Select the optimal camera index on startup.
-    Prioritizes the first active physical (non-virtual) hardware camera.
+    Prioritizes active physical hardware webcams (e.g. HP Wide Vision HD Camera, Logitech)
+    over phone streaming bridges (DroidCam, Iriun) and virtual loopbacks.
     """
     cam_list = devices if devices is not None else get_camera_devices()
 
-    # 1. Best match: Active physical webcam (e.g. HP Wide Vision HD Camera)
+    # 1. Best match: Active physical webcam, excluding phone bridges
+    for dev in cam_list:
+        lower_name = dev.name.lower()
+        is_phone_cam = any(p in lower_name for p in ["droid", "iriun", "epoc", "camo"])
+        if dev.is_active and not dev.is_virtual and not is_phone_cam:
+            return dev.index
+
+    # 2. Secondary match: Any active physical camera
     for dev in cam_list:
         if dev.is_active and not dev.is_virtual:
             return dev.index
 
-    # 2. Secondary match: Any active camera
+    # 3. Third match: Any active camera
     for dev in cam_list:
         if dev.is_active:
             return dev.index
 
-    # 3. Fallback: First non-virtual camera or 0
+    # 4. Fallback: First non-virtual camera or 0
     for dev in cam_list:
         if not dev.is_virtual:
             return dev.index
