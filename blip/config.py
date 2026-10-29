@@ -36,7 +36,7 @@ class BlipConfig:
     )
     cooldown_seconds: float = 1.5
     hotkey: str = "<ctrl>+<alt>+s"
-    particle_count: int = 2500
+    particle_count: int = 1500
     ash_drift_speed: float = 1.2
     auto_reappear_delay: float = 0.0  # 0.0 means manual reappear only
     sound_enabled: bool = True

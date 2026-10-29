@@ -151,11 +151,15 @@ class VideoPipeline:
                 self.state = PipelineState.NORMAL
                 self.latest_status = "Background calibrated!"
 
-        # 2. Hand Gesture Recognition (only scan hands when in normal feed or disappeared)
+        # 2. Hand Gesture Recognition (pause tracking during active dissolve / reappear transitions)
         hands_data: list[HandLandmarkData] = []
         detected_gesture: str | None = None
 
-        if self.hand_tracker and not self.bg_manager.is_calibrating():
+        if (
+            self.hand_tracker
+            and not self.bg_manager.is_calibrating()
+            and self.state in (PipelineState.NORMAL, PipelineState.DISAPPEARED)
+        ):
             hands_data = self.hand_tracker.process(frame_rgb)
             if self.gesture_evaluator and hands_data:
                 # Enforce cooldown to prevent rapid multi-triggers

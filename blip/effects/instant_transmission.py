@@ -74,11 +74,13 @@ class InstantTransmissionEffect(BaseEffect):
         b = np.roll(frame[:, :, 2], -shift, axis=1)
         chroma = np.stack([r, g, b], axis=2)
 
-        # Blend person over background
-        mask_3d = mask[:, :, None]
-        rendered = (
-            chroma.astype(np.float32) * mask_3d + background.astype(np.float32) * (1.0 - mask_3d)
-        ).astype(np.uint8)
+        # Fast blend person over background with cv2.multiply / add
+        mask_u8 = (mask * 255.0).astype(np.uint8)
+        mask_3 = cv2.merge([mask_u8, mask_u8, mask_u8])
+        inv_mask_3 = cv2.bitwise_not(mask_3)
+        fg = cv2.multiply(chroma, mask_3, scale=1.0 / 255.0)
+        bg = cv2.multiply(background, inv_mask_3, scale=1.0 / 255.0)
+        rendered = cv2.add(fg, bg)
 
         # Draw dynamic anime speed lines radiating outward
         if self.speed_line_angles is not None:

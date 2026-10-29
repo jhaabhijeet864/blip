@@ -14,7 +14,7 @@ def test_config_default_initialization():
     assert cfg.target_fps == 30
     assert cfg.vcam_backend == "obs"
     assert cfg.cooldown_seconds == 1.5
-    assert cfg.particle_count == 2500
+    assert cfg.particle_count == 1500
 
 
 def test_config_save_and_reload(tmp_path):
@@ -36,7 +36,7 @@ def test_config_corrupted_json_fallback(tmp_path):
 
     loaded = BlipConfig.load(corrupted_file)
     assert loaded.camera_index == 0
-    assert loaded.particle_count == 2500
+    assert loaded.particle_count == 1500
 
 
 def test_get_default_config_path():

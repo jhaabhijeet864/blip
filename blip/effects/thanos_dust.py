@@ -20,7 +20,7 @@ class ThanosSnapEffect(BaseEffect):
     4. Seamlessly leaves only the clean empty background plate.
     """
 
-    def __init__(self, duration_frames: int = 50, particle_count: int = 3000):
+    def __init__(self, duration_frames: int = 50, particle_count: int = 1500):
         super().__init__(name="Thanos Dust Dissolve", duration_frames=duration_frames)
         self.particle_count = particle_count
 
@@ -31,14 +31,19 @@ class ThanosSnapEffect(BaseEffect):
         self.particle_life: np.ndarray | None = None  # (N,) float32 [0.0 to 1.0]
         self.particle_size: np.ndarray | None = None  # (N,) int32
         self.noise_map: np.ndarray | None = None  # (H, W) float32 for organic erosion
+        self.y_grad: np.ndarray | None = None
+        self.ash_target = np.array([55.0, 50.0, 50.0], dtype=np.float32)
 
     def start(self, initial_frame: np.ndarray, mask: np.ndarray, background: np.ndarray) -> None:
         super().start(initial_frame, mask, background)
         h, w, _ = initial_frame.shape
 
-        # Generate smooth organic noise map for uneven silhouette erosion
+        # Precompute gradient map, organic noise, and composite erosion field
+        self.y_grad = np.linspace(0.0, 0.4, h, dtype=np.float32)[:, None]
         small_noise = np.random.rand(h // 8, w // 8).astype(np.float32)
         self.noise_map = cv2.resize(small_noise, (w, h), interpolation=cv2.INTER_CUBIC)
+        field = (self.noise_map * 0.6) + self.y_grad
+        self.dissolve_field_u8 = np.clip(field * 255.0, 0, 255).astype(np.uint8)
 
         # Find coordinates of person's silhouette
         person_indices = np.argwhere(mask > 0.4)  # (M, 2) [y, x]
@@ -62,7 +67,7 @@ class ThanosSnapEffect(BaseEffect):
             colors = initial_frame[sampled_coords[:, 0], sampled_coords[:, 1]].astype(np.float32)
             self.particle_color = colors
             self.particle_life = np.ones((count,), dtype=np.float32)
-            self.particle_size = np.random.randint(1, 4, size=(count,), dtype=np.int32)
+            self.particle_size = np.random.randint(2, 5, size=(count,), dtype=np.int32)
         else:
             self.particle_pos = None
 
@@ -73,52 +78,61 @@ class ThanosSnapEffect(BaseEffect):
         if p >= 1.0:
             return background
 
-        # 1. Compute organic dissolve mask
-        # Vertical gradient (top dissolves faster) + organic noise
-        y_grad = np.linspace(0.0, 0.4, h, dtype=np.float32)[:, None]
-        dissolve_threshold = p * 1.4
+        # 1. Compute organic dissolve mask using fast vectorized erosion
+        thresh_offset = int(np.clip(p * 1.4, 0.0, 1.0) * 255.0)
+        field_erosion = cv2.subtract(self.dissolve_field_u8, thresh_offset)
+        mask_u8 = (mask * 255.0).astype(np.uint8) if mask.dtype != np.uint8 else mask
+        dissolve_mask_u8 = cv2.subtract(mask_u8, field_erosion)
 
-        if self.noise_map is not None:
-            dissolve_field = (self.noise_map * 0.6) + y_grad
-        else:
-            dissolve_field = y_grad
+        # Fast 3-channel blend with cv2.multiply / add
+        mask_3 = cv2.merge([dissolve_mask_u8, dissolve_mask_u8, dissolve_mask_u8])
+        inv_mask_3 = cv2.bitwise_not(mask_3)
+        fg = cv2.multiply(frame, mask_3, scale=1.0 / 255.0)
+        bg = cv2.multiply(background, inv_mask_3, scale=1.0 / 255.0)
+        rendered = cv2.add(fg, bg)
 
-        # Pixels where dissolve_field < threshold get dissolved into background
-        dissolve_mask = np.clip(
-            (mask - np.maximum(0.0, dissolve_field - (1.0 - dissolve_threshold))) * 2.0, 0.0, 1.0
-        )
-        dissolve_mask_3d = dissolve_mask[:, :, None]
-
-        # Blend person with background plate
-        rendered = (
-            frame.astype(np.float32) * dissolve_mask_3d
-            + background.astype(np.float32) * (1.0 - dissolve_mask_3d)
-        ).astype(np.uint8)
-
-        # 2. Update and render ash particles
+        # 2. Vectorized ash particle simulation and direct buffer drawing
         if self.particle_pos is not None and len(self.particle_pos) > 0:
+            count = len(self.particle_pos)
             # Turbulence
-            turbulence_x = np.random.uniform(-0.8, 0.8, size=self.particle_vel.shape[0]).astype(
-                np.float32
-            )
+            turbulence_x = np.random.uniform(-0.8, 0.8, size=count).astype(np.float32)
             self.particle_vel[:, 0] += turbulence_x * 0.1
             self.particle_pos += self.particle_vel
 
-            # Fade particles to dark ash gray (60, 60, 60)
+            # Decay life
             self.particle_life -= 1.0 / float(self.duration_frames)
-            ash_target = np.array([55.0, 50.0, 50.0], dtype=np.float32)
+            active = self.particle_life > 0.0
 
-            for i in range(len(self.particle_pos)):
-                life = self.particle_life[i]
-                if life <= 0.0:
-                    continue
+            px = self.particle_pos[:, 0].astype(np.int32)
+            py = self.particle_pos[:, 1].astype(np.int32)
+            valid = active & (px >= 1) & (px < w - 1) & (py >= 1) & (py < h - 1)
 
-                px, py = int(self.particle_pos[i, 0]), int(self.particle_pos[i, 1])
-                if 0 <= px < w and 0 <= py < h:
-                    rad = int(self.particle_size[i] * max(0.5, life))
-                    # Color shifts to ash gray as it ages
-                    c = (self.particle_color[i] * life + ash_target * (1.0 - life)).astype(int)
-                    color = (int(c[0]), int(c[1]), int(c[2]))
-                    cv2.circle(rendered, (px, py), max(1, rad), color, -1)
+            if np.any(valid):
+                l_v = self.particle_life[valid, None]
+                c_v = (self.particle_color[valid] * l_v + self.ash_target * (1.0 - l_v)).astype(np.uint8)
+                vx = px[valid]
+                vy = py[valid]
+                sz_v = (self.particle_size[valid] * np.maximum(0.5, self.particle_life[valid])).astype(np.int32)
+
+                # Base particle
+                rendered[vy, vx] = c_v
+
+                # Radius >= 2: cross pattern (adjacent pixels)
+                r2 = sz_v >= 2
+                if np.any(r2):
+                    r2_x, r2_y, r2_c = vx[r2], vy[r2], c_v[r2]
+                    rendered[r2_y - 1, r2_x] = r2_c
+                    rendered[r2_y + 1, r2_x] = r2_c
+                    rendered[r2_y, r2_x - 1] = r2_c
+                    rendered[r2_y, r2_x + 1] = r2_c
+
+                # Radius >= 3: diagonal corners for fuller ash volume
+                r3 = sz_v >= 3
+                if np.any(r3):
+                    r3_x, r3_y, r3_c = vx[r3], vy[r3], c_v[r3]
+                    rendered[r3_y - 1, r3_x - 1] = r3_c
+                    rendered[r3_y - 1, r3_x + 1] = r3_c
+                    rendered[r3_y + 1, r3_x - 1] = r3_c
+                    rendered[r3_y + 1, r3_x + 1] = r3_c
 
         return rendered

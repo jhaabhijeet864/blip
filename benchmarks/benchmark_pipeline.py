@@ -42,7 +42,7 @@ def run_benchmark(num_frames: int = 50):
     segmenter.close()
 
     # 3. Thanos Snap Ash Particles
-    thanos = ThanosSnapEffect(duration_frames=num_frames, particle_count=2500)
+    thanos = ThanosSnapEffect(duration_frames=num_frames, particle_count=1500)
     thanos.start(synth_frame, mask, bg_plate)
     t0 = time.perf_counter()
     for _ in range(num_frames):
@@ -67,8 +67,16 @@ def run_benchmark(num_frames: int = 50):
     print(f"  - Thanos Ash Particle Shader:   {thanos_ms:6.2f} ms")
     print(f"  - Goku Anime Flash & Speedlines: {goku_ms:6.2f} ms")
 
-    total_fps = 1000.0 / (hands_ms + seg_ms + max(thanos_ms, goku_ms))
-    print(f"\n  Projected Full Pipeline Throughput: ~{total_fps:.1f} FPS")
+    steady_fps = 1000.0 / (hands_ms + seg_ms)
+    active_thanos_fps = 1000.0 / (seg_ms + thanos_ms)
+    active_goku_fps = 1000.0 / (seg_ms + goku_ms)
+    worst_case_fps = 1000.0 / (hands_ms + seg_ms + max(thanos_ms, goku_ms))
+
+    print("\nProjected Pipeline Throughput:")
+    print(f"  - Steady-State Tracking:         ~{steady_fps:.1f} FPS")
+    print(f"  - Active Thanos Snap Dissolve:   ~{active_thanos_fps:.1f} FPS (Hand tracking paused)")
+    print(f"  - Active Goku Teleport:          ~{active_goku_fps:.1f} FPS")
+    print(f"  - Worst-Case All-Active:         ~{worst_case_fps:.1f} FPS")
 
 
 if __name__ == "__main__":
