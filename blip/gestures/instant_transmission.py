@@ -66,7 +66,14 @@ class InstantTransmissionGesture(BaseGesture):
         # 4. Check hand position: raised in upper half of frame (near head level)
         hand_raised = landmarks[INDEX_TIP].y < 0.55
 
-        is_pose = index_up and middle_up and ring_folded and pinky_folded and fingers_together and hand_raised
+        is_pose = (
+            index_up
+            and middle_up
+            and ring_folded
+            and pinky_folded
+            and fingers_together
+            and hand_raised
+        )
 
         if is_pose:
             self.consecutive_frames += 1
@@ -76,7 +83,7 @@ class InstantTransmissionGesture(BaseGesture):
                     gesture_name=self.name,
                     is_detected=True,
                     confidence=confidence,
-                    metadata={"frames": self.consecutive_frames}
+                    metadata={"frames": self.consecutive_frames},
                 )
         else:
             self.consecutive_frames = 0

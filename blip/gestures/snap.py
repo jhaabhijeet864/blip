@@ -22,7 +22,7 @@ def euclidean_dist(p1, p2) -> float:
     """Calculate 3D Euclidean distance between two landmarks."""
     dx = p1.x - p2.x
     dy = p1.y - p2.y
-    dz = getattr(p1, 'z', 0.0) - getattr(p2, 'z', 0.0)
+    dz = getattr(p1, "z", 0.0) - getattr(p2, "z", 0.0)
     return math.sqrt(dx * dx + dy * dy + dz * dz)
 
 
@@ -88,7 +88,7 @@ class SnapGesture(BaseGesture):
                         gesture_name=self.name,
                         is_detected=True,
                         confidence=0.92,
-                        metadata={"velocity": velocity, "dist": dist}
+                        metadata={"velocity": velocity, "dist": dist},
                     )
 
         # If too much time has passed without release, reset pinch state

@@ -10,6 +10,7 @@ from typing import Any
 @dataclass
 class Landmark3D:
     """Normalized 3D hand landmark coordinate."""
+
     x: float
     y: float
     z: float
@@ -18,6 +19,7 @@ class Landmark3D:
 @dataclass
 class GestureResult:
     """Output of a gesture recognition evaluation."""
+
     gesture_name: str
     is_detected: bool
     confidence: float = 1.0

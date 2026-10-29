@@ -22,15 +22,25 @@ def create_flat_hand() -> list[MockPoint]:
     """Create landmarks for a relaxed resting hand (all fingers open, no gesture)."""
     landmarks = [MockPoint(0.5, 0.8, 0.0)]  # 0: Wrist
     # Thumb (1-4)
-    landmarks.extend([MockPoint(0.45, 0.75), MockPoint(0.40, 0.70), MockPoint(0.38, 0.65), MockPoint(0.35, 0.60)])
+    landmarks.extend(
+        [MockPoint(0.45, 0.75), MockPoint(0.40, 0.70), MockPoint(0.38, 0.65), MockPoint(0.35, 0.60)]
+    )
     # Index (5-8)
-    landmarks.extend([MockPoint(0.48, 0.65), MockPoint(0.48, 0.55), MockPoint(0.48, 0.48), MockPoint(0.48, 0.40)])
+    landmarks.extend(
+        [MockPoint(0.48, 0.65), MockPoint(0.48, 0.55), MockPoint(0.48, 0.48), MockPoint(0.48, 0.40)]
+    )
     # Middle (9-12)
-    landmarks.extend([MockPoint(0.52, 0.64), MockPoint(0.52, 0.54), MockPoint(0.52, 0.46), MockPoint(0.52, 0.38)])
+    landmarks.extend(
+        [MockPoint(0.52, 0.64), MockPoint(0.52, 0.54), MockPoint(0.52, 0.46), MockPoint(0.52, 0.38)]
+    )
     # Ring (13-16)
-    landmarks.extend([MockPoint(0.56, 0.66), MockPoint(0.56, 0.57), MockPoint(0.56, 0.50), MockPoint(0.56, 0.43)])
+    landmarks.extend(
+        [MockPoint(0.56, 0.66), MockPoint(0.56, 0.57), MockPoint(0.56, 0.50), MockPoint(0.56, 0.43)]
+    )
     # Pinky (17-20)
-    landmarks.extend([MockPoint(0.60, 0.70), MockPoint(0.60, 0.62), MockPoint(0.60, 0.56), MockPoint(0.60, 0.50)])
+    landmarks.extend(
+        [MockPoint(0.60, 0.70), MockPoint(0.60, 0.62), MockPoint(0.60, 0.56), MockPoint(0.60, 0.50)]
+    )
     return landmarks
 
 
@@ -42,15 +52,25 @@ def create_it_hand() -> list[MockPoint]:
     """
     landmarks = [MockPoint(0.5, 0.45, 0.0)]  # 0: Wrist raised high
     # Thumb (1-4) curled
-    landmarks.extend([MockPoint(0.48, 0.42), MockPoint(0.46, 0.40), MockPoint(0.45, 0.38), MockPoint(0.46, 0.36)])
+    landmarks.extend(
+        [MockPoint(0.48, 0.42), MockPoint(0.46, 0.40), MockPoint(0.45, 0.38), MockPoint(0.46, 0.36)]
+    )
     # Index (5-8) extended up
-    landmarks.extend([MockPoint(0.49, 0.35), MockPoint(0.49, 0.25), MockPoint(0.49, 0.18), MockPoint(0.49, 0.12)])
+    landmarks.extend(
+        [MockPoint(0.49, 0.35), MockPoint(0.49, 0.25), MockPoint(0.49, 0.18), MockPoint(0.49, 0.12)]
+    )
     # Middle (9-12) extended up right beside index
-    landmarks.extend([MockPoint(0.52, 0.35), MockPoint(0.52, 0.25), MockPoint(0.52, 0.18), MockPoint(0.52, 0.12)])
+    landmarks.extend(
+        [MockPoint(0.52, 0.35), MockPoint(0.52, 0.25), MockPoint(0.52, 0.18), MockPoint(0.52, 0.12)]
+    )
     # Ring (13-16) folded tight (tip y > pip y)
-    landmarks.extend([MockPoint(0.55, 0.38), MockPoint(0.55, 0.40), MockPoint(0.55, 0.42), MockPoint(0.54, 0.44)])
+    landmarks.extend(
+        [MockPoint(0.55, 0.38), MockPoint(0.55, 0.40), MockPoint(0.55, 0.42), MockPoint(0.54, 0.44)]
+    )
     # Pinky (17-20) folded tight (tip y > pip y)
-    landmarks.extend([MockPoint(0.58, 0.40), MockPoint(0.58, 0.42), MockPoint(0.58, 0.44), MockPoint(0.57, 0.46)])
+    landmarks.extend(
+        [MockPoint(0.58, 0.40), MockPoint(0.58, 0.42), MockPoint(0.58, 0.44), MockPoint(0.57, 0.46)]
+    )
     return landmarks
 
 
@@ -82,6 +102,35 @@ def test_snap_gesture_pinch_and_flick():
     assert res2.gesture_name == "snap"
 
 
+def test_snap_gesture_pinch_timeout():
+    """Verify pinch resets after 0.6 seconds timeout."""
+    detector = SnapGesture()
+    hand = create_flat_hand()
+    hand[4] = MockPoint(0.45, 0.50)
+    hand[12] = MockPoint(0.46, 0.50)
+    detector.detect(hand, (720, 1280))
+    assert detector.is_pinched
+
+    # Manually backdate pinch start time > 0.6s
+    detector.pinch_start_time = time.time() - 1.0
+    # Move finger to un-pinched position (dist between PINCH and RELEASE)
+    hand[12] = MockPoint(0.55, 0.50)
+    detector.detect(hand, (720, 1280))
+    assert not detector.is_pinched
+
+
+def test_snap_gesture_edge_cases():
+    """Verify detector handles short landmark lists and degenerate hand scales."""
+    detector = SnapGesture()
+    res_short = detector.detect([], (720, 1280))
+    assert not res_short.is_detected
+
+    # Degenerate hand scale (wrist and middle knuckle at identical coordinates)
+    collapsed_hand = [MockPoint(0.5, 0.5) for _ in range(21)]
+    res_collapsed = detector.detect(collapsed_hand, (720, 1280))
+    assert not res_collapsed.is_detected
+
+
 def test_instant_transmission_detection():
     """Verify Goku pose triggers after required consecutive frames."""
     detector = InstantTransmissionGesture()
@@ -101,9 +150,29 @@ def test_instant_transmission_detection():
     assert res3.gesture_name == "instant_transmission"
 
 
+def test_instant_transmission_edge_cases():
+    """Verify detector handles short landmark lists, degenerate hand scales, and pose break."""
+    detector = InstantTransmissionGesture()
+    assert not detector.detect([], (720, 1280)).is_detected
+
+    collapsed_hand = [MockPoint(0.5, 0.5) for _ in range(21)]
+    assert not detector.detect(collapsed_hand, (720, 1280)).is_detected
+
+    # Streak resets when pose is broken
+    it_hand = create_it_hand()
+    detector.detect(it_hand, (720, 1280))
+    detector.detect(it_hand, (720, 1280))
+    assert detector.consecutive_frames == 2
+
+    detector.detect(create_flat_hand(), (720, 1280))
+    assert detector.consecutive_frames == 0
+
+
 def test_gesture_registry_evaluation():
     """Verify registry aggregates and detects gestures across hands."""
     registry = GestureRegistry()
+    assert registry.evaluate([], (720, 1280)) is None
+
     it_hand = create_it_hand()
     hand_data = [HandLandmarkData(landmarks=it_hand, handedness="Right", confidence=0.9)]
 
