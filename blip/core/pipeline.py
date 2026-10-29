@@ -259,7 +259,7 @@ class VideoPipeline:
                         if self.segmenter
                         else np.ones((h, w), dtype=np.float32)
                     )
-                    bg_plate = self.bg_manager.get_plate(frame_rgb)
+                    bg_plate = self.bg_manager.get_plate(frame_rgb, mask=initial_mask)
                     self.active_effect.start(frame_rgb, initial_mask, bg_plate)
                     self.state = PipelineState.DISAPPEARING
                     self.latest_status = f"Disappearing: {self.active_effect.name}!"
@@ -280,6 +280,7 @@ class VideoPipeline:
                     if self.segmenter
                     else np.ones((h, w), dtype=np.float32)
                 )
+                bg_plate = self.bg_manager.get_plate(frame_rgb, mask=mask)
                 output_frame = self.active_effect.render(frame_rgb, mask, bg_plate)
                 self.active_effect.update()
 
@@ -319,7 +320,12 @@ class VideoPipeline:
         # 6. Generate Annotated Frame for GUI Live Preview
         preview = output_frame.copy()
         if hands_data and self.state == PipelineState.NORMAL and self.hand_tracker:
-            preview = self.hand_tracker.draw_landmarks(preview, hands_data)
+            is_armed = False
+            if hasattr(self.gesture_evaluator, '__self__') and hasattr(
+                self.gesture_evaluator.__self__, 'is_snap_armed'
+            ):
+                is_armed = self.gesture_evaluator.__self__.is_snap_armed()
+            preview = self.hand_tracker.draw_landmarks(preview, hands_data, is_snap_armed=is_armed)
 
         # Draw visual on-screen countdown if calibrating
         if self.bg_manager.is_calibrating():
