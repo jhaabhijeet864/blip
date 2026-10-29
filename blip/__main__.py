@@ -8,8 +8,8 @@ from blip.ui.app_window import launch_app
 
 
 def main():
-    print("⚡ Blip - Gesture-Triggered Virtual Camera v0.1.0")
-    print("Launching Desktop UI...")
+    print("[Blip] Gesture-Triggered Virtual Camera v0.1.0")
+    print("[Blip] Launching Desktop UI...")
     launch_app()
 
 

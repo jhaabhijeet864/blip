@@ -16,7 +16,7 @@ from blip.vision.segmenter import SelfieSegmenter
 
 
 def run_benchmark(num_frames: int = 50):
-    print(f"⚡ Running Blip Performance Benchmarks ({num_frames} frames)...")
+    print(f"[Blip] Running Performance Benchmarks ({num_frames} frames)...")
     h, w = 720, 1280
     synth_frame = np.random.randint(0, 255, (h, w, 3), dtype=np.uint8)
     bg_plate = np.full((h, w, 3), 40, dtype=np.uint8)

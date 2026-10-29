@@ -277,7 +277,7 @@ class VideoPipeline:
             )
             self.vcam_sink.start()
         except Exception as e:
-            print(f"⚠️ Virtual Camera warning: {e}")
+            print(f"[VirtualCamera] Warning: {e}")
             self.vcam_sink = None
 
         prev_time = time.time()

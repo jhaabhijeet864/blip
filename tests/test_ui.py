@@ -35,6 +35,7 @@ def test_blip_app_initialization_and_events(
     cfg = BlipConfig()
     with patch.object(BlipApp, "iconbitmap", create=True):
         app = BlipApp(config=cfg)
+        app.tk = MagicMock()
 
     assert app.pipeline is not None
     assert app.gesture_registry is not None

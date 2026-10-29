@@ -12,7 +12,7 @@ def build():
     root = Path(__file__).parent.parent
     main_script = root / "blip" / "__main__.py"
 
-    print("⚡ Compiling Blip standalone executable with PyInstaller...")
+    print("[Blip] Compiling standalone executable with PyInstaller...")
 
     cmd = [
         sys.executable,
@@ -32,9 +32,9 @@ def build():
     res = subprocess.run(cmd, cwd=root)
 
     if res.returncode == 0:
-        print("\n✅ Build succeeded! Executable located in: dist/Blip/Blip.exe")
+        print("\n[Blip] Build succeeded! Executable located in: dist/Blip/Blip.exe")
     else:
-        print(f"\n❌ Build failed with return code: {res.returncode}")
+        print(f"\n[Blip] Build failed with return code: {res.returncode}")
 
 
 if __name__ == "__main__":

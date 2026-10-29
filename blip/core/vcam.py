@@ -84,7 +84,7 @@ class VirtualCameraSink:
             self._cam = pyvirtualcam.Camera(**kwargs)
             self._is_active = True
             print(
-                f"🎥 Virtual Camera started: {self._cam.device} ({self._cam.width}x{self._cam.height} @ {self._cam.fps} FPS)"
+                f"[VirtualCamera] Started: {self._cam.device} ({self._cam.width}x{self._cam.height} @ {self._cam.fps} FPS)"
             )
 
         except Exception as e:
