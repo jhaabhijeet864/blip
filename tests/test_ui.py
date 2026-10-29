@@ -5,6 +5,7 @@ Unit tests for BlipApp desktop UI logic in headless mode.
 from unittest.mock import MagicMock, patch
 
 from blip.config import BlipConfig
+from blip.core.devices import CameraDevice
 from blip.core.pipeline import PipelineState
 from blip.ui.app_window import BlipApp, launch_app
 
@@ -66,22 +67,27 @@ def test_blip_app_initialization_and_events(
     # Test audio toggle
     app.audio_switch = MagicMock()
     app.audio_switch.get.return_value = 0
-    app._on_audio_toggled()
-    assert app.config.sound_enabled is False
-    assert app.pipeline.sound_manager.enabled is False
+    with patch.object(cfg, "save"):
+        app._on_audio_toggled()
+        assert app.config.sound_enabled is False
+        assert app.pipeline.sound_manager.enabled is False
 
-    app.audio_switch.get.return_value = 1
-    app._on_audio_toggled()
-    assert app.config.sound_enabled is True
-    assert app.pipeline.sound_manager.enabled is True
+        app.audio_switch.get.return_value = 1
+        app._on_audio_toggled()
+        assert app.config.sound_enabled is True
+        assert app.pipeline.sound_manager.enabled is True
 
     # Test camera device selection
-    app._on_camera_changed("Camera 2")
-    assert app.config.camera_index == 2
-    assert app.pipeline.config.camera_index == 2
+    dev2 = CameraDevice(index=2, name="Logitech Brio", is_active=True, is_virtual=False)
+    app.camera_device_map = {dev2.display_label: dev2}
+    with patch.object(cfg, "save"):
+        app._on_camera_changed(dev2.display_label)
+        assert app.config.camera_index == 2
+        assert app.pipeline.config.camera_index == 2
+        assert app.pipeline.active_camera_name == "Logitech Brio"
 
-    # Malformed camera choice should not raise
-    app._on_camera_changed("invalid")
+        # Malformed camera choice should not raise
+        app._on_camera_changed("invalid")
 
     # Test window on_closing
     app.destroy = MagicMock()

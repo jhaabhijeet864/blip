@@ -5,11 +5,14 @@ Built with CustomTkinter for real-time video preview, calibration, and gesture m
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 import customtkinter as ctk
 from PIL import Image, ImageTk
 
 from blip.config import BlipConfig
-from blip.core.devices import list_available_cameras
+from blip.core.devices import CameraDevice, get_best_default_camera, get_camera_devices
 from blip.core.pipeline import PipelineState, VideoPipeline
 from blip.core.vcam import check_virtual_camera_driver
 from blip.effects.registry import EffectRegistry
@@ -30,14 +33,11 @@ class BlipApp(ctk.CTk):
         self.config = config or BlipConfig.load()
 
         # Window configuration
-        self.title("⚡ Blip — Disappear from Meetings with a Snap")
+        self.title("Blip — Disappear from Meetings with a Snap")
         self.geometry("1100x720")
         self.minsize(950, 650)
 
         # Load window icon if available
-        import sys
-        from pathlib import Path
-
         icon_path = Path(__file__).parent.parent.parent / "assets" / "icon.ico"
         if icon_path.exists() and sys.platform == "win32":
             try:
@@ -49,11 +49,30 @@ class BlipApp(ctk.CTk):
         self.gesture_registry = GestureRegistry()
         self.effect_registry = EffectRegistry()
 
+        # Discover and select optimal hardware camera
+        self.discovered_devices: list[CameraDevice] = get_camera_devices()
+        best_cam_idx = get_best_default_camera(self.discovered_devices)
+        active_physical = [
+            d.index for d in self.discovered_devices if d.is_active and not d.is_virtual
+        ]
+        if self.config.camera_index not in active_physical and active_physical:
+            self.config.camera_index = best_cam_idx
+
         # Initialize Pipeline
         self.pipeline = VideoPipeline(config=self.config)
         self.pipeline.gesture_evaluator = self.gesture_registry.evaluate
         self.pipeline.effects_map = self.effect_registry.effects
         self.pipeline.reappear_effect = self.effect_registry.get("reappear")
+
+        # Label pipeline active camera name
+        for d in self.discovered_devices:
+            if d.index == self.config.camera_index:
+                self.pipeline.active_camera_name = d.name
+                break
+
+        self.camera_device_map: dict[str, CameraDevice] = {
+            dev.display_label: dev for dev in self.discovered_devices
+        }
 
         # UI state
         self._preview_image_tk: ImageTk.PhotoImage | None = None
@@ -69,32 +88,32 @@ class BlipApp(ctk.CTk):
         # Start pipeline
         self.pipeline.start()
 
-        # Start preview update loop
-        self.after(30, self._update_gui_loop)
-
-        # Protocol for graceful window exit
+        # Hook window close event
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
+        # Start UI render loop
+        self.after(30, self._update_gui_loop)
+
     def _setup_ui(self) -> None:
-        """Construct the layout widgets."""
-        self.grid_columnconfigure(0, weight=3)  # Video preview area
+        """Construct the two-column grid layout."""
+        self.grid_columnconfigure(0, weight=3)  # Video canvas preview
         self.grid_columnconfigure(1, weight=2)  # Controls sidebar
         self.grid_rowconfigure(0, weight=1)
 
         # ==========================================
-        # LEFT PANE: Video Preview & Status
+        # LEFT PANE: Video Canvas & HUD
         # ==========================================
         self.preview_frame = ctk.CTkFrame(self, corner_radius=12)
         self.preview_frame.grid(row=0, column=0, padx=(16, 8), pady=16, sticky="nsew")
         self.preview_frame.grid_rowconfigure(1, weight=1)
         self.preview_frame.grid_columnconfigure(0, weight=1)
 
-        # Header Title
+        # Header Title Bar
         title_box = ctk.CTkFrame(self.preview_frame, fg_color="transparent")
         title_box.grid(row=0, column=0, padx=16, pady=(12, 4), sticky="ew")
 
         title_lbl = ctk.CTkLabel(
-            title_box, text="⚡ BLIP", font=ctk.CTkFont(size=24, weight="bold")
+            title_box, text="BLIP", font=ctk.CTkFont(size=24, weight="bold")
         )
         title_lbl.pack(side="left")
 
@@ -112,7 +131,7 @@ class BlipApp(ctk.CTk):
         )
         self.canvas_label.grid(row=1, column=0, padx=16, pady=8, sticky="nsew")
 
-        # Bottom Bar: State Badge & FPS
+        # Footer Status HUD Bar
         status_bar = ctk.CTkFrame(self.preview_frame, fg_color="transparent")
         status_bar.grid(row=2, column=0, padx=16, pady=(4, 12), sticky="ew")
 
@@ -157,8 +176,8 @@ class BlipApp(ctk.CTk):
 
         self.btn_calibrate = ctk.CTkButton(
             self.control_panel,
-            text="📸 Calibrate Background (3s Countdown)",
-            font=ctk.CTkFont(size=13, weight="bold"),
+            text="📷 Calibrate Background (3s Countdown)",
+            font=ctk.CTkFont(weight="bold"),
             fg_color="#3b82f6",
             hover_color="#2563eb",
             height=38,
@@ -175,9 +194,8 @@ class BlipApp(ctk.CTk):
         sec2_lbl.pack(anchor="w", pady=(20, 4))
 
         effect_options = [name for _, name in self.effect_registry.list_effects()]
-        self.key_by_name = {name: k for k, name in self.effect_registry.list_effects()}
+        self.key_by_name = {name: key for key, name in self.effect_registry.list_effects()}
 
-        # Snap mapping
         snap_row = ctk.CTkFrame(self.control_panel, fg_color="transparent")
         snap_row.pack(fill="x", pady=4)
         ctk.CTkLabel(snap_row, text="🤌 Finger Snap:").pack(side="left")
@@ -187,7 +205,6 @@ class BlipApp(ctk.CTk):
         self.snap_combo.set("Thanos Dust Dissolve")
         self.snap_combo.pack(side="right")
 
-        # Instant Transmission mapping
         it_row = ctk.CTkFrame(self.control_panel, fg_color="transparent")
         it_row.pack(fill="x", pady=4)
         ctk.CTkLabel(it_row, text="👆 Instant Transmission:").pack(side="left")
@@ -247,17 +264,24 @@ class BlipApp(ctk.CTk):
         cam_row = ctk.CTkFrame(self.control_panel, fg_color="transparent")
         cam_row.pack(fill="x", pady=4)
         ctk.CTkLabel(cam_row, text="📹 Camera:").pack(side="left")
-        available_cams = list_available_cameras()
-        cam_options = [f"Camera {idx}" for idx in available_cams]
-        current_cam_text = f"Camera {self.config.camera_index}"
-        if current_cam_text not in cam_options:
-            cam_options.append(current_cam_text)
+
+        cam_options = [dev.display_label for dev in self.discovered_devices]
+        if not cam_options:
+            cam_options = ["Default Camera (Active)"]
+
+        current_cam_label = cam_options[0]
+        for dev in self.discovered_devices:
+            if dev.index == self.config.camera_index:
+                current_cam_label = dev.display_label
+                break
+
         self.cam_combo = ctk.CTkComboBox(
             cam_row,
             values=cam_options,
             command=self._on_camera_changed,
+            width=240,
         )
-        self.cam_combo.set(current_cam_text)
+        self.cam_combo.set(current_cam_label)
         self.cam_combo.pack(side="right")
 
         self.audio_switch = ctk.CTkSwitch(
@@ -292,10 +316,11 @@ class BlipApp(ctk.CTk):
         self.vcam_status_lbl.pack(anchor="w", pady=(0, 6))
 
         instructions = (
-            "In Google Meet / Zoom:\n"
-            "1. Open Settings > Video > Camera\n"
-            "2. Select 'OBS Virtual Camera'\n"
-            "3. Snap fingers to vanish!"
+            "How to connect in Google Meet / Zoom:\n"
+            "1. In Google Meet / Zoom Settings > Video > Camera\n"
+            "2. Select 'OBS Virtual Camera' as your camera device.\n"
+            "3. Blip streams your filtered webcam feed directly to the meeting.\n"
+            "4. Snap fingers or tap temple to disappear into the empty room!"
         )
         ctk.CTkLabel(
             self.control_panel,
@@ -312,13 +337,12 @@ class BlipApp(ctk.CTk):
         self.pipeline.sound_manager.enabled = is_on
 
     def _on_camera_changed(self, choice: str) -> None:
-        """Update active webcam index."""
-        try:
-            idx = int(choice.replace("Camera", "").strip())
-            self.config.camera_index = idx
-            self.pipeline.config.camera_index = idx
-        except ValueError:
-            pass
+        """Update active webcam input device and trigger dynamic hot-swap."""
+        dev = self.camera_device_map.get(choice)
+        if dev is not None:
+            self.config.camera_index = dev.index
+            self.pipeline.switch_camera(dev.index, camera_name=dev.name)
+            self.config.save()
 
     def _on_calibrate_clicked(self) -> None:
         """Initiate background plate calibration."""
@@ -338,18 +362,26 @@ class BlipApp(ctk.CTk):
         if effect_key in self.pipeline.effects_map:
             eff = self.pipeline.effects_map[effect_key]
             self.pipeline.active_effect = eff
+
+            frame = self.pipeline.latest_preview_frame
+            if frame is None:
+                import numpy as np
+
+                frame = np.zeros(
+                    (self.config.camera_height, self.config.camera_width, 3), dtype=np.uint8
+                )
+
             dummy_mask = (
-                self.pipeline.segmenter.process(self.pipeline.latest_preview_frame)
-                if (self.pipeline.segmenter and self.pipeline.latest_preview_frame is not None)
-                else None
+                self.pipeline.segmenter.process(frame)
+                if self.pipeline.segmenter
+                else np.ones((frame.shape[0], frame.shape[1]), dtype=np.float32)
             )
-            bg = self.pipeline.bg_manager.get_plate(self.pipeline.latest_preview_frame)
-            if dummy_mask is not None and self.pipeline.latest_preview_frame is not None:
-                eff.start(self.pipeline.latest_preview_frame, dummy_mask, bg)
+            bg = self.pipeline.bg_manager.get_plate(frame)
+            eff.start(frame, dummy_mask, bg)
             self.pipeline.state = PipelineState.DISAPPEARING
 
     def _start_hotkey_listener(self) -> None:
-        """Start global keyboard shortcut listener (Ctrl+Alt+S) for instant return."""
+        """Start global hotkey listener (Ctrl+Alt+S) to restore camera."""
         try:
             from pynput import keyboard
 
@@ -386,35 +418,34 @@ class BlipApp(ctk.CTk):
             scale = min(label_w / w, label_h / h)
             new_w, new_h = max(10, int(w * scale)), max(10, int(h * scale))
 
-            pil_img = Image.fromarray(frame).resize((new_w, new_h), Image.Resampling.BILINEAR)
-            self._preview_image_tk = ImageTk.PhotoImage(image=pil_img)
+            img_pil = Image.fromarray(frame).resize((new_w, new_h), Image.Resampling.BILINEAR)
+            self._preview_image_tk = ImageTk.PhotoImage(image=img_pil)
             self.canvas_label.configure(image=self._preview_image_tk, text="")
 
-        # Update FPS label
-        self.fps_label.configure(text=f"FPS: {self.pipeline.current_fps:.1f}")
-
-        # Update State badge
-        state = self.pipeline.state
-        if state == PipelineState.NORMAL:
+        # Refresh status HUD labels
+        if self.pipeline.state == PipelineState.NORMAL:
             self.status_badge.configure(text="● LIVE STREAMING", text_color="#22c55e")
-        elif state == PipelineState.CALIBRATING:
+        elif self.pipeline.state == PipelineState.CALIBRATING:
             rem = self.pipeline.bg_manager.countdown_remaining
             self.status_badge.configure(text=f"● CALIBRATING ({rem:.1f}s)", text_color="#3b82f6")
-        elif state in (PipelineState.DISAPPEARING, PipelineState.DISAPPEARED):
+        elif self.pipeline.state == PipelineState.DISAPPEARED:
             self.status_badge.configure(text="● DISAPPEARED (VANISHED)", text_color="#ef4444")
-        elif state == PipelineState.REAPPEARING:
+        elif self.pipeline.state == PipelineState.REAPPEARING:
             self.status_badge.configure(text="● REAPPEARING...", text_color="#f59e0b")
 
-        self.after(30, self._update_gui_loop)
+        self.fps_label.configure(text=f"FPS: {self.pipeline.current_fps:.1f}")
+
+        # Schedule next tick (~30 FPS refresh rate)
+        self.after(33, self._update_gui_loop)
 
     def on_closing(self) -> None:
-        """Handle window close event."""
+        """Gracefully release camera and shutdown threads upon window exit."""
         self._is_closing = True
         self.pipeline.stop()
         self.destroy()
 
 
-def launch_app() -> None:
-    """Launch the Blip desktop application."""
+def launch_app():
+    """CLI launcher for the Blip GUI desktop application."""
     app = BlipApp()
     app.mainloop()
