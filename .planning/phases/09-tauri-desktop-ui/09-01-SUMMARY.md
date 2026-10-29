@@ -14,3 +14,4 @@ Initialized the native Tauri v2 desktop application shell in `crates/blip-deskto
 
 ## Verification
 - Verified with `cargo check -p blip-desktop` which compiles in 1.60s with 0 errors.
+

@@ -17,3 +17,4 @@ blip-core = { path = "../blip-core" }
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
+

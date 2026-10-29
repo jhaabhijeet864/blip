@@ -116,3 +116,4 @@ fn test_thanos_disintegration_completion() {
     let sample = target.get_pixel(160, 120);
     assert_eq!(sample.0, [10, 10, 10]);
 }
+

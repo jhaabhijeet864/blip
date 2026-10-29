@@ -18,3 +18,4 @@ Implemented background clean plate calibration, real-time LAB luminance drift co
   - `test_plate`: 3 passed
   - `test_vcam`: 2 passed
   - `test_vision`: 5 passed
+

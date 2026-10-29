@@ -6,8 +6,8 @@ and intelligent inpainting fallback when uncalibrated.
 
 from __future__ import annotations
 
-from pathlib import Path
 import time
+from pathlib import Path
 
 import cv2
 import numpy as np

@@ -50,3 +50,4 @@
 - **TUI-03**: Mouse-draggable vertical splitter dividing the video stage and settings panel with persistent width storage.
 - **TUI-04**: Gesture-to-Effect mapping matrix, live FPS / landmark HUD toggle, and calibration controls.
 - **TCFG-01**: JSON user configuration persistence (`~/.blip/config.json`) with backwards compatibility.
+

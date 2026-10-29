@@ -76,3 +76,4 @@ impl InstantTransmissionDetector {
         self.streak_frames = 0;
     }
 }
+

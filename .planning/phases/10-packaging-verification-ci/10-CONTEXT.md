@@ -36,3 +36,4 @@
 - **RDIST-01**: Compact standalone single executable distribution (<25MB) bundled via Tauri CLI.
 - **RTEST-01**: Automated Rust unit and integration test suite (`cargo test`) verifying capture, kinematics, and effect pipelines.
 - **RCI-01**: GitHub Actions workflow for automated cross-platform Rust compilation, clippy linting, and testing on push/PR.
+
