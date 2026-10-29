@@ -27,6 +27,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Setup GitHub Pages
+        id: pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
       - name: Set up Node.js 20.x
         uses: actions/setup-node@v4
         with:
@@ -41,11 +47,14 @@ jobs:
 
       - name: Build Next.js Static Export
         working-directory: web
+        env:
+          NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
         run: |
           npm run build
 
-      - name: Setup GitHub Pages
-        uses: actions/configure-pages@v5
+      - name: Ensure .nojekyll File
+        run: |
+          touch web/out/.nojekyll
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
