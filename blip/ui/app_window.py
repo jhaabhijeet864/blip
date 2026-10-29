@@ -1,6 +1,7 @@
 """
-Modern dark-mode desktop graphical user interface for Blip.
-Built with CustomTkinter for real-time video preview, calibration, and gesture mapping.
+Modern Google Meet-inspired desktop graphical user interface for Blip.
+Features a centered 16:9 hero video stage, top floating HUD, bottom floating pill dock,
+minimalist settings drawer, and dynamic Light/Dark mode switching.
 """
 
 from __future__ import annotations
@@ -17,25 +18,27 @@ from blip.core.pipeline import PipelineState, VideoPipeline
 from blip.core.vcam import check_virtual_camera_driver
 from blip.effects.registry import EffectRegistry
 from blip.gestures.registry import GestureRegistry
-
-# Configure dark theme aesthetics
-ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme("blue")
+from blip.ui.theme import Theme
 
 
 class BlipApp(ctk.CTk):
     """
-    Main desktop application window for Blip.
+    Main desktop studio application window for Blip.
+    Crafted with a minimalist, Google Meet-inspired interface.
     """
 
     def __init__(self, config: BlipConfig | None = None):
         super().__init__()
         self.config = config or BlipConfig.load()
 
+        # Apply user's saved appearance mode (Light or Dark)
+        ctk.set_appearance_mode(getattr(self.config, "theme", "dark"))
+        ctk.set_default_color_theme("blue")
+
         # Window configuration
-        self.title("Blip — Disappear from Meetings with a Snap")
-        self.geometry("1100x720")
-        self.minsize(950, 650)
+        self.title("Blip Studio — Gesture Virtual Camera")
+        self.geometry("1180x740")
+        self.minsize(1020, 640)
 
         # Load window icon if available
         icon_path = Path(__file__).parent.parent.parent / "assets" / "icon.ico"
@@ -58,7 +61,7 @@ class BlipApp(ctk.CTk):
         if self.config.camera_index not in active_physical and active_physical:
             self.config.camera_index = best_cam_idx
 
-        # Initialize Pipeline
+        # Initialize Video Pipeline
         self.pipeline = VideoPipeline(config=self.config)
         self.pipeline.gesture_evaluator = self.gesture_registry.evaluate
         self.pipeline.effects_map = self.effect_registry.effects
@@ -82,7 +85,7 @@ class BlipApp(ctk.CTk):
         # Build UI layout
         self._setup_ui()
 
-        # Start hotkey listener
+        # Start hotkey listener (Ctrl+Alt+S)
         self._start_hotkey_listener()
 
         # Start pipeline
@@ -91,179 +94,264 @@ class BlipApp(ctk.CTk):
         # Hook window close event
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-        # Start UI render loop
+        # Start UI render loop (30ms refresh)
         self.after(30, self._update_gui_loop)
 
     def _setup_ui(self) -> None:
-        """Construct the two-column grid layout."""
-        self.grid_columnconfigure(0, weight=3)  # Video canvas preview
-        self.grid_columnconfigure(1, weight=2)  # Controls sidebar
+        """Construct the Google Meet-style layout."""
+        self.grid_columnconfigure(0, weight=7)  # Studio Video Stage (72% width)
+        self.grid_columnconfigure(1, weight=3)  # Settings Drawer (28% width)
         self.grid_rowconfigure(0, weight=1)
 
-        # ==========================================
-        # LEFT PANE: Video Canvas & HUD
-        # ==========================================
-        self.preview_frame = ctk.CTkFrame(self, corner_radius=12)
-        self.preview_frame.grid(row=0, column=0, padx=(16, 8), pady=16, sticky="nsew")
-        self.preview_frame.grid_rowconfigure(1, weight=1)
-        self.preview_frame.grid_columnconfigure(0, weight=1)
-
-        # Header Title Bar
-        title_box = ctk.CTkFrame(self.preview_frame, fg_color="transparent")
-        title_box.grid(row=0, column=0, padx=16, pady=(12, 4), sticky="ew")
-
-        title_lbl = ctk.CTkLabel(
-            title_box, text="BLIP", font=ctk.CTkFont(size=24, weight="bold")
+        # =========================================================================
+        # LEFT PANE: Hero Video Stage (Google Meet Call Tile)
+        # =========================================================================
+        self.stage_frame = ctk.CTkFrame(
+            self,
+            fg_color=Theme.STAGE_BG,
+            corner_radius=Theme.RADIUS_STAGE,
+            border_width=1,
+            border_color=Theme.STAGE_BORDER,
         )
-        title_lbl.pack(side="left")
+        self.stage_frame.grid(row=0, column=0, padx=(16, 8), pady=16, sticky="nsew")
+        self.stage_frame.grid_columnconfigure(0, weight=1)
+        self.stage_frame.grid_rowconfigure(0, weight=0)  # Top HUD Bar
+        self.stage_frame.grid_rowconfigure(1, weight=1)  # Video Canvas
+        self.stage_frame.grid_rowconfigure(2, weight=0)  # Floating Action Dock
 
-        subtitle_lbl = ctk.CTkLabel(
-            title_box,
-            text="  Now you see me. Blip.",
-            font=ctk.CTkFont(size=14, slant="italic"),
-            text_color="gray70",
+        # -------------------------------------------------------------------------
+        # 1. Top Floating HUD Bar
+        # -------------------------------------------------------------------------
+        top_hud = ctk.CTkFrame(self.stage_frame, fg_color="transparent")
+        top_hud.grid(row=0, column=0, padx=16, pady=(12, 6), sticky="ew")
+
+        # Left HUD: Brand Monogram + Status Badge
+        hud_left = ctk.CTkFrame(top_hud, fg_color="transparent")
+        hud_left.pack(side="left")
+
+        chip_brand = ctk.CTkFrame(
+            hud_left,
+            fg_color=Theme.CHIP_BG,
+            corner_radius=Theme.RADIUS_CHIP,
+            border_width=1,
+            border_color=Theme.CHIP_BORDER,
         )
-        subtitle_lbl.pack(side="left", pady=(4, 0))
+        chip_brand.pack(side="left", padx=(0, 8))
 
-        # Live Canvas Label
-        self.canvas_label = ctk.CTkLabel(
-            self.preview_frame, text="Initializing camera...", fg_color="#18181b", corner_radius=8
+        ctk.CTkLabel(
+            chip_brand,
+            text="⚡ BLIP STUDIO",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11, weight="bold"),
+            text_color=Theme.TEXT_PRIMARY,
+        ).pack(padx=10, pady=4)
+
+        chip_status = ctk.CTkFrame(
+            hud_left,
+            fg_color=Theme.CHIP_BG,
+            corner_radius=Theme.RADIUS_CHIP,
+            border_width=1,
+            border_color=Theme.CHIP_BORDER,
         )
-        self.canvas_label.grid(row=1, column=0, padx=16, pady=8, sticky="nsew")
-
-        # Footer Status HUD Bar
-        status_bar = ctk.CTkFrame(self.preview_frame, fg_color="transparent")
-        status_bar.grid(row=2, column=0, padx=16, pady=(4, 12), sticky="ew")
+        chip_status.pack(side="left")
 
         self.status_badge = ctk.CTkLabel(
-            status_bar,
-            text="● LIVE",
-            font=ctk.CTkFont(size=13, weight="bold"),
-            text_color="#22c55e",
+            chip_status,
+            text="● LIVE STREAMING",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11, weight="bold"),
+            text_color=Theme.STATUS_LIVE,
         )
-        self.status_badge.pack(side="left")
+        self.status_badge.pack(padx=10, pady=4)
+
+        # Right HUD: Stream FPS & Hotkey
+        hud_right = ctk.CTkFrame(top_hud, fg_color="transparent")
+        hud_right.pack(side="right")
+
+        chip_fps = ctk.CTkFrame(
+            hud_right,
+            fg_color=Theme.CHIP_BG,
+            corner_radius=Theme.RADIUS_CHIP,
+            border_width=1,
+            border_color=Theme.CHIP_BORDER,
+        )
+        chip_fps.pack(side="left", padx=(0, 8))
 
         self.fps_label = ctk.CTkLabel(
-            status_bar, text="FPS: 0.0", font=ctk.CTkFont(size=12), text_color="gray60"
+            chip_fps,
+            text="30.0 FPS • 720p HD",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11),
+            text_color=Theme.TEXT_MUTED,
         )
-        self.fps_label.pack(side="right")
+        self.fps_label.pack(padx=10, pady=4)
 
-        # ==========================================
-        # RIGHT PANE: Controls & Configuration
-        # ==========================================
+        chip_hotkey = ctk.CTkFrame(
+            hud_right,
+            fg_color=Theme.CHIP_BG,
+            corner_radius=Theme.RADIUS_CHIP,
+            border_width=1,
+            border_color=Theme.CHIP_BORDER,
+        )
+        chip_hotkey.pack(side="left")
+
+        ctk.CTkLabel(
+            chip_hotkey,
+            text="⌨ Ctrl+Alt+S",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11),
+            text_color=Theme.TEXT_FAINT,
+        ).pack(padx=10, pady=4)
+
+        # -------------------------------------------------------------------------
+        # 2. Hero Video Canvas Container
+        # -------------------------------------------------------------------------
+        self.video_container = ctk.CTkFrame(self.stage_frame, fg_color="transparent")
+        self.video_container.grid(row=1, column=0, padx=16, pady=4, sticky="nsew")
+        self.video_container.grid_rowconfigure(0, weight=1)
+        self.video_container.grid_columnconfigure(0, weight=1)
+
+        self.canvas_label = ctk.CTkLabel(
+            self.video_container,
+            text="Connecting to camera...",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=14),
+            fg_color=Theme.CANVAS_BG,
+            text_color=Theme.TEXT_MUTED,
+            corner_radius=Theme.RADIUS_CARD,
+        )
+        self.canvas_label.grid(row=0, column=0, sticky="nsew")
+
+        # -------------------------------------------------------------------------
+        # 3. Google Meet Floating Action Dock
+        # -------------------------------------------------------------------------
+        dock_container = ctk.CTkFrame(self.stage_frame, fg_color="transparent")
+        dock_container.grid(row=2, column=0, padx=16, pady=(10, 16), sticky="ew")
+
+        dock = ctk.CTkFrame(
+            dock_container,
+            fg_color=Theme.DOCK_BG,
+            corner_radius=Theme.RADIUS_DOCK,
+            border_width=1,
+            border_color=Theme.DOCK_BORDER,
+        )
+        dock.pack(anchor="center")
+
+        # Dock Action Buttons
+        self.btn_calibrate = ctk.CTkButton(
+            dock,
+            text="📸 Calibrate Room",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=12, weight="bold"),
+            fg_color=Theme.BTN_CALIBRATE,
+            hover_color=Theme.BTN_CALIBRATE_HOVER,
+            text_color=Theme.BTN_CALIBRATE_TEXT,
+            height=38,
+            corner_radius=19,
+            command=self._on_calibrate_clicked,
+        )
+        self.btn_calibrate.pack(side="left", padx=6, pady=6)
+
+        btn_thanos = ctk.CTkButton(
+            dock,
+            text="🤌 Snap Dust",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=12, weight="bold"),
+            fg_color=Theme.BTN_SNAP,
+            hover_color=Theme.BTN_SNAP_HOVER,
+            text_color="#ffffff",
+            height=38,
+            corner_radius=19,
+            command=lambda: self._trigger_effect_manual("thanos_dust"),
+        )
+        btn_thanos.pack(side="left", padx=6, pady=6)
+
+        btn_goku = ctk.CTkButton(
+            dock,
+            text="⚡ Goku Vanish",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=12, weight="bold"),
+            fg_color=Theme.BTN_GOKU,
+            hover_color=Theme.BTN_GOKU_HOVER,
+            text_color="#ffffff",
+            height=38,
+            corner_radius=19,
+            command=lambda: self._trigger_effect_manual("instant_transmission"),
+        )
+        btn_goku.pack(side="left", padx=6, pady=6)
+
+        self.btn_reappear = ctk.CTkButton(
+            dock,
+            text="✨ Reappear Live",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=12, weight="bold"),
+            fg_color=Theme.BTN_REAPPEAR,
+            hover_color=Theme.BTN_REAPPEAR_HOVER,
+            text_color="#ffffff",
+            height=38,
+            corner_radius=19,
+            command=self.pipeline.trigger_reappear,
+        )
+        self.btn_reappear.pack(side="left", padx=6, pady=6)
+
+        # =========================================================================
+        # RIGHT PANE: Minimalist Settings Drawer
+        # =========================================================================
         self.control_panel = ctk.CTkScrollableFrame(
-            self, corner_radius=12, label_text="CONTROL CENTER"
+            self,
+            fg_color=Theme.CARD_BG,
+            corner_radius=Theme.RADIUS_STAGE,
+            border_width=1,
+            border_color=Theme.CARD_BORDER,
         )
         self.control_panel.grid(row=0, column=1, padx=(8, 16), pady=16, sticky="nsew")
 
-        # Section 1: Empty Room Calibration
-        sec1_lbl = ctk.CTkLabel(
+        # -------------------------------------------------------------------------
+        # Drawer Header: Title + Light/Dark Segmented Switch
+        # -------------------------------------------------------------------------
+        header_frame = ctk.CTkFrame(self.control_panel, fg_color="transparent")
+        header_frame.pack(fill="x", padx=12, pady=(12, 16))
+
+        title_lbl = ctk.CTkLabel(
+            header_frame,
+            text="Studio Settings",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=16, weight="bold"),
+            text_color=Theme.TEXT_PRIMARY,
+        )
+        title_lbl.pack(side="left")
+
+        # Segmented Light / Dark Switch
+        self.theme_segment = ctk.CTkSegmentedButton(
+            header_frame,
+            values=["☀️ Light", "🌙 Dark"],
+            command=self._on_theme_changed,
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11, weight="bold"),
+            height=28,
+            corner_radius=14,
+        )
+        current_mode = getattr(self.config, "theme", "dark")
+        self.theme_segment.set("☀️ Light" if current_mode == "light" else "🌙 Dark")
+        self.theme_segment.pack(side="right")
+
+        # -------------------------------------------------------------------------
+        # Card 1: Video & Device Settings
+        # -------------------------------------------------------------------------
+        card_device = ctk.CTkFrame(
             self.control_panel,
-            text="1. EMPTY ROOM CALIBRATION",
-            font=ctk.CTkFont(size=13, weight="bold"),
+            fg_color=Theme.WINDOW_BG,
+            corner_radius=Theme.RADIUS_CARD,
+            border_width=1,
+            border_color=Theme.CARD_BORDER,
         )
-        sec1_lbl.pack(anchor="w", pady=(8, 4))
+        card_device.pack(fill="x", padx=12, pady=(0, 12))
 
-        sec1_desc = ctk.CTkLabel(
-            self.control_panel,
-            text="Snapshot your room without you so Blip can reveal it when you disappear.",
-            font=ctk.CTkFont(size=11),
-            text_color="gray60",
-            wraplength=340,
-            justify="left",
-        )
-        sec1_desc.pack(anchor="w", pady=(0, 8))
+        ctk.CTkLabel(
+            card_device,
+            text="CAMERA & OUTPUT",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11, weight="bold"),
+            text_color=Theme.TEXT_MUTED,
+        ).pack(anchor="w", padx=14, pady=(12, 8))
 
-        self.btn_calibrate = ctk.CTkButton(
-            self.control_panel,
-            text="📷 Calibrate Background (3s Countdown)",
-            font=ctk.CTkFont(weight="bold"),
-            fg_color="#3b82f6",
-            hover_color="#2563eb",
-            height=38,
-            command=self._on_calibrate_clicked,
-        )
-        self.btn_calibrate.pack(fill="x", pady=4)
+        cam_row = ctk.CTkFrame(card_device, fg_color="transparent")
+        cam_row.pack(fill="x", padx=14, pady=(0, 8))
 
-        # Section 2: Gesture to Effect Mapping
-        sec2_lbl = ctk.CTkLabel(
-            self.control_panel,
-            text="2. GESTURE-TO-EFFECT MAPPING",
-            font=ctk.CTkFont(size=13, weight="bold"),
-        )
-        sec2_lbl.pack(anchor="w", pady=(20, 4))
-
-        effect_options = [name for _, name in self.effect_registry.list_effects()]
-        self.key_by_name = {name: key for key, name in self.effect_registry.list_effects()}
-
-        snap_row = ctk.CTkFrame(self.control_panel, fg_color="transparent")
-        snap_row.pack(fill="x", pady=4)
-        ctk.CTkLabel(snap_row, text="🤌 Finger Snap:").pack(side="left")
-        self.snap_combo = ctk.CTkComboBox(
-            snap_row, values=effect_options, command=self._on_mapping_changed
-        )
-        self.snap_combo.set("Thanos Dust Dissolve")
-        self.snap_combo.pack(side="right")
-
-        it_row = ctk.CTkFrame(self.control_panel, fg_color="transparent")
-        it_row.pack(fill="x", pady=4)
-        ctk.CTkLabel(it_row, text="👆 Instant Transmission:").pack(side="left")
-        self.it_combo = ctk.CTkComboBox(
-            it_row, values=effect_options, command=self._on_mapping_changed
-        )
-        self.it_combo.set("Instant Transmission Vanish")
-        self.it_combo.pack(side="right")
-
-        # Section 3: Manual Triggers
-        sec3_lbl = ctk.CTkLabel(
-            self.control_panel,
-            text="3. INSTANT ACTION TRIGGERS",
-            font=ctk.CTkFont(size=13, weight="bold"),
-        )
-        sec3_lbl.pack(anchor="w", pady=(20, 4))
-
-        btn_grid = ctk.CTkFrame(self.control_panel, fg_color="transparent")
-        btn_grid.pack(fill="x", pady=4)
-
-        btn_thanos = ctk.CTkButton(
-            btn_grid,
-            text="🌪️ Snap Dust",
-            fg_color="#7c3aed",
-            hover_color="#6d28d9",
-            command=lambda: self._trigger_effect_manual("thanos_dust"),
-        )
-        btn_thanos.pack(side="left", expand=True, fill="x", padx=(0, 4))
-
-        btn_goku = ctk.CTkButton(
-            btn_grid,
-            text="⚡ Goku Vanish",
-            fg_color="#ea580c",
-            hover_color="#c2410c",
-            command=lambda: self._trigger_effect_manual("instant_transmission"),
-        )
-        btn_goku.pack(side="right", expand=True, fill="x", padx=(4, 0))
-
-        self.btn_reappear = ctk.CTkButton(
-            self.control_panel,
-            text="✨ Reappear Live (or press Ctrl+Alt+S)",
-            fg_color="#059669",
-            hover_color="#047857",
-            height=36,
-            command=self.pipeline.trigger_reappear,
-        )
-        self.btn_reappear.pack(fill="x", pady=(8, 4))
-
-        # Section 4: Hardware & Audio Settings
-        sec4_lbl = ctk.CTkLabel(
-            self.control_panel,
-            text="4. HARDWARE & AUDIO",
-            font=ctk.CTkFont(size=13, weight="bold"),
-        )
-        sec4_lbl.pack(anchor="w", pady=(20, 4))
-
-        cam_row = ctk.CTkFrame(self.control_panel, fg_color="transparent")
-        cam_row.pack(fill="x", pady=4)
-        ctk.CTkLabel(cam_row, text="📹 Camera:").pack(side="left")
+        ctk.CTkLabel(
+            cam_row,
+            text="Webcam:",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=12),
+            text_color=Theme.TEXT_PRIMARY,
+        ).pack(side="left")
 
         cam_options = [dev.display_label for dev in self.discovered_devices]
         if not cam_options:
@@ -279,62 +367,186 @@ class BlipApp(ctk.CTk):
             cam_row,
             values=cam_options,
             command=self._on_camera_changed,
-            width=240,
+            fg_color=Theme.COMBO_BG,
+            border_color=Theme.COMBO_BORDER,
+            corner_radius=Theme.RADIUS_INPUT,
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11),
+            height=30,
+            width=180,
         )
         self.cam_combo.set(current_cam_label)
         self.cam_combo.pack(side="right")
 
-        self.audio_switch = ctk.CTkSwitch(
+        is_avail, vcam_msg = check_virtual_camera_driver()
+        status_color = Theme.STATUS_LIVE if is_avail else Theme.STATUS_REAPPEARING
+        self.vcam_status_lbl = ctk.CTkLabel(
+            card_device,
+            text=f"● {vcam_msg}",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11),
+            text_color=status_color,
+            wraplength=260,
+            justify="left",
+        )
+        self.vcam_status_lbl.pack(anchor="w", padx=14, pady=(0, 12))
+
+        # -------------------------------------------------------------------------
+        # Card 2: Gesture Trigger Mapping
+        # -------------------------------------------------------------------------
+        card_gestures = ctk.CTkFrame(
             self.control_panel,
-            text="🔊 Sound Cues (Snap / Zap / Chime)",
+            fg_color=Theme.WINDOW_BG,
+            corner_radius=Theme.RADIUS_CARD,
+            border_width=1,
+            border_color=Theme.CARD_BORDER,
+        )
+        card_gestures.pack(fill="x", padx=12, pady=(0, 12))
+
+        ctk.CTkLabel(
+            card_gestures,
+            text="GESTURE TRIGGERS",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11, weight="bold"),
+            text_color=Theme.TEXT_MUTED,
+        ).pack(anchor="w", padx=14, pady=(12, 8))
+
+        effect_options = [name for _, name in self.effect_registry.list_effects()]
+        self.key_by_name = {name: k for k, name in self.effect_registry.list_effects()}
+
+        # Snap mapping row
+        snap_row = ctk.CTkFrame(card_gestures, fg_color="transparent")
+        snap_row.pack(fill="x", padx=14, pady=(0, 8))
+
+        ctk.CTkLabel(
+            snap_row,
+            text="🤌 Finger Snap:",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=12),
+            text_color=Theme.TEXT_PRIMARY,
+        ).pack(side="left")
+
+        self.snap_combo = ctk.CTkComboBox(
+            snap_row,
+            values=effect_options,
+            command=self._on_mapping_changed,
+            fg_color=Theme.COMBO_BG,
+            border_color=Theme.COMBO_BORDER,
+            corner_radius=Theme.RADIUS_INPUT,
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11),
+            height=30,
+            width=140,
+        )
+        self.snap_combo.set("Thanos Dust Dissolve")
+        self.snap_combo.pack(side="right")
+
+        # Instant Transmission mapping row
+        it_row = ctk.CTkFrame(card_gestures, fg_color="transparent")
+        it_row.pack(fill="x", padx=14, pady=(0, 12))
+
+        ctk.CTkLabel(
+            it_row,
+            text="👆 Temple Tap:",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=12),
+            text_color=Theme.TEXT_PRIMARY,
+        ).pack(side="left")
+
+        self.it_combo = ctk.CTkComboBox(
+            it_row,
+            values=effect_options,
+            command=self._on_mapping_changed,
+            fg_color=Theme.COMBO_BG,
+            border_color=Theme.COMBO_BORDER,
+            corner_radius=Theme.RADIUS_INPUT,
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11),
+            height=30,
+            width=140,
+        )
+        self.it_combo.set("Instant Transmission Vanish")
+        self.it_combo.pack(side="right")
+
+        # -------------------------------------------------------------------------
+        # Card 3: Audio Cues & Feedback
+        # -------------------------------------------------------------------------
+        card_audio = ctk.CTkFrame(
+            self.control_panel,
+            fg_color=Theme.WINDOW_BG,
+            corner_radius=Theme.RADIUS_CARD,
+            border_width=1,
+            border_color=Theme.CARD_BORDER,
+        )
+        card_audio.pack(fill="x", padx=12, pady=(0, 12))
+
+        ctk.CTkLabel(
+            card_audio,
+            text="AUDIO FEEDBACK",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11, weight="bold"),
+            text_color=Theme.TEXT_MUTED,
+        ).pack(anchor="w", padx=14, pady=(12, 6))
+
+        self.audio_switch = ctk.CTkSwitch(
+            card_audio,
+            text="Sound Cues (Snap, Zap, Chime)",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=12),
+            text_color=Theme.TEXT_PRIMARY,
             command=self._on_audio_toggled,
         )
-        if self.config.sound_enabled:
+        if getattr(self.config, "sound_enabled", True):
             self.audio_switch.select()
         else:
             self.audio_switch.deselect()
-        self.audio_switch.pack(anchor="w", pady=(8, 4))
+        self.audio_switch.pack(anchor="w", padx=14, pady=(0, 4))
 
-        # Section 5: Virtual Camera Integration
-        sec5_lbl = ctk.CTkLabel(
-            self.control_panel,
-            text="5. GOOGLE MEET CONNECTION",
-            font=ctk.CTkFont(size=13, weight="bold"),
-        )
-        sec5_lbl.pack(anchor="w", pady=(20, 4))
-
-        is_avail, vcam_msg = check_virtual_camera_driver()
-        status_color = "#22c55e" if is_avail else "#f59e0b"
-        self.vcam_status_lbl = ctk.CTkLabel(
-            self.control_panel,
-            text=f"● {vcam_msg}",
-            font=ctk.CTkFont(size=11),
-            text_color=status_color,
-            wraplength=340,
+        ctk.CTkLabel(
+            card_audio,
+            text="Plays non-blocking audio synthesized feedback on vanish & return.",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11),
+            text_color=Theme.TEXT_MUTED,
+            wraplength=260,
             justify="left",
+        ).pack(anchor="w", padx=14, pady=(0, 12))
+
+        # -------------------------------------------------------------------------
+        # Card 4: Google Meet Fast Setup Guide
+        # -------------------------------------------------------------------------
+        card_guide = ctk.CTkFrame(
+            self.control_panel,
+            fg_color=Theme.WINDOW_BG,
+            corner_radius=Theme.RADIUS_CARD,
+            border_width=1,
+            border_color=Theme.CARD_BORDER,
         )
-        self.vcam_status_lbl.pack(anchor="w", pady=(0, 6))
+        card_guide.pack(fill="x", padx=12, pady=(0, 12))
+
+        ctk.CTkLabel(
+            card_guide,
+            text="GOOGLE MEET & ZOOM SETUP",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11, weight="bold"),
+            text_color=Theme.TEXT_MUTED,
+        ).pack(anchor="w", padx=14, pady=(12, 6))
 
         instructions = (
-            "How to connect in Google Meet / Zoom:\n"
-            "1. In Google Meet / Zoom Settings > Video > Camera\n"
-            "2. Select 'OBS Virtual Camera' as your camera device.\n"
-            "3. Blip streams your filtered webcam feed directly to the meeting.\n"
-            "4. Snap fingers or tap temple to disappear into the empty room!"
+            "1. Open Settings > Video in Google Meet / Zoom\n"
+            "2. Select 'OBS Virtual Camera' as camera\n"
+            "3. Snap fingers or tap temple to vanish live!"
         )
         ctk.CTkLabel(
-            self.control_panel,
+            card_guide,
             text=instructions,
-            font=ctk.CTkFont(size=11, slant="italic"),
-            text_color="gray60",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11),
+            text_color=Theme.TEXT_MUTED,
             justify="left",
-        )
+        ).pack(anchor="w", padx=14, pady=(0, 12))
+
+    def _on_theme_changed(self, choice: str) -> None:
+        """Switch appearance mode dynamically between Light and Dark."""
+        mode = "light" if "Light" in choice else "dark"
+        ctk.set_appearance_mode(mode)
+        self.config.theme = mode
+        self.config.save()
 
     def _on_audio_toggled(self) -> None:
         """Toggle audio cues on or off."""
         is_on = bool(self.audio_switch.get())
         self.config.sound_enabled = is_on
         self.pipeline.sound_manager.enabled = is_on
+        self.config.save()
 
     def _on_camera_changed(self, choice: str) -> None:
         """Update active webcam input device and trigger dynamic hot-swap."""
@@ -362,26 +574,18 @@ class BlipApp(ctk.CTk):
         if effect_key in self.pipeline.effects_map:
             eff = self.pipeline.effects_map[effect_key]
             self.pipeline.active_effect = eff
-
-            frame = self.pipeline.latest_preview_frame
-            if frame is None:
-                import numpy as np
-
-                frame = np.zeros(
-                    (self.config.camera_height, self.config.camera_width, 3), dtype=np.uint8
-                )
-
             dummy_mask = (
-                self.pipeline.segmenter.process(frame)
-                if self.pipeline.segmenter
-                else np.ones((frame.shape[0], frame.shape[1]), dtype=np.float32)
+                self.pipeline.segmenter.process(self.pipeline.latest_preview_frame)
+                if (self.pipeline.segmenter and self.pipeline.latest_preview_frame is not None)
+                else None
             )
-            bg = self.pipeline.bg_manager.get_plate(frame)
-            eff.start(frame, dummy_mask, bg)
+            bg = self.pipeline.bg_manager.get_plate(self.pipeline.latest_preview_frame)
+            if dummy_mask is not None and self.pipeline.latest_preview_frame is not None:
+                eff.start(self.pipeline.latest_preview_frame, dummy_mask, bg)
             self.pipeline.state = PipelineState.DISAPPEARING
 
     def _start_hotkey_listener(self) -> None:
-        """Start global hotkey listener (Ctrl+Alt+S) to restore camera."""
+        """Start global keyboard shortcut listener (Ctrl+Alt+S) for instant return."""
         try:
             from pynput import keyboard
 
@@ -410,7 +614,7 @@ class BlipApp(ctk.CTk):
         # Fetch preview frame from pipeline
         frame = self.pipeline.latest_preview_frame
         if frame is not None:
-            # Resize preview to fit UI canvas box while preserving aspect ratio
+            # Resize preview preserving 16:9 widescreen aspect ratio
             label_w = max(400, self.canvas_label.winfo_width())
             label_h = max(300, self.canvas_label.winfo_height())
 
@@ -418,34 +622,41 @@ class BlipApp(ctk.CTk):
             scale = min(label_w / w, label_h / h)
             new_w, new_h = max(10, int(w * scale)), max(10, int(h * scale))
 
-            img_pil = Image.fromarray(frame).resize((new_w, new_h), Image.Resampling.BILINEAR)
-            self._preview_image_tk = ImageTk.PhotoImage(image=img_pil)
+            pil_img = Image.fromarray(frame).resize((new_w, new_h), Image.Resampling.BILINEAR)
+            self._preview_image_tk = ImageTk.PhotoImage(image=pil_img)
             self.canvas_label.configure(image=self._preview_image_tk, text="")
 
-        # Refresh status HUD labels
-        if self.pipeline.state == PipelineState.NORMAL:
-            self.status_badge.configure(text="● LIVE STREAMING", text_color="#22c55e")
-        elif self.pipeline.state == PipelineState.CALIBRATING:
+        # Update FPS label
+        self.fps_label.configure(text=f"{self.pipeline.current_fps:.1f} FPS • 720p HD")
+
+        # Update State badge with contextual styling
+        state = self.pipeline.state
+        if state == PipelineState.NORMAL:
+            self.status_badge.configure(text="● LIVE STREAMING", text_color=Theme.STATUS_LIVE)
+        elif state == PipelineState.CALIBRATING:
             rem = self.pipeline.bg_manager.countdown_remaining
-            self.status_badge.configure(text=f"● CALIBRATING ({rem:.1f}s)", text_color="#3b82f6")
-        elif self.pipeline.state == PipelineState.DISAPPEARED:
-            self.status_badge.configure(text="● DISAPPEARED (VANISHED)", text_color="#ef4444")
-        elif self.pipeline.state == PipelineState.REAPPEARING:
-            self.status_badge.configure(text="● REAPPEARING...", text_color="#f59e0b")
+            self.status_badge.configure(
+                text=f"● CALIBRATING ({rem:.1f}s)", text_color=Theme.STATUS_CALIBRATING
+            )
+        elif state in (PipelineState.DISAPPEARING, PipelineState.DISAPPEARED):
+            self.status_badge.configure(
+                text="● VANISHED (EMPTY ROOM)", text_color=Theme.STATUS_VANISHED
+            )
+        elif state == PipelineState.REAPPEARING:
+            self.status_badge.configure(
+                text="● REAPPEARING...", text_color=Theme.STATUS_REAPPEARING
+            )
 
-        self.fps_label.configure(text=f"FPS: {self.pipeline.current_fps:.1f}")
-
-        # Schedule next tick (~30 FPS refresh rate)
-        self.after(33, self._update_gui_loop)
+        self.after(30, self._update_gui_loop)
 
     def on_closing(self) -> None:
-        """Gracefully release camera and shutdown threads upon window exit."""
+        """Handle window close event."""
         self._is_closing = True
         self.pipeline.stop()
         self.destroy()
 
 
-def launch_app():
-    """CLI launcher for the Blip GUI desktop application."""
+def launch_app() -> None:
+    """Launch the Blip desktop application."""
     app = BlipApp()
     app.mainloop()

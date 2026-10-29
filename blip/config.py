@@ -40,6 +40,7 @@ class BlipConfig:
     ash_drift_speed: float = 1.2
     auto_reappear_delay: float = 0.0  # 0.0 means manual reappear only
     sound_enabled: bool = True
+    theme: str = 'dark'
 
     @classmethod
     def load(cls, path: Path | None = None) -> BlipConfig:

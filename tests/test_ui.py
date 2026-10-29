@@ -8,9 +8,11 @@ from blip.config import BlipConfig
 from blip.core.devices import CameraDevice
 from blip.core.pipeline import PipelineState
 from blip.ui.app_window import BlipApp, launch_app
+from blip.ui.theme import Theme
 
 
 @patch("customtkinter.CTk.__init__", return_value=None)
+@patch.object(BlipApp, "configure")
 @patch.object(BlipApp, "geometry")
 @patch.object(BlipApp, "minsize")
 @patch.object(BlipApp, "title")
@@ -30,6 +32,7 @@ def test_blip_app_initialization_and_events(
     mock_title,
     mock_minsize,
     mock_geom,
+    mock_configure,
     mock_ctk_init,
 ):
     """Verify BlipApp initializes subsystems, wires registries, and handles user interactions."""
@@ -63,6 +66,16 @@ def test_blip_app_initialization_and_events(
     app.pipeline.effects_map = {"thanos_dust": dummy_effect}
     app._trigger_effect_manual("thanos_dust")
     assert app.pipeline.state == PipelineState.DISAPPEARING
+
+    # Test theme toggle callback
+    with patch("customtkinter.set_appearance_mode") as mock_set_mode, patch.object(cfg, "save"):
+        app._on_theme_changed("☀️ Light")
+        assert app.config.theme == "light"
+        mock_set_mode.assert_called_with("light")
+
+        app._on_theme_changed("🌙 Dark")
+        assert app.config.theme == "dark"
+        mock_set_mode.assert_called_with("dark")
 
     # Test audio toggle
     app.audio_switch = MagicMock()
@@ -102,3 +115,12 @@ def test_launch_app_function():
     with patch("blip.ui.app_window.BlipApp", return_value=mock_app_instance):
         launch_app()
         mock_app_instance.mainloop.assert_called_once()
+
+
+def test_theme_tokens():
+    """Verify Theme design system defines required color pairs."""
+    assert len(Theme.WINDOW_BG) == 2
+    assert len(Theme.STAGE_BG) == 2
+    assert len(Theme.CARD_BG) == 2
+    assert len(Theme.DOCK_BG) == 2
+    assert Theme.STATUS_LIVE.startswith("#")
