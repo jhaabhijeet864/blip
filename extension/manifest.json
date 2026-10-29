@@ -10,7 +10,11 @@
   "host_permissions": [
     "https://meet.google.com/*",
     "https://teams.microsoft.com/*",
-    "https://*.zoom.us/*"
+    "https://*.zoom.us/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*",
+    "http://localhost:*/*",
+    "http://127.0.0.1:*/*"
   ],
   "background": {
     "service_worker": "dist/background.js",
@@ -42,7 +46,11 @@
       "matches": [
         "https://meet.google.com/*",
         "https://teams.microsoft.com/*",
-        "https://*.zoom.us/*"
+        "https://*.zoom.us/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*",
+        "http://localhost:*/*",
+        "http://127.0.0.1:*/*"
       ],
       "js": ["dist/injected.js"],
       "run_at": "document_start",
@@ -52,7 +60,11 @@
       "matches": [
         "https://meet.google.com/*",
         "https://teams.microsoft.com/*",
-        "https://*.zoom.us/*"
+        "https://*.zoom.us/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*",
+        "http://localhost:*/*",
+        "http://127.0.0.1:*/*"
       ],
       "js": ["dist/content.js"],
       "run_at": "document_start",
@@ -68,7 +80,11 @@
       "matches": [
         "https://meet.google.com/*",
         "https://teams.microsoft.com/*",
-        "https://*.zoom.us/*"
+        "https://*.zoom.us/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*",
+        "http://localhost:*/*",
+        "http://127.0.0.1:*/*"
       ]
     }
   ]

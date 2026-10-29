@@ -48,7 +48,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       className="h-full bg-[#111319] border-l border-zinc-800 flex flex-col overflow-y-auto select-none p-4 text-zinc-200 transition-all duration-75"
     >
       <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-4">
-        <h2 className="text-sm font-bold text-zinc-100 uppercase tracking-wider">Studio Settings</h2>
+        <div className="flex items-center gap-2.5">
+          <img src="/logo.svg" alt="Blip Logo" className="w-5 h-5 object-contain" />
+          <h2 className="text-sm font-bold text-zinc-100 tracking-tight">Studio Settings</h2>
+        </div>
         <span className="text-[10px] font-mono px-2 py-0.5 bg-zinc-800 text-zinc-400 rounded-full border border-zinc-700">
           v2.0 Native
         </span>

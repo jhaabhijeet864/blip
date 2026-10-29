@@ -12,12 +12,12 @@ export default function Footer() {
           
           {/* Brand & Tagline */}
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1.5">
+            <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1 shadow-sm">
               <Image
                 src="/logo.svg"
                 alt="Blip Logo"
-                width={18}
-                height={18}
+                width={24}
+                height={24}
                 className="w-full h-full object-contain"
               />
             </div>

@@ -12,20 +12,35 @@ import os
 from pathlib import Path
 from PIL import Image
 
-def generate_branding_assets(master_image_path: str | Path) -> None:
-    master_path = Path(master_image_path)
-    if not master_path.exists():
-        raise FileNotFoundError(f"Master image not found: {master_path}")
-
-    root_dir = master_path.parent
+def generate_branding_assets(master_image_path: str | Path | None = None) -> None:
+    root_dir = Path(__file__).parent.parent
     assets_dir = root_dir / "assets"
     branding_dir = assets_dir / "branding"
+
+    if master_image_path and Path(master_image_path).exists():
+        master_path = Path(master_image_path)
+    elif (branding_dir / "logo-master.png").exists():
+        master_path = branding_dir / "logo-master.png"
+    else:
+        raise FileNotFoundError(f"Master logo image not found at {master_image_path} or {branding_dir / 'logo-master.png'}")
+
     desktop_icons_dir = root_dir / "crates" / "blip-desktop" / "icons"
     ui_public_dir = root_dir / "ui" / "public"
     web_public_dir = root_dir / "web" / "public"
     ext_icons_dir = root_dir / "assets" / "extension-icons"
+    chrome_ext_dir = root_dir / "extension" / "icons"
+    dist_ext_dir = root_dir / "dist" / "blip-extension" / "icons"
 
-    for d in [branding_dir, desktop_icons_dir, ui_public_dir, web_public_dir, ext_icons_dir]:
+    target_dirs = [
+        branding_dir,
+        desktop_icons_dir,
+        ui_public_dir,
+        web_public_dir,
+        ext_icons_dir,
+        chrome_ext_dir,
+        dist_ext_dir,
+    ]
+    for d in target_dirs:
         d.mkdir(parents=True, exist_ok=True)
 
     print(f"Loading master logo from: {master_path}")
@@ -35,8 +50,9 @@ def generate_branding_assets(master_image_path: str | Path) -> None:
 
     # 1. Save master copy to assets/branding/logo-master.png
     master_dest = branding_dir / "logo-master.png"
-    im.save(master_dest, "PNG")
-    print(f"Saved master copy to: {master_dest}")
+    if master_path != master_dest:
+        im.save(master_dest, "PNG")
+        print(f"Saved master copy to: {master_dest}")
 
     # 2. Generate standard resolution PNGs
     resolutions = [16, 24, 32, 48, 64, 128, 180, 256, 512, 1024]
@@ -48,6 +64,7 @@ def generate_branding_assets(master_image_path: str | Path) -> None:
 
     im_1024 = resized_images[1024]
     im_1024.save(branding_dir / "logo.png", "PNG")
+    im_1024.save(assets_dir / "logo.png", "PNG")
 
     # 3. Generate multi-resolution .ico (16, 24, 32, 48, 64, 128, 256)
     ico_sizes = [(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
@@ -61,9 +78,9 @@ def generate_branding_assets(master_image_path: str | Path) -> None:
         im.save(icns_path, format="ICNS")
         print(f"Generated macOS ICNS: {icns_path}")
     except Exception as e:
-        print(f"Note on ICNS generation: {e}, using 256x256 fallback")
+        print(f"Note on ICNS generation: {e}")
 
-    # 5. Generate high-fidelity vector SVG (SVG wrapper around lossless base64-embedded master)
+    # 5. Generate high-fidelity vector SVG (lossless SVG container with vector viewBox)
     with open(master_dest, "rb") as f:
         png_base64 = base64.b64encode(f.read()).decode("utf-8")
 
@@ -113,17 +130,19 @@ def generate_branding_assets(master_image_path: str | Path) -> None:
     resized_images[512].save(ui_public_dir / "icon.png", "PNG")
     print(f"Updated ui/public/ assets: {ui_public_dir}")
 
-    # 10. Distribute to extension icons (Chrome Extension)
-    resized_images[16].save(ext_icons_dir / "icon-16.png", "PNG")
-    resized_images[32].save(ext_icons_dir / "icon-32.png", "PNG")
-    resized_images[48].save(ext_icons_dir / "icon-48.png", "PNG")
-    resized_images[128].save(ext_icons_dir / "icon-128.png", "PNG")
-    print(f"Generated Chrome extension icons: {ext_icons_dir}")
+    # 10. Distribute to extension/icons/ & dist/blip-extension/icons/
+    for icon_dir in [ext_icons_dir, chrome_ext_dir, dist_ext_dir]:
+        resized_images[16].save(icon_dir / "icon-16.png", "PNG")
+        resized_images[32].save(icon_dir / "icon-32.png", "PNG")
+        resized_images[48].save(icon_dir / "icon-48.png", "PNG")
+        resized_images[128].save(icon_dir / "icon-128.png", "PNG")
+    print(f"Updated Chrome extension icons in extension/icons and dist/blip-extension/icons")
 
-    # 11. Remove raw file from root as requested
-    master_path.unlink()
-    print(f"Cleaned up and removed root file: {master_path}")
+    if master_image_path and Path(master_image_path).exists() and Path(master_image_path) != master_dest:
+        Path(master_image_path).unlink()
+        print(f"Cleaned up and removed root file: {master_image_path}")
+
     print("All branding assets successfully created and synchronized!")
 
 if __name__ == "__main__":
-    generate_branding_assets(r"E:\snapper\Cartoon Hand Snap Sticker.png")
+    generate_branding_assets()

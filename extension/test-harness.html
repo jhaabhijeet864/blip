@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blip Extension Test Harness</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131b2e;
+      --border: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #8b5cf6;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge {
+      background: var(--primary);
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .status-banner {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .status-banner.active {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: var(--success);
+    }
+
+    .status-banner.inactive {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: var(--warning);
+    }
+
+    .video-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .video-viewport {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .empty-placeholder {
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .hud-overlay {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--success);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .controls {
+      padding: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #0e1424;
+      border-top: 1px solid var(--border);
+    }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    button {
+      background: #1e293b;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    button:hover {
+      background: #334155;
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.primary {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    button.primary:hover {
+      background: #7c3aed;
+    }
+
+    button.success {
+      background: var(--success);
+      border-color: var(--success);
+    }
+
+    button.warning {
+      background: var(--warning);
+      border-color: var(--warning);
+    }
+
+    button.danger {
+      background: var(--danger);
+      border-color: var(--danger);
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .diagnostics {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+
+    .diag-title {
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+
+    .diag-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .diag-item {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .diag-label {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .diag-val {
+      font-weight: 600;
+      color: var(--text);
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <div class="badge">B</div>
+        <div>
+          <div class="title">Blip Extension Test Harness</div>
+          <div style="font-size: 12px; color: var(--muted);">Local WebRTC Simulation Environment</div>
+        </div>
+      </div>
+      <div id="interceptor-pill" class="status-banner inactive" style="margin-bottom: 0;">
+        Checking Interceptor...
+      </div>
+    </div>
+
+    <div class="status-banner active" id="banner">
+      <span id="banner-text">Loading test environment...</span>
+      <span id="banner-sub" style="font-size: 11px; opacity: 0.85;">WebRTC ready</span>
+    </div>
+
+    <div class="video-card">
+      <div class="video-viewport">
+        <video id="live-video" autoplay playsinline muted></video>
+        <div id="empty-state" class="empty-placeholder">
+          Camera stream inactive. Click "Start Meeting Video" below.
+        </div>
+        <div class="hud-overlay" id="hud" style="display: none;">
+          STREAMING | 30.0 FPS | INTERCEPTED
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="btn-group">
+          <button id="btn-start" class="primary">Start Meeting Video</button>
+          <button id="btn-snap" class="primary" disabled>Snap to Dust</button>
+          <button id="btn-goku" class="warning" disabled>Goku Flash</button>
+          <button id="btn-reappear" class="success" disabled>Reappear Live (Alt+Shift+S)</button>
+          <button id="btn-calib" disabled>Calibrate Room Plate</button>
+        </div>
+        <button id="btn-stop" class="danger" disabled>Stop</button>
+      </div>
+    </div>
+
+    <div class="diagnostics">
+      <div class="diag-title">Diagnostic Telemetry</div>
+      <div class="diag-grid">
+        <div class="diag-item">
+          <div class="diag-label">BLIP INTERCEPTOR STATUS</div>
+          <div class="diag-val" id="diag-interceptor">Checking...</div>
+        </div>
+        <div class="diag-item">
+          <div class="diag-label">ACTIVE VIDEO TRACK</div>
+          <div class="diag-val" id="diag-track">None</div>
+        </div>
+        <div class="diag-item">
+          <div class="diag-label">STREAM TYPE</div>
+          <div class="diag-val" id="diag-type">None</div>
+        </div>
+        <div class="diag-item">
+          <div class="diag-label">AUDIO MUTED</div>
+          <div class="diag-val" id="diag-mute">False</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let activeStream = null;
+    const video = document.getElementById("live-video");
+    const emptyState = document.getElementById("empty-state");
+    const hud = document.getElementById("hud");
+
+    const btnStart = document.getElementById("btn-start");
+    const btnStop = document.getElementById("btn-stop");
+    const btnSnap = document.getElementById("btn-snap");
+    const btnGoku = document.getElementById("btn-goku");
+    const btnReappear = document.getElementById("btn-reappear");
+    const btnCalib = document.getElementById("btn-calib");
+
+    const diagInterceptor = document.getElementById("diag-interceptor");
+    const diagTrack = document.getElementById("diag-track");
+    const diagType = document.getElementById("diag-type");
+    const diagMute = document.getElementById("diag-mute");
+
+    const banner = document.getElementById("banner");
+    const bannerText = document.getElementById("banner-text");
+    const interceptorPill = document.getElementById("interceptor-pill");
+
+    function checkInterceptor() {
+      const isReady = Boolean(window.__BLIP_INTERCEPTOR_READY__);
+      if (isReady) {
+        interceptorPill.className = "status-banner active";
+        interceptorPill.textContent = "Interceptor Active";
+        diagInterceptor.textContent = "READY (world: MAIN)";
+        diagInterceptor.style.color = "var(--success)";
+        bannerText.textContent = "Blip Extension is successfully intercepting getUserMedia in this tab.";
+      } else {
+        interceptorPill.className = "status-banner inactive";
+        interceptorPill.textContent = "Extension Inactive";
+        diagInterceptor.textContent = "Not Detected (Load Unpacked)";
+        diagInterceptor.style.color = "var(--warning)";
+        bannerText.textContent = "Extension not loaded yet. Load unpacked via chrome://extensions then reload.";
+      }
+    }
+
+    setTimeout(checkInterceptor, 300);
+
+    btnStart.addEventListener("click", async () => {
+      try {
+        // Calls standard navigator.mediaDevices.getUserMedia (which Blip intercepts!)
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: true,
+        });
+
+        activeStream = stream;
+        video.srcObject = stream;
+        emptyState.style.display = "none";
+        hud.style.display = "block";
+
+        btnStart.disabled = true;
+        btnStop.disabled = false;
+        btnSnap.disabled = false;
+        btnGoku.disabled = false;
+        btnReappear.disabled = false;
+        btnCalib.disabled = false;
+
+        const videoTrack = stream.getVideoTracks()[0];
+        diagTrack.textContent = videoTrack ? videoTrack.label : "Unknown";
+        diagType.textContent = videoTrack && videoTrack.label.includes("Canvas") ? "Synthetic Canvas Stream" : "Direct / Intercepted";
+
+        checkInterceptor();
+      } catch (err) {
+        alert("Camera error: " + err.message);
+      }
+    });
+
+    btnStop.addEventListener("click", () => {
+      if (activeStream) {
+        activeStream.getTracks().forEach((t) => t.stop());
+        activeStream = null;
+      }
+      video.srcObject = null;
+      emptyState.style.display = "block";
+      hud.style.display = "none";
+
+      btnStart.disabled = false;
+      btnStop.disabled = true;
+      btnSnap.disabled = true;
+      btnGoku.disabled = true;
+      btnReappear.disabled = true;
+      btnCalib.disabled = true;
+      diagTrack.textContent = "None";
+      diagType.textContent = "None";
+    });
+
+    btnSnap.addEventListener("click", () => {
+      window.postMessage({
+        source: "blip-extension-popup",
+        action: "BLIP_TRIGGER_SNAP",
+        timestamp: Date.now(),
+      }, "*");
+    });
+
+    btnGoku.addEventListener("click", () => {
+      window.postMessage({
+        source: "blip-extension-popup",
+        action: "BLIP_TRIGGER_GOKU",
+        timestamp: Date.now(),
+      }, "*");
+    });
+
+    btnReappear.addEventListener("click", () => {
+      window.postMessage({
+        source: "blip-extension-popup",
+        action: "BLIP_TRIGGER_REAPPEAR",
+        timestamp: Date.now(),
+      }, "*");
+    });
+
+    btnCalib.addEventListener("click", () => {
+      window.postMessage({
+        source: "blip-extension-popup",
+        action: "BLIP_CALIBRATE",
+        timestamp: Date.now(),
+      }, "*");
+      btnCalib.textContent = "Plate Captured!";
+      setTimeout(() => { btnCalib.textContent = "Calibrate Room Plate"; }, 1500);
+    });
+
+    window.addEventListener("message", (event) => {
+      if (event.data && event.data.action === "BLIP_AUTO_MUTE") {
+        diagMute.textContent = String(Boolean(event.data.payload));
+        diagMute.style.color = event.data.payload ? "var(--danger)" : "var(--success)";
+      }
+    });
+  </script>
+</body>
+</html>

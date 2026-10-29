@@ -30,7 +30,7 @@ export const Stage: React.FC<StageProps> = ({
       <div className="flex items-center justify-between px-3 py-2 bg-[#12141a] rounded-xl border border-zinc-800/80 mb-3 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 font-bold tracking-wider text-sm text-zinc-100">
-            <Zap className="w-4 h-4 text-indigo-400 fill-indigo-400" />
+            <img src="/logo.svg" alt="Blip Logo" className="w-4 h-4 object-contain" />
             <span>BLIP STUDIO</span>
           </div>
           <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-950/60 text-emerald-400 text-xs font-semibold rounded-full border border-emerald-800/50">
