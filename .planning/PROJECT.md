@@ -15,23 +15,23 @@ Users can effortlessly choose, configure, and trigger fluid cinematic disappeara
 
 ### Validated
 
-(None yet — greenfield project initialization)
+- ✓ **VCAM-01**: Stream processed frames via Virtual Camera (`pyvirtualcam`) compatible with Google Meet and Zoom — Phase 2
+- ✓ **VISION-01**: Real-time 3D hand tracking (21 landmarks) with MediaPipe Hands — Phase 2
+- ✓ **VISION-02**: Real-time person segmentation and edge matting with MediaPipe Selfie Segmentation — Phase 2
+- ✓ **CALIB-01**: 3-second countdown background plate capture and lighting compensation — Phase 2
+- ✓ **GEST-01**: Thanos Finger Snap detection (thumb-middle contact + velocity release) — Phase 3
+- ✓ **GEST-02**: Goku Instant Transmission detection (two fingers to temple/forehead) — Phase 3
+- ✓ **FX-01**: Thanos Snap particle ash disintegration effect (2,000+ drifting particles) — Phase 3
+- ✓ **FX-02**: Goku Instant Transmission speedline anime flash vanishing effect — Phase 3
+- ✓ **FX-03**: Fluid Reappearance mechanic (re-trigger gesture or hotkey restore) — Phase 3
+- ✓ **GUI-01**: Modern dark-mode CustomTkinter desktop interface with live preview canvas — Phase 4
+- ✓ **GUI-02**: Gesture-to-Effect mapping matrix with cooldown/sensitivity sliders — Phase 4
+- ✓ **PACK-01**: One-click standalone executable packaging via PyInstaller — Phase 5
+- ✓ **OSS-01**: Production-grade open-source repository assets (MIT License, README with architecture diagrams, CI/CD, issue templates, Contributing, Security, and Code of Conduct) — Phase 1
 
 ### Active
 
-- [ ] **VCAM-01**: Stream processed frames via Virtual Camera (`pyvirtualcam`) compatible with Google Meet and Zoom
-- [ ] **VISION-01**: Real-time 3D hand tracking (21 landmarks) with MediaPipe Hands
-- [ ] **VISION-02**: Real-time person segmentation and edge matting with MediaPipe Selfie Segmentation
-- [ ] **CALIB-01**: 3-second countdown background plate capture and lighting compensation
-- [ ] **GEST-01**: Thanos Finger Snap detection (thumb-middle contact + velocity release)
-- [ ] **GEST-02**: Goku Instant Transmission detection (two fingers to temple/forehead)
-- [ ] **FX-01**: Thanos Snap particle ash disintegration effect (2,000+ drifting particles)
-- [ ] **FX-02**: Goku Instant Transmission speedline anime flash vanishing effect
-- [ ] **FX-03**: Fluid Reappearance mechanic (re-trigger gesture or hotkey restore)
-- [ ] **GUI-01**: Modern dark-mode CustomTkinter desktop interface with live preview canvas
-- [ ] **GUI-02**: Gesture-to-Effect mapping matrix with cooldown/sensitivity sliders
-- [ ] **PACK-01**: One-click standalone executable packaging via PyInstaller
-- [ ] **OSS-01**: Production-grade open-source repository assets (MIT License, README with architecture diagrams, CI/CD, issue templates, Contributing, Security, and Code of Conduct)
+(None — v1.0 Milestone complete)
 
 ### Out of Scope
 

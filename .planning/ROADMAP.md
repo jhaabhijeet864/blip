@@ -7,10 +7,10 @@ Blip turns the viral "gesture disappearance from video calls" into an iconic, 10
 ## Phases
 
 - [x] **Phase 1: Open-Source Repository Foundation & Standards** - Establish repository governance, licensing, open-source best practices, and package scaffolding.
-- [ ] **Phase 2: Vision & Virtual Camera Core Pipeline** - Build the high-fps video pipeline with MediaPipe Hand Tracking, Selfie Segmentation, background plate calibration, and pyvirtualcam sink.
-- [ ] **Phase 3: Flagship Gesture Engine & Cinematic Effects** - Implement precise Thanos Snap and Goku Instant Transmission detectors, particle ash disintegration, anime vanish, and reappearance.
-- [ ] **Phase 4: Modern Desktop GUI & Mapping Matrix** - Create a sleek CustomTkinter interface with live camera preview, gesture-effect mapping, calibration controls, and hotkeys.
-- [ ] **Phase 5: Packaging, Testing & CI/CD Release Automation** - Complete automated test suites, PyInstaller standalone binary compilation, and GitHub Actions CI/CD workflows.
+- [x] **Phase 2: Vision & Virtual Camera Core Pipeline** - Build the high-fps video pipeline with MediaPipe Hand Tracking, Selfie Segmentation, background plate calibration, and pyvirtualcam sink.
+- [x] **Phase 3: Flagship Gesture Engine & Cinematic Effects** - Implement precise Thanos Snap and Goku Instant Transmission detectors, particle ash disintegration, anime vanish, and reappearance.
+- [x] **Phase 4: Modern Desktop GUI & Mapping Matrix** - Create a sleek CustomTkinter interface with live camera preview, gesture-effect mapping, calibration controls, and hotkeys.
+- [x] **Phase 5: Packaging, Testing & CI/CD Release Automation** - Complete automated test suites, PyInstaller standalone binary compilation, and GitHub Actions CI/CD workflows.
 
 ---
 
@@ -41,8 +41,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: Build MediaPipe vision modules (hand tracker and selfie segmenter) and background plate manager.
-- [ ] 02-02: Implement threaded video pipeline and Virtual Camera sink with driver detection.
+- [x] 02-01: Build MediaPipe vision modules (hand tracker and selfie segmenter) and background plate manager.
+- [x] 02-02: Implement threaded video pipeline and Virtual Camera sink with driver detection.
 
 ### Phase 3: Flagship Gesture Engine & Cinematic Effects
 **Goal**: Implement robust gesture recognition and cinematic visual effects for the two flagship mechanics (Thanos Snap & Goku Instant Transmission) + Reappearance.
@@ -56,8 +56,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: Implement Thanos Snap & Goku IT gesture recognizers, registry, and finite state debounce machine.
-- [ ] 03-02: Implement visual effects engine (Thanos ash particles, Goku vanish, and fluid reappearance).
+- [x] 03-01: Implement Thanos Snap & Goku IT gesture recognizers, registry, and finite state debounce machine.
+- [x] 03-02: Implement visual effects engine (Thanos ash particles, Goku vanish, and fluid reappearance).
 
 ### Phase 4: Modern Desktop GUI & Mapping Matrix
 **Goal**: Deliver a polished, zero-terminal desktop user interface where users can customize gesture mappings and control their virtual camera.
@@ -72,7 +72,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 04-01: Build CustomTkinter desktop interface with live canvas preview, gesture-to-effect matrix, and configuration storage.
+- [x] 04-01: Build CustomTkinter desktop interface with live canvas preview, gesture-to-effect matrix, and configuration storage.
 
 ### Phase 5: Packaging, Testing & CI/CD Release Automation
 **Goal**: Package the app into a standalone executable and establish automated test pipelines and GitHub Actions workflows.
@@ -85,7 +85,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 05-01: Implement automated test suite, PyInstaller build script, and GitHub Actions CI workflow.
+- [x] 05-01: Implement automated test suite, PyInstaller build script, and GitHub Actions CI workflow.
 
 ---
 
@@ -97,7 +97,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Repository Foundation & Standards | 1/1 | Complete | 2026-10-29 |
-| 2. Vision & Virtual Camera Pipeline | 0/2 | Ready to plan | - |
-| 3. Flagship Gesture & Effect Engines | 0/2 | Not started | - |
-| 4. Modern Desktop GUI | 0/1 | Not started | - |
-| 5. Packaging, Testing & CI/CD | 0/1 | Not started | - |
+| 2. Vision & Virtual Camera Pipeline | 2/2 | Complete | 2026-10-29 |
+| 3. Flagship Gesture & Effect Engines | 2/2 | Complete | 2026-10-29 |
+| 4. Modern Desktop GUI | 1/1 | Complete | 2026-10-29 |
+| 5. Packaging, Testing & CI/CD | 1/1 | Complete | 2026-10-29 |
