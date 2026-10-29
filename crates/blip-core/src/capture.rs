@@ -108,3 +108,4 @@ impl Drop for CameraCapture {
         self.stop();
     }
 }
+

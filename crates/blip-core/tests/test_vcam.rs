@@ -43,3 +43,4 @@ fn test_virtual_cam_sink_lifecycle() {
         }
     }
 }
+

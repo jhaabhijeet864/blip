@@ -52,3 +52,4 @@ test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 ## 3. Next Up
 
 Proceeding to **Plan 06-02**: Thread-safe dynamic camera hot-swapping and `virtualcam` DirectShow OBS sink integration.
+

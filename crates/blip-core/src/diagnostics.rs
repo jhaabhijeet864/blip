@@ -73,3 +73,4 @@ pub fn render_offline_frame(
     let _ = (camera_name, reason); // Included for formatting log metadata
     img
 }
+
