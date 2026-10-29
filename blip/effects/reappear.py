@@ -27,14 +27,27 @@ class ReappearEffect(BaseEffect):
         # Progressive alpha blend of person silhouette
         alpha = p
         mask_3d = (mask * alpha)[:, :, None]
-        rendered = (frame.astype(np.float32) * mask_3d + background.astype(np.float32) * (1.0 - mask_3d)).astype(np.uint8)
+        rendered = (
+            frame.astype(np.float32) * mask_3d + background.astype(np.float32) * (1.0 - mask_3d)
+        ).astype(np.uint8)
 
         # Subtle shimmer ring around the returning person
         if p < 0.8:
             h, w, _ = frame.shape
             ring_alpha = 1.0 - (p / 0.8)
             overlay = rendered.copy()
-            cv2.ellipse(overlay, (w // 2, h // 2), (int(w * 0.3 * p), int(h * 0.4 * p)), 0, 0, 360, (200, 255, 255), 3)
-            rendered = cv2.addWeighted(rendered, 1.0 - ring_alpha * 0.5, overlay, ring_alpha * 0.5, 0)
+            cv2.ellipse(
+                overlay,
+                (w // 2, h // 2),
+                (int(w * 0.3 * p), int(h * 0.4 * p)),
+                0,
+                0,
+                360,
+                (200, 255, 255),
+                3,
+            )
+            rendered = cv2.addWeighted(
+                rendered, 1.0 - ring_alpha * 0.5, overlay, ring_alpha * 0.5, 0
+            )
 
         return rendered

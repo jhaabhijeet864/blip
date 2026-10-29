@@ -56,7 +56,9 @@ class InstantTransmissionEffect(BaseEffect):
             flash_intensity = 1.0 - ((f - 8) * 0.35)
             # Create bright flash frame with electric cyan/white tint
             flash_overlay = np.full_like(background, (220, 255, 255), dtype=np.uint8)
-            rendered = cv2.addWeighted(background, 1.0 - flash_intensity, flash_overlay, flash_intensity, 0)
+            rendered = cv2.addWeighted(
+                background, 1.0 - flash_intensity, flash_overlay, flash_intensity, 0
+            )
 
             # Expanding shockwave circle
             radius = int((f - 7) * (w // 10))
@@ -74,7 +76,9 @@ class InstantTransmissionEffect(BaseEffect):
 
         # Blend person over background
         mask_3d = mask[:, :, None]
-        rendered = (chroma.astype(np.float32) * mask_3d + background.astype(np.float32) * (1.0 - mask_3d)).astype(np.uint8)
+        rendered = (
+            chroma.astype(np.float32) * mask_3d + background.astype(np.float32) * (1.0 - mask_3d)
+        ).astype(np.uint8)
 
         # Draw dynamic anime speed lines radiating outward
         if self.speed_line_angles is not None:

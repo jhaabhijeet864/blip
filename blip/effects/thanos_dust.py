@@ -25,12 +25,12 @@ class ThanosSnapEffect(BaseEffect):
         self.particle_count = particle_count
 
         # Particle state arrays
-        self.particle_pos: np.ndarray | None = None    # (N, 2) [x, y] float32
-        self.particle_vel: np.ndarray | None = None    # (N, 2) [vx, vy] float32
+        self.particle_pos: np.ndarray | None = None  # (N, 2) [x, y] float32
+        self.particle_vel: np.ndarray | None = None  # (N, 2) [vx, vy] float32
         self.particle_color: np.ndarray | None = None  # (N, 3) uint8 RGB
-        self.particle_life: np.ndarray | None = None   # (N,) float32 [0.0 to 1.0]
-        self.particle_size: np.ndarray | None = None   # (N,) int32
-        self.noise_map: np.ndarray | None = None       # (H, W) float32 for organic erosion
+        self.particle_life: np.ndarray | None = None  # (N,) float32 [0.0 to 1.0]
+        self.particle_size: np.ndarray | None = None  # (N,) int32
+        self.noise_map: np.ndarray | None = None  # (H, W) float32 for organic erosion
 
     def start(self, initial_frame: np.ndarray, mask: np.ndarray, background: np.ndarray) -> None:
         super().start(initial_frame, mask, background)
@@ -49,10 +49,9 @@ class ThanosSnapEffect(BaseEffect):
             sampled_coords = person_indices[chosen]  # (N, 2) [y, x]
 
             # [x, y] float positions
-            self.particle_pos = np.column_stack((
-                sampled_coords[:, 1].astype(np.float32),
-                sampled_coords[:, 0].astype(np.float32)
-            ))
+            self.particle_pos = np.column_stack(
+                (sampled_coords[:, 1].astype(np.float32), sampled_coords[:, 0].astype(np.float32))
+            )
 
             # Initial velocities: float upwards (negative vy) and drift to the right/wind
             vx = np.random.uniform(0.5, 4.0, size=(count,)).astype(np.float32)
@@ -85,21 +84,28 @@ class ThanosSnapEffect(BaseEffect):
             dissolve_field = y_grad
 
         # Pixels where dissolve_field < threshold get dissolved into background
-        dissolve_mask = np.clip((mask - np.maximum(0.0, dissolve_field - (1.0 - dissolve_threshold))) * 2.0, 0.0, 1.0)
+        dissolve_mask = np.clip(
+            (mask - np.maximum(0.0, dissolve_field - (1.0 - dissolve_threshold))) * 2.0, 0.0, 1.0
+        )
         dissolve_mask_3d = dissolve_mask[:, :, None]
 
         # Blend person with background plate
-        rendered = (frame.astype(np.float32) * dissolve_mask_3d + background.astype(np.float32) * (1.0 - dissolve_mask_3d)).astype(np.uint8)
+        rendered = (
+            frame.astype(np.float32) * dissolve_mask_3d
+            + background.astype(np.float32) * (1.0 - dissolve_mask_3d)
+        ).astype(np.uint8)
 
         # 2. Update and render ash particles
         if self.particle_pos is not None and len(self.particle_pos) > 0:
             # Turbulence
-            turbulence_x = np.random.uniform(-0.8, 0.8, size=self.particle_vel.shape[0]).astype(np.float32)
+            turbulence_x = np.random.uniform(-0.8, 0.8, size=self.particle_vel.shape[0]).astype(
+                np.float32
+            )
             self.particle_vel[:, 0] += turbulence_x * 0.1
             self.particle_pos += self.particle_vel
 
             # Fade particles to dark ash gray (60, 60, 60)
-            self.particle_life -= (1.0 / float(self.duration_frames))
+            self.particle_life -= 1.0 / float(self.duration_frames)
             ash_target = np.array([55.0, 50.0, 50.0], dtype=np.float32)
 
             for i in range(len(self.particle_pos)):
