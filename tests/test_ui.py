@@ -102,6 +102,30 @@ def test_blip_app_initialization_and_events(
         # Malformed camera choice should not raise
         app._on_camera_changed("invalid")
 
+    # Test sidebar resizer drag handlers
+    app.control_panel = MagicMock()
+    app.control_panel.winfo_width.return_value = 340
+    app.grid_columnconfigure = MagicMock()
+
+    mock_event_start = MagicMock()
+    mock_event_start.x_root = 500
+    app._on_resizer_drag_start(mock_event_start)
+    assert app._drag_start_x == 500
+    assert app._drag_start_width == 340
+
+    mock_event_motion = MagicMock()
+    mock_event_motion.x_root = 450  # drag left by 50px -> new width = 340 + (500 - 450) = 390
+    app._on_resizer_drag_motion(mock_event_motion)
+    app.control_panel.configure.assert_called_with(width=390)
+    app.grid_columnconfigure.assert_called_with(2, minsize=390)
+
+    mock_event_end = MagicMock()
+    with patch.object(cfg, "save") as mock_save:
+        app.control_panel.winfo_width.return_value = 390
+        app._on_resizer_drag_end(mock_event_end)
+        assert app.config.sidebar_width == 390
+        mock_save.assert_called_once()
+
     # Test window on_closing
     app.destroy = MagicMock()
     app.on_closing()

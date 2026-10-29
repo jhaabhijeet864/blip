@@ -1,7 +1,7 @@
 """
 Modern Google Meet-inspired desktop graphical user interface for Blip.
-Features a centered 16:9 hero video stage, top floating HUD, bottom floating pill dock,
-minimalist settings drawer, and dynamic Light/Dark mode switching.
+Features a centered 16:9 hero video stage, mouse-draggable sidebar resizer,
+top floating HUD, bottom floating pill dock, and dynamic Light/Dark mode switching.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ from blip.ui.theme import Theme
 class BlipApp(ctk.CTk):
     """
     Main desktop studio application window for Blip.
-    Crafted with a minimalist, Google Meet-inspired interface.
+    Crafted with a minimalist, Google Meet-inspired interface and mouse-draggable sidebar.
     """
 
     def __init__(self, config: BlipConfig | None = None):
@@ -38,7 +38,8 @@ class BlipApp(ctk.CTk):
         # Window configuration
         self.title("Blip Studio — Gesture Virtual Camera")
         self.geometry("1180x740")
-        self.minsize(1020, 640)
+        self.minsize(980, 620)
+        self.configure(fg_color=Theme.WINDOW_BG)
 
         # Load window icon if available
         icon_path = Path(__file__).parent.parent.parent / "assets" / "icon.ico"
@@ -55,11 +56,24 @@ class BlipApp(ctk.CTk):
         # Discover and select optimal hardware camera
         self.discovered_devices: list[CameraDevice] = get_camera_devices()
         best_cam_idx = get_best_default_camera(self.discovered_devices)
-        active_physical = [
-            d.index for d in self.discovered_devices if d.is_active and not d.is_virtual
-        ]
-        if self.config.camera_index not in active_physical and active_physical:
+
+        # Detect if current configured camera is a phone bridge (like DroidCam) or virtual
+        current_dev = next(
+            (d for d in self.discovered_devices if d.index == self.config.camera_index), None
+        )
+        current_is_phone_or_virtual = (
+            current_dev is None
+            or current_dev.is_virtual
+            or current_dev.is_phone_bridge
+        )
+        has_genuine_hardware = any(
+            not d.is_virtual and not d.is_phone_bridge for d in self.discovered_devices
+        )
+
+        # Force switch to genuine physical camera (e.g. HP Wide Vision HD Camera) if DroidCam was selected
+        if current_is_phone_or_virtual and has_genuine_hardware:
             self.config.camera_index = best_cam_idx
+            self.config.save()
 
         # Initialize Video Pipeline
         self.pipeline = VideoPipeline(config=self.config)
@@ -81,6 +95,8 @@ class BlipApp(ctk.CTk):
         self._preview_image_tk: ImageTk.PhotoImage | None = None
         self._is_closing = False
         self._hotkey_listener = None
+        self._drag_start_x = 0
+        self._drag_start_width = getattr(self.config, "sidebar_width", 340)
 
         # Build UI layout
         self._setup_ui()
@@ -98,13 +114,16 @@ class BlipApp(ctk.CTk):
         self.after(30, self._update_gui_loop)
 
     def _setup_ui(self) -> None:
-        """Construct the Google Meet-style layout."""
-        self.grid_columnconfigure(0, weight=7)  # Studio Video Stage (72% width)
-        self.grid_columnconfigure(1, weight=3)  # Settings Drawer (28% width)
+        """Construct the 3-column layout: Stage | Splitter Bar | Settings Drawer."""
+        sidebar_w = getattr(self.config, "sidebar_width", 340)
+
         self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)  # Hero Video Stage (expands/contracts)
+        self.grid_columnconfigure(1, weight=0)  # Draggable Resizer Splitter Bar
+        self.grid_columnconfigure(2, weight=0, minsize=sidebar_w)  # Settings Drawer
 
         # =========================================================================
-        # LEFT PANE: Hero Video Stage (Google Meet Call Tile)
+        # COLUMN 0: Hero Video Stage (Google Meet Call Tile)
         # =========================================================================
         self.stage_frame = ctk.CTkFrame(
             self,
@@ -113,7 +132,7 @@ class BlipApp(ctk.CTk):
             border_width=1,
             border_color=Theme.STAGE_BORDER,
         )
-        self.stage_frame.grid(row=0, column=0, padx=(16, 8), pady=16, sticky="nsew")
+        self.stage_frame.grid(row=0, column=0, padx=(16, 6), pady=16, sticky="nsew")
         self.stage_frame.grid_columnconfigure(0, weight=1)
         self.stage_frame.grid_rowconfigure(0, weight=0)  # Top HUD Bar
         self.stage_frame.grid_rowconfigure(1, weight=1)  # Video Canvas
@@ -200,7 +219,7 @@ class BlipApp(ctk.CTk):
         ).pack(padx=10, pady=4)
 
         # -------------------------------------------------------------------------
-        # 2. Hero Video Canvas Container
+        # 2. Hero Video Canvas Container (Letterboxed 16:9 Stage)
         # -------------------------------------------------------------------------
         self.video_container = ctk.CTkFrame(self.stage_frame, fg_color="transparent")
         self.video_container.grid(row=1, column=0, padx=16, pady=4, sticky="nsew")
@@ -286,46 +305,62 @@ class BlipApp(ctk.CTk):
         self.btn_reappear.pack(side="left", padx=6, pady=6)
 
         # =========================================================================
-        # RIGHT PANE: Minimalist Settings Drawer
+        # COLUMN 1: Mouse-Draggable Splitter Resizer Bar
+        # =========================================================================
+        self.resizer_bar = ctk.CTkFrame(
+            self,
+            width=6,
+            fg_color=Theme.STAGE_BORDER,
+            cursor="sb_h_double_arrow",
+        )
+        self.resizer_bar.grid(row=0, column=1, sticky="ns", padx=(0, 6), pady=16)
+
+        self.resizer_bar.bind("<Enter>", lambda e: self.resizer_bar.configure(fg_color="#3b82f6"))
+        self.resizer_bar.bind(
+            "<Leave>", lambda e: self.resizer_bar.configure(fg_color=Theme.STAGE_BORDER)
+        )
+        self.resizer_bar.bind("<Button-1>", self._on_resizer_drag_start)
+        self.resizer_bar.bind("<B1-Motion>", self._on_resizer_drag_motion)
+        self.resizer_bar.bind("<ButtonRelease-1>", self._on_resizer_drag_end)
+
+        # =========================================================================
+        # COLUMN 2: Settings Drawer Sidebar (Resizable by mouse drag)
         # =========================================================================
         self.control_panel = ctk.CTkScrollableFrame(
             self,
+            width=sidebar_w,
             fg_color=Theme.CARD_BG,
             corner_radius=Theme.RADIUS_STAGE,
             border_width=1,
-            border_color=Theme.CARD_BORDER,
+            border_color=Theme.STAGE_BORDER,
         )
-        self.control_panel.grid(row=0, column=1, padx=(8, 16), pady=16, sticky="nsew")
+        self.control_panel.grid(row=0, column=2, padx=(0, 16), pady=16, sticky="nsew")
 
-        # -------------------------------------------------------------------------
-        # Drawer Header: Title + Light/Dark Segmented Switch
-        # -------------------------------------------------------------------------
-        header_frame = ctk.CTkFrame(self.control_panel, fg_color="transparent")
-        header_frame.pack(fill="x", padx=12, pady=(12, 16))
+        # Sidebar Header: Title + Theme Mode Segmented Switch
+        drawer_header = ctk.CTkFrame(self.control_panel, fg_color="transparent")
+        drawer_header.pack(fill="x", padx=14, pady=(12, 16))
 
-        title_lbl = ctk.CTkLabel(
-            header_frame,
+        ctk.CTkLabel(
+            drawer_header,
             text="Studio Settings",
-            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=16, weight="bold"),
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=17, weight="bold"),
             text_color=Theme.TEXT_PRIMARY,
-        )
-        title_lbl.pack(side="left")
+        ).pack(side="left")
 
-        # Segmented Light / Dark Switch
-        self.theme_segment = ctk.CTkSegmentedButton(
-            header_frame,
-            values=["☀️ Light", "🌙 Dark"],
+        current_theme = getattr(self.config, "theme", "dark").capitalize()
+        self.theme_seg = ctk.CTkSegmentedButton(
+            drawer_header,
+            values=["Light", "Dark"],
             command=self._on_theme_changed,
             font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11, weight="bold"),
-            height=28,
-            corner_radius=14,
+            height=26,
+            width=100,
         )
-        current_mode = getattr(self.config, "theme", "dark")
-        self.theme_segment.set("☀️ Light" if current_mode == "light" else "🌙 Dark")
-        self.theme_segment.pack(side="right")
+        self.theme_seg.set(current_theme)
+        self.theme_seg.pack(side="right")
 
         # -------------------------------------------------------------------------
-        # Card 1: Video & Device Settings
+        # Card 1: Camera Device & Output Routing
         # -------------------------------------------------------------------------
         card_device = ctk.CTkFrame(
             self.control_panel,
@@ -351,7 +386,7 @@ class BlipApp(ctk.CTk):
             text="Webcam:",
             font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=12),
             text_color=Theme.TEXT_PRIMARY,
-        ).pack(side="left")
+        ).pack(side="left", padx=(0, 8))
 
         cam_options = [dev.display_label for dev in self.discovered_devices]
         if not cam_options:
@@ -372,10 +407,9 @@ class BlipApp(ctk.CTk):
             corner_radius=Theme.RADIUS_INPUT,
             font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11),
             height=30,
-            width=180,
         )
         self.cam_combo.set(current_cam_label)
-        self.cam_combo.pack(side="right")
+        self.cam_combo.pack(side="right", fill="x", expand=True)
 
         is_avail, vcam_msg = check_virtual_camera_driver()
         status_color = Theme.STATUS_LIVE if is_avail else Theme.STATUS_REAPPEARING
@@ -384,7 +418,6 @@ class BlipApp(ctk.CTk):
             text=f"● {vcam_msg}",
             font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11),
             text_color=status_color,
-            wraplength=260,
             justify="left",
         )
         self.vcam_status_lbl.pack(anchor="w", padx=14, pady=(0, 12))
@@ -420,7 +453,7 @@ class BlipApp(ctk.CTk):
             text="🤌 Finger Snap:",
             font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=12),
             text_color=Theme.TEXT_PRIMARY,
-        ).pack(side="left")
+        ).pack(side="left", padx=(0, 8))
 
         self.snap_combo = ctk.CTkComboBox(
             snap_row,
@@ -431,10 +464,9 @@ class BlipApp(ctk.CTk):
             corner_radius=Theme.RADIUS_INPUT,
             font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11),
             height=30,
-            width=140,
         )
         self.snap_combo.set("Thanos Dust Dissolve")
-        self.snap_combo.pack(side="right")
+        self.snap_combo.pack(side="right", fill="x", expand=True)
 
         # Instant Transmission mapping row
         it_row = ctk.CTkFrame(card_gestures, fg_color="transparent")
@@ -445,7 +477,7 @@ class BlipApp(ctk.CTk):
             text="👆 Temple Tap:",
             font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=12),
             text_color=Theme.TEXT_PRIMARY,
-        ).pack(side="left")
+        ).pack(side="left", padx=(0, 8))
 
         self.it_combo = ctk.CTkComboBox(
             it_row,
@@ -456,10 +488,9 @@ class BlipApp(ctk.CTk):
             corner_radius=Theme.RADIUS_INPUT,
             font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11),
             height=30,
-            width=140,
         )
         self.it_combo.set("Instant Transmission Vanish")
-        self.it_combo.pack(side="right")
+        self.it_combo.pack(side="right", fill="x", expand=True)
 
         # -------------------------------------------------------------------------
         # Card 3: Audio Cues & Feedback
@@ -495,10 +526,9 @@ class BlipApp(ctk.CTk):
 
         ctk.CTkLabel(
             card_audio,
-            text="Plays non-blocking audio synthesized feedback on vanish & return.",
+            text="Non-blocking audio feedback synthesized on vanish & return.",
             font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11),
             text_color=Theme.TEXT_MUTED,
-            wraplength=260,
             justify="left",
         ).pack(anchor="w", padx=14, pady=(0, 12))
 
@@ -522,9 +552,9 @@ class BlipApp(ctk.CTk):
         ).pack(anchor="w", padx=14, pady=(12, 6))
 
         instructions = (
-            "1. Open Settings > Video in Google Meet / Zoom\n"
+            "1. In Google Meet / Zoom: Settings > Video\n"
             "2. Select 'OBS Virtual Camera' as camera\n"
-            "3. Snap fingers or tap temple to vanish live!"
+            "3. Snap fingers or tap temple to vanish!"
         )
         ctk.CTkLabel(
             card_guide,
@@ -533,6 +563,30 @@ class BlipApp(ctk.CTk):
             text_color=Theme.TEXT_MUTED,
             justify="left",
         ).pack(anchor="w", padx=14, pady=(0, 12))
+
+    def _on_resizer_drag_start(self, event) -> None:
+        """Start tracking horizontal drag for sidebar resize."""
+        self._drag_start_x = event.x_root
+        self._drag_start_width = self.control_panel.winfo_width()
+
+    def _on_resizer_drag_motion(self, event) -> None:
+        """Dynamically resize sidebar width during mouse drag."""
+        if not hasattr(self, "_drag_start_x") or not hasattr(self, "_drag_start_width"):
+            return
+        delta = self._drag_start_x - event.x_root
+        new_width = max(260, min(560, self._drag_start_width + delta))
+        self.control_panel.configure(width=new_width)
+        self.grid_columnconfigure(2, minsize=new_width)
+
+    def _on_resizer_drag_end(self, event) -> None:
+        """Save user's preferred sidebar width upon release."""
+        try:
+            width = self.control_panel.winfo_width()
+            if width > 100:
+                self.config.sidebar_width = width
+                self.config.save()
+        except Exception:
+            pass
 
     def _on_theme_changed(self, choice: str) -> None:
         """Switch appearance mode dynamically between Light and Dark."""
@@ -574,14 +628,22 @@ class BlipApp(ctk.CTk):
         if effect_key in self.pipeline.effects_map:
             eff = self.pipeline.effects_map[effect_key]
             self.pipeline.active_effect = eff
+
+            frame = self.pipeline.latest_preview_frame
+            if frame is None:
+                import numpy as np
+
+                frame = np.zeros(
+                    (self.config.camera_height, self.config.camera_width, 3), dtype=np.uint8
+                )
+
             dummy_mask = (
-                self.pipeline.segmenter.process(self.pipeline.latest_preview_frame)
-                if (self.pipeline.segmenter and self.pipeline.latest_preview_frame is not None)
-                else None
+                self.pipeline.segmenter.process(frame)
+                if self.pipeline.segmenter
+                else np.ones((frame.shape[0], frame.shape[1]), dtype=np.float32)
             )
-            bg = self.pipeline.bg_manager.get_plate(self.pipeline.latest_preview_frame)
-            if dummy_mask is not None and self.pipeline.latest_preview_frame is not None:
-                eff.start(self.pipeline.latest_preview_frame, dummy_mask, bg)
+            bg = self.pipeline.bg_manager.get_plate(frame)
+            eff.start(frame, dummy_mask, bg)
             self.pipeline.state = PipelineState.DISAPPEARING
 
     def _start_hotkey_listener(self) -> None:
@@ -611,15 +673,27 @@ class BlipApp(ctk.CTk):
         if self._is_closing:
             return
 
+        # Check if window is minimized (iconified) - skip expensive render
+        try:
+            if self.state() == "iconic":
+                self.after(100, self._update_gui_loop)
+                return
+        except Exception:
+            pass
+
         # Fetch preview frame from pipeline
         frame = self.pipeline.latest_preview_frame
         if frame is not None:
-            # Resize preview preserving 16:9 widescreen aspect ratio
-            label_w = max(400, self.canvas_label.winfo_width())
-            label_h = max(300, self.canvas_label.winfo_height())
+            # Measure parent container (NOT the canvas_label itself to prevent feedback loop)
+            container_w = self.video_container.winfo_width()
+            container_h = self.video_container.winfo_height()
+
+            # Ensure safe positive bounds during window transitions
+            avail_w = max(320, container_w - 16)
+            avail_h = max(240, container_h - 16)
 
             h, w, _ = frame.shape
-            scale = min(label_w / w, label_h / h)
+            scale = min(avail_w / w, avail_h / h)
             new_w, new_h = max(10, int(w * scale)), max(10, int(h * scale))
 
             pil_img = Image.fromarray(frame).resize((new_w, new_h), Image.Resampling.BILINEAR)
