@@ -8,79 +8,73 @@ export default function SystemFaq() {
 
   const faqs = [
     {
-      id: "01",
-      q: "How does Blip interface with meeting software without a plugin?",
-      a: "Blip registers as a native DirectShow virtual capture filter on Windows and an IPC virtual camera sink for OBS Studio. Meeting applications (Google Meet in Chrome/Edge, Zoom, Teams) query the operating system's standard media device enumeration API, treating Blip identical to an external physical USB camera.",
+      q: "Will people in my meeting know I'm using Blip?",
+      a: "No! Google Meet, Zoom, and Teams simply treat Blip as a regular webcam device. Everyone in the call just sees you dissolve or teleport away into your empty chair, exactly like a natural camera feed.",
     },
     {
-      id: "02",
-      q: "Does any video frame or telemetry leave the local computer?",
-      a: "Zero. Blip operates completely air-gapped. MediaPipe hand landmark extraction, person silhouette segmentation, particle physics, and frame blending execute entirely on your local CPU/GPU using on-device FP16 neural models. No network sockets or cloud telemetry exist in the binary.",
+      q: "Do I need a green screen or special studio lighting?",
+      a: "Not at all. Blip automatically isolates you in front of any normal home or office background. It also includes automatic room lighting compensation so your empty room plate looks totally natural.",
     },
     {
-      id: "03",
-      q: "What camera hardware and lighting conditions are required?",
-      a: "Any standard DirectShow-compatible webcam (built-in 720p/1080p laptop cameras or external USB webcams) is immediately supported. Blip performs automatic adaptive luminance matching when calibrating your background plate to ensure natural transition blending under varying room lighting.",
+      q: "Is my video uploaded to any cloud or external server?",
+      a: "Zero. Blip runs 100% locally on your machine. No frames, audio, or telemetry ever touch the internet. It works completely offline even with your Wi-Fi disconnected.",
     },
     {
-      id: "04",
-      q: "How do I instantly restore my camera feed when returning?",
-      a: "You can repeat your gesture in front of the camera, or press the global system shortcut Ctrl+Alt+S. Blip smoothly transitions from the calibrated background plate back to your live video feed.",
+      q: "Does this work with my laptop's built-in webcam?",
+      a: "Yes! Any standard built-in laptop webcam or external USB camera is immediately detected and supported.",
     },
     {
-      id: "05",
-      q: "What is the memory and CPU overhead during active calls?",
-      a: "Blip maintains a resident memory profile of approximately 38MB to 45MB. Inference runs with sub-5ms pipeline latency at 30 FPS, utilizing less than 3% CPU overhead on modern multi-core processors.",
+      q: "Which meeting apps can I use this in?",
+      a: "Google Meet (all browsers), Zoom Desktop, Microsoft Teams, Discord, Skype, and OBS Studio—any application with a camera selection dropdown.",
+    },
+    {
+      q: "How do I return back to the call when I want to?",
+      a: "Simply repeat your gesture in front of the camera, or press the universal shortcut Ctrl+Alt+S. Blip will smoothly fade you right back into your chair.",
     },
   ];
 
   return (
     <section id="faq" className="py-24 bg-[#000000] border-b border-zinc-800">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-12">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-8 lg:px-12">
         
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12">
-          <div>
-            <div className="font-mono text-xs text-red-500 uppercase tracking-widest flex items-center gap-2 mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-              <span>TECHNICAL SPEC // FREQUENTLY ASKED QUESTIONS</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              System architecture &amp; security FAQs.
-            </h2>
-          </div>
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <span className="text-xs uppercase tracking-wider font-bold text-red-500">
+            Clear Answers
+          </span>
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mt-2">
+            Frequently Asked Questions
+          </h2>
+          <p className="mt-4 text-base sm:text-lg text-zinc-400">
+            Everything you need to know about using Blip on your calls.
+          </p>
         </div>
 
         {/* FAQ Accordion List */}
-        <div className="divide-y divide-zinc-800 border border-zinc-800 bg-[#09090b] rounded-lg overflow-hidden reticle-corner">
+        <div className="divide-y divide-zinc-800 border border-zinc-800 bg-[#09090b] rounded-2xl overflow-hidden">
           {faqs.map((faq, idx) => {
             const isOpen = openIdx === idx;
             return (
               <div key={idx} className="transition-colors hover:bg-zinc-950/60">
                 <button
                   onClick={() => setOpenIdx(isOpen ? null : idx)}
-                  className="w-full px-6 py-5 flex items-center justify-between text-left transition-colors"
+                  className="w-full px-6 sm:px-8 py-5 flex items-center justify-between text-left transition-colors"
                 >
-                  <div className="flex items-center gap-4">
-                    <span className="font-mono text-xs text-zinc-500">
-                      {faq.id} //
-                    </span>
-                    <span className="font-mono font-bold text-sm sm:text-base text-zinc-200">
-                      {faq.q}
-                    </span>
-                  </div>
+                  <span className="font-semibold text-base sm:text-lg text-zinc-200 pr-4">
+                    {faq.q}
+                  </span>
                   <ChevronDown
-                    className={`w-4 h-4 text-zinc-500 transition-transform duration-200 shrink-0 ${
+                    className={`w-5 h-5 text-zinc-500 transition-transform duration-200 shrink-0 ${
                       isOpen ? "rotate-180 text-white" : ""
                     }`}
                   />
                 </button>
 
                 {isOpen && (
-                  <div className="px-6 pb-6 pt-2 font-mono text-xs sm:text-sm text-zinc-400 leading-relaxed border-t border-zinc-900 bg-black/40">
-                    <div className="max-w-4xl pl-10 border-l border-zinc-800">
+                  <div className="px-6 sm:px-8 pb-6 pt-1 text-sm sm:text-base text-zinc-400 leading-relaxed border-t border-zinc-900 bg-black/40">
+                    <p className="max-w-3xl">
                       {faq.a}
-                    </div>
+                    </p>
                   </div>
                 )}
               </div>
