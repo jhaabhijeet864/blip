@@ -1,22 +1,22 @@
 """
-Configuration management for Blip.
-Handles serialization and persistence of camera, gesture, and effect settings.
+Runtime configuration and user preference persistence for Blip.
+Handles serialization to ~/.blip/config.json with safe corruption fallback.
 """
 
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any
 
 
 def get_default_config_path() -> Path:
-    """Returns the platform-appropriate config file path."""
-    home = Path.home()
-    config_dir = home / ".blip"
-    config_dir.mkdir(parents=True, exist_ok=True)
-    return config_dir / "config.json"
+    """Return platform-standard user configuration path (~/.blip/config.json)."""
+    home = Path(os.environ.get("USERPROFILE", Path.home()))
+    blip_dir = home / ".blip"
+    blip_dir.mkdir(parents=True, exist_ok=True)
+    return blip_dir / "config.json"
 
 
 @dataclass
@@ -40,7 +40,8 @@ class BlipConfig:
     ash_drift_speed: float = 1.2
     auto_reappear_delay: float = 0.0  # 0.0 means manual reappear only
     sound_enabled: bool = True
-    theme: str = 'dark'
+    theme: str = "dark"
+    sidebar_width: int = 340
 
     @classmethod
     def load(cls, path: Path | None = None) -> BlipConfig:
@@ -48,19 +49,25 @@ class BlipConfig:
         config_file = path or get_default_config_path()
         if config_file.exists():
             try:
-                with open(config_file, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
+                data = json.loads(config_file.read_text(encoding="utf-8"))
+                # Filter unknown keys to prevent crashes on schema evolution
+                valid_keys = {f.name for f in cls.__dataclass_fields__.values()}
+                filtered_data = {k: v for k, v in data.items() if k in valid_keys}
+                return cls(**filtered_data)
             except Exception:
+                # Fallback to default on corruption
                 return cls()
         return cls()
 
     def save(self, path: Path | None = None) -> None:
-        """Persist current configuration to JSON file."""
+        """Save current configuration to JSON file."""
         config_file = path or get_default_config_path()
-        with open(config_file, "w", encoding="utf-8") as f:
-            json.dump(asdict(self), f, indent=2)
+        try:
+            config_file.parent.mkdir(parents=True, exist_ok=True)
+            config_file.write_text(json.dumps(asdict(self), indent=2), encoding="utf-8")
+        except Exception as e:
+            print(f"[Config] Error saving configuration: {e}")
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> dict:
         """Convert configuration to dictionary."""
         return asdict(self)
