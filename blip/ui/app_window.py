@@ -9,6 +9,7 @@ import customtkinter as ctk
 from PIL import Image, ImageTk
 
 from blip.config import BlipConfig
+from blip.core.devices import list_available_cameras
 from blip.core.pipeline import PipelineState, VideoPipeline
 from blip.core.vcam import check_virtual_camera_driver
 from blip.effects.registry import EffectRegistry
@@ -235,13 +236,48 @@ class BlipApp(ctk.CTk):
         )
         self.btn_reappear.pack(fill="x", pady=(8, 4))
 
-        # Section 4: Virtual Camera Integration
+        # Section 4: Hardware & Audio Settings
         sec4_lbl = ctk.CTkLabel(
             self.control_panel,
-            text="4. GOOGLE MEET CONNECTION",
+            text="4. HARDWARE & AUDIO",
             font=ctk.CTkFont(size=13, weight="bold"),
         )
         sec4_lbl.pack(anchor="w", pady=(20, 4))
+
+        cam_row = ctk.CTkFrame(self.control_panel, fg_color="transparent")
+        cam_row.pack(fill="x", pady=4)
+        ctk.CTkLabel(cam_row, text="📹 Camera:").pack(side="left")
+        available_cams = list_available_cameras()
+        cam_options = [f"Camera {idx}" for idx in available_cams]
+        current_cam_text = f"Camera {self.config.camera_index}"
+        if current_cam_text not in cam_options:
+            cam_options.append(current_cam_text)
+        self.cam_combo = ctk.CTkComboBox(
+            cam_row,
+            values=cam_options,
+            command=self._on_camera_changed,
+        )
+        self.cam_combo.set(current_cam_text)
+        self.cam_combo.pack(side="right")
+
+        self.audio_switch = ctk.CTkSwitch(
+            self.control_panel,
+            text="🔊 Sound Cues (Snap / Zap / Chime)",
+            command=self._on_audio_toggled,
+        )
+        if self.config.sound_enabled:
+            self.audio_switch.select()
+        else:
+            self.audio_switch.deselect()
+        self.audio_switch.pack(anchor="w", pady=(8, 4))
+
+        # Section 5: Virtual Camera Integration
+        sec5_lbl = ctk.CTkLabel(
+            self.control_panel,
+            text="5. GOOGLE MEET CONNECTION",
+            font=ctk.CTkFont(size=13, weight="bold"),
+        )
+        sec5_lbl.pack(anchor="w", pady=(20, 4))
 
         is_avail, vcam_msg = check_virtual_camera_driver()
         status_color = "#22c55e" if is_avail else "#f59e0b"
@@ -268,6 +304,21 @@ class BlipApp(ctk.CTk):
             text_color="gray60",
             justify="left",
         )
+
+    def _on_audio_toggled(self) -> None:
+        """Toggle audio cues on or off."""
+        is_on = bool(self.audio_switch.get())
+        self.config.sound_enabled = is_on
+        self.pipeline.sound_manager.enabled = is_on
+
+    def _on_camera_changed(self, choice: str) -> None:
+        """Update active webcam index."""
+        try:
+            idx = int(choice.replace("Camera", "").strip())
+            self.config.camera_index = idx
+            self.pipeline.config.camera_index = idx
+        except ValueError:
+            pass
 
     def _on_calibrate_clicked(self) -> None:
         """Initiate background plate calibration."""

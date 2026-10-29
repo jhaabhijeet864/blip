@@ -62,6 +62,26 @@ def test_blip_app_initialization_and_events(
     app._trigger_effect_manual("thanos_dust")
     assert app.pipeline.state == PipelineState.DISAPPEARING
 
+    # Test audio toggle
+    app.audio_switch = MagicMock()
+    app.audio_switch.get.return_value = 0
+    app._on_audio_toggled()
+    assert app.config.sound_enabled is False
+    assert app.pipeline.sound_manager.enabled is False
+
+    app.audio_switch.get.return_value = 1
+    app._on_audio_toggled()
+    assert app.config.sound_enabled is True
+    assert app.pipeline.sound_manager.enabled is True
+
+    # Test camera device selection
+    app._on_camera_changed("Camera 2")
+    assert app.config.camera_index == 2
+    assert app.pipeline.config.camera_index == 2
+
+    # Malformed camera choice should not raise
+    app._on_camera_changed("invalid")
+
     # Test window on_closing
     app.destroy = MagicMock()
     app.on_closing()
