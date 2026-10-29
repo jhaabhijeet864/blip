@@ -105,9 +105,52 @@ jobs:
             dist/*.tar.gz
             dist/checksum_python.txt
 
+  build-tauri-desktop:
+    name: Build Tauri v2 Desktop Standalone (.exe)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'ui/package-lock.json'
+
+      - name: Set up Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build UI Assets
+        working-directory: ui
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build Standalone Rust Binary
+        run: |
+          cargo build --release -p blip-desktop
+
+      - name: Stage Desktop Release Artifacts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item target\release\blip-desktop.exe dist\Blip-Studio.exe -Force
+          $hash = (Get-FileHash -Algorithm SHA256 dist\Blip-Studio.exe).Hash.ToLower()
+          "$hash  Blip-Studio.exe" | Out-File -Encoding ascii dist\checksum_tauri.txt
+
+      - name: Upload Tauri Desktop Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-release-assets
+          path: |
+            dist/Blip-Studio.exe
+            dist/checksum_tauri.txt
+
   publish-release:
     name: Publish GitHub Release
-    needs: [ build-windows-exe, build-python-packages ]
+    needs: [ build-windows-exe, build-python-packages, build-tauri-desktop ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository with Full History
@@ -140,6 +183,12 @@ jobs:
           name: windows-release-assets
           path: release_assets
 
+      - name: Download Tauri Desktop Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: tauri-release-assets
+          path: release_assets
+
       - name: Download Python Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -149,8 +198,8 @@ jobs:
       - name: Assemble Global Checksum File
         run: |
           cd release_assets
-          cat checksum_windows.txt checksum_python.txt > checksums.sha256
-          rm -f checksum_windows.txt checksum_python.txt
+          cat checksum_windows.txt checksum_tauri.txt checksum_python.txt > checksums.sha256
+          rm -f checksum_windows.txt checksum_tauri.txt checksum_python.txt
           echo "### Release Checksums (SHA-256)"
           cat checksums.sha256
 
@@ -177,6 +226,7 @@ jobs:
           append_body: true
           generate_release_notes: true
           files: |
+            release_assets/Blip-Studio.exe
             release_assets/Blip-Windows-x64.zip
             release_assets/*.whl
             release_assets/*.tar.gz
