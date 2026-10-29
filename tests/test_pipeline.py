@@ -71,6 +71,45 @@ def test_background_manager_calibration_lifecycle():
     assert light_adjusted.shape == (720, 1280, 3)
 
 
+def test_background_manager_disk_persistence(tmp_path):
+    """Verify background plate saves to disk upon calibration and auto-loads."""
+    # 1. Calibrate in tmp directory
+    bg1 = BackgroundManager(target_frames=1, plate_dir=tmp_path, auto_load=False)
+    assert not bg1.has_plate()
+
+    bg1.start_calibration(countdown_seconds=0.0)
+    frame = np.full((720, 1280, 3), 150, dtype=np.uint8)
+    assert bg1.update(frame)
+    assert bg1.has_plate()
+    assert (tmp_path / "background_plate.png").exists()
+
+    # 2. Instantiate new BackgroundManager with auto_load=True in same dir
+    bg2 = BackgroundManager(plate_dir=tmp_path, auto_load=True)
+    assert bg2.has_plate()
+    loaded_plate = bg2.get_plate(match_lighting=False)
+    assert loaded_plate.shape == (720, 1280, 3)
+    assert np.isclose(np.mean(loaded_plate), 150.0, atol=2.0)
+
+
+def test_background_manager_inpainting_fallback():
+    """Verify uncalibrated background uses inpainting when mask is provided."""
+    bg = BackgroundManager(auto_load=False)
+    assert not bg.has_plate()
+
+    # Frame with user silhouette
+    frame = np.full((720, 1280, 3), 200, dtype=np.uint8)
+    frame[200:500, 400:800] = 50  # Dark silhouette
+    mask = np.zeros((720, 1280), dtype=np.float32)
+    mask[200:500, 400:800] = 1.0
+
+    plate = bg.get_plate(current_frame=frame, mask=mask)
+    assert plate.shape == (720, 1280, 3)
+    assert plate.dtype == np.uint8
+    # Inpainted silhouette area should be filled in with surrounding color (~200) instead of remaining dark
+    inpaint_region_mean = np.mean(plate[200:500, 400:800])
+    assert inpaint_region_mean > 120.0
+
+
 def test_virtual_camera_driver_check():
     """Verify virtual camera driver detection runs without exceptions."""
     is_avail, msg = check_virtual_camera_driver()

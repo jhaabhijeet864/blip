@@ -181,6 +181,23 @@ class BlipApp(ctk.CTk):
         )
         self.status_badge.pack(padx=10, pady=4)
 
+        chip_room = ctk.CTkFrame(
+            hud_left,
+            fg_color=Theme.CHIP_BG,
+            corner_radius=Theme.RADIUS_CHIP,
+            border_width=1,
+            border_color=Theme.CHIP_BORDER,
+        )
+        chip_room.pack(side="left", padx=(8, 0))
+
+        self.room_badge = ctk.CTkLabel(
+            chip_room,
+            text="✨ AUTO-INPAINT ROOM",
+            font=ctk.CTkFont(family=Theme.FONT_FAMILY, size=11, weight="bold"),
+            text_color=Theme.TEXT_MUTED,
+        )
+        self.room_badge.pack(padx=10, pady=4)
+
         # Right HUD: Stream FPS & Hotkey
         hud_right = ctk.CTkFrame(top_hud, fg_color="transparent")
         hud_right.pack(side="right")
@@ -779,6 +796,22 @@ class BlipApp(ctk.CTk):
             self.status_badge.configure(
                 text="● REAPPEARING...", text_color=Theme.STATUS_REAPPEARING
             )
+
+        # Update Room status badge
+        if hasattr(self, "room_badge"):
+            if self.pipeline.bg_manager.is_calibrating():
+                rem = self.pipeline.bg_manager.countdown_remaining
+                self.room_badge.configure(
+                    text=f"📸 CAPTURING ROOM ({rem:.1f}s)", text_color=Theme.STATUS_CALIBRATING
+                )
+            elif self.pipeline.bg_manager.has_plate():
+                self.room_badge.configure(
+                    text="✅ ROOM CALIBRATED", text_color=Theme.STATUS_LIVE
+                )
+            else:
+                self.room_badge.configure(
+                    text="✨ AUTO-INPAINT ROOM", text_color=Theme.TEXT_MUTED
+                )
 
         self.after(30, self._update_gui_loop)
 

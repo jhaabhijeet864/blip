@@ -20,7 +20,12 @@ class BackgroundManager:
     Provides intelligent inpainting fallback when no calibrated plate is available.
     """
 
-    def __init__(self, target_frames: int = 15, plate_dir: Path | None = None):
+    def __init__(
+        self,
+        target_frames: int = 15,
+        plate_dir: Path | None = None,
+        auto_load: bool = False,
+    ):
         self.target_frames = target_frames
         self.calibrating = False
         self.countdown_start_time: float | None = None
@@ -33,7 +38,8 @@ class BackgroundManager:
         if plate_dir is None:
             plate_dir = Path.home() / ".blip"
         self.plate_path = plate_dir / "background_plate.png"
-        self._load_plate_from_disk()
+        if auto_load:
+            self._load_plate_from_disk()
 
     def _load_plate_from_disk(self) -> None:
         """Attempt to restore previously calibrated room plate from disk."""

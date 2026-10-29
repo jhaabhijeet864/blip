@@ -128,10 +128,8 @@ class SnapGesture(BaseGesture):
                         },
                     )
 
-            # Expire pinch if too much time passed or if fingers slowly drifted apart
-            if pinch_duration > 2.5 or (
-                self.history and (now - self.history[-1][0]) > 0.25 and dist_tm >= PINCH_THRESH
-            ):
+            # If fingers separated beyond release threshold without meeting snap criteria, un-pinch
+            if dist_tm >= SNAP_RELEASE_THRESH or pinch_duration > 2.5:
                 self.is_pinched = False
                 self.history.clear()
 

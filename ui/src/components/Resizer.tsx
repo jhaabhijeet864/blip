@@ -35,3 +35,4 @@ export const Resizer: React.FC<ResizerProps> = ({ onPointerDown, isDragging }) =
     </div>
   );
 };
+

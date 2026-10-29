@@ -181,3 +181,55 @@ def test_gesture_registry_evaluation():
     registry.evaluate(hand_data, (720, 1280))
     detected = registry.evaluate(hand_data, (720, 1280))
     assert detected == "instant_transmission"
+
+
+def test_snap_detector_rejects_ok_sign():
+    """Verify that an 'OK' sign (thumb touching index) does not arm or fire a snap."""
+    detector = SnapGesture()
+    hand = create_flat_hand()
+    # Pinch thumb (4) and index (8) together, keep middle (12) open
+    hand[4] = MockPoint(0.45, 0.50)
+    hand[8] = MockPoint(0.46, 0.50)
+    hand[12] = MockPoint(0.55, 0.40)
+
+    res = detector.detect(hand, (720, 1280))
+    assert not res.is_detected
+    assert not detector.is_pinched
+    assert not res.metadata.get("is_armed", False)
+
+
+def test_snap_detector_rejects_slow_finger_opening():
+    """Verify that slowly parting pinched fingers does not trigger explosive snap."""
+    detector = SnapGesture()
+    hand = create_flat_hand()
+
+    # Step 1: Pinch thumb and middle together
+    hand[4] = MockPoint(0.45, 0.50)
+    hand[12] = MockPoint(0.46, 0.50)
+    res_pinch = detector.detect(hand, (720, 1280))
+    assert not res_pinch.is_detected
+    assert detector.is_pinched
+    assert res_pinch.metadata.get("is_armed") is True
+
+    # Step 2: Slowly move middle finger away over multiple frames with small step sizes
+    for offset in [0.03, 0.06, 0.09, 0.12, 0.16]:
+        time.sleep(0.04)
+        hand[12] = MockPoint(0.46 + offset, 0.50)
+        res = detector.detect(hand, (720, 1280))
+        assert not res.is_detected, f"Misfired on gradual opening at offset {offset}"
+
+    assert not detector.is_pinched
+
+
+def test_gesture_registry_is_snap_armed():
+    """Verify registry correctly reports snap armed status."""
+    registry = GestureRegistry()
+    assert not registry.is_snap_armed()
+
+    hand = create_flat_hand()
+    hand[4] = MockPoint(0.45, 0.50)
+    hand[12] = MockPoint(0.46, 0.50)
+    hand_data = [HandLandmarkData(landmarks=hand, handedness="Right", confidence=0.9)]
+
+    registry.evaluate(hand_data, (720, 1280))
+    assert registry.is_snap_armed()

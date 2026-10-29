@@ -47,6 +47,43 @@ def test_thanos_snap_effect_lifecycle():
     np.testing.assert_array_equal(final_frame, bg)
 
 
+def test_thanos_snap_dissolve_monotonic_decay():
+    """
+    Verify that the user silhouette dissolves monotonically from 100% visible
+    at p=0.0 to 0% visible (completely erased) by p=0.80.
+    """
+    frame, mask, bg = create_mock_scene()
+    # Distinct colors: person is white [255, 255, 255], background is black [0, 0, 0]
+    person_frame = np.full((720, 1280, 3), 255, dtype=np.uint8)
+    empty_bg = np.zeros((720, 1280, 3), dtype=np.uint8)
+
+    effect = ThanosSnapEffect(duration_frames=50, particle_count=0)  # 0 particles for pure silhouette test
+    effect.start(person_frame, mask, empty_bg)
+
+    # Frame 0: p=0.0 -> Person should be fully visible
+    f0 = effect.render(person_frame, mask, empty_bg)
+    person_pixels_0 = np.sum(f0[200:600, 400:880] > 128)
+
+    # Progress steps to test
+    effect.current_frame = 10  # p = 0.20
+    f_20 = effect.render(person_frame, mask, empty_bg)
+    person_pixels_20 = np.sum(f_20[200:600, 400:880] > 128)
+
+    effect.current_frame = 25  # p = 0.50
+    f_50 = effect.render(person_frame, mask, empty_bg)
+    person_pixels_50 = np.sum(f_50[200:600, 400:880] > 128)
+
+    effect.current_frame = 40  # p = 0.80 -> Must be 100% vanished!
+    f_80 = effect.render(person_frame, mask, empty_bg)
+    person_pixels_80 = np.sum(f_80[200:600, 400:880] > 128)
+
+    # Monotonic decay assertions
+    assert person_pixels_0 > person_pixels_20 > person_pixels_50
+    # At p=0.80, person silhouette is completely erased
+    assert person_pixels_80 == 0
+    np.testing.assert_array_equal(f_80, empty_bg)
+
+
 def test_thanos_snap_effect_empty_mask():
     """Verify Thanos Snap handles empty person mask without error."""
     frame, _, bg = create_mock_scene()

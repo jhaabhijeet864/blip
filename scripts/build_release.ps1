@@ -63,3 +63,4 @@ if (Test-Path $targetExe) {
 } else {
     throw "Target executable not found at $targetExe"
 }
+
