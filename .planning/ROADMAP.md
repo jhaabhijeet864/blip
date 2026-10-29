@@ -56,8 +56,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 13-01: Implement high-performance HTML5 canvas Thanos ash particle disintegration and Goku speedlines shader engine.
-- [ ] 13-02: Implement empty room background plate capture, canvas inpainting, and meeting microphone auto-mute sync.
+- [x] 13-01: Implement high-performance HTML5 canvas Thanos ash particle disintegration and Goku speedlines shader engine.
+- [x] 13-02: Implement empty room background plate capture, canvas inpainting, and meeting microphone auto-mute sync.
 
 ---
 

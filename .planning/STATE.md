@@ -9,20 +9,20 @@ See: `.planning/PROJECT.md` (updated 2026-10-29)
 
 ## Current Position
 
-Phase: 12 of 14 (Browser Vision & Dual-Trigger Kinematics)
+Phase: 13 of 14 (Canvas Shaders, Clean Plate & Auto-Mute)
 Plan: 2 of 2 in current phase
-Status: Phase 12 Complete — Ready for Phase 13 (Canvas Shaders, Clean Plate & Auto-Mute)
-Last activity: 2026-10-29 — Completed Phase 12 with browser vision detector, Web Audio transient click detector, dual-trigger kinematics, and 20 automated tests passing.
+Status: Phase 13 Complete — Ready for Phase 14 (Popup UI, Web Showcase & Packaging)
+Last activity: 2026-10-29 — Completed Phase 13 with 3,000 particle pool, anime speedlines, background plate manager, auto-mute sync, and 28 tests passing.
 
-Progress: [█████░░░░░] 50% (Milestone v3.0)
+Progress: [████████░░] 75% (Milestone v3.0)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed (Milestones v1.0, v2.0 & v3.0): 21
+- Total plans completed (Milestones v1.0, v2.0 & v3.0): 23
 - Milestone v1.0: 5 phases completed
 - Milestone v2.0: 5 phases completed
-- Milestone v3.0: 2 of 4 phases completed
+- Milestone v3.0: 3 of 4 phases completed
 
 **By Phase:**
 
@@ -40,7 +40,7 @@ Progress: [█████░░░░░] 50% (Milestone v3.0)
 | 10. Packaging, Verification & CI/CD | 1/1 | 0.1h | 0.1h | Complete |
 | 11. WebRTC Interceptor & Extension Shell | 2/2 | 0.1h | 0.1h | Complete |
 | 12. Browser Vision & Dual-Trigger Kinematics | 2/2 | 0.1h | 0.1h | Complete |
-| 13. Canvas Shaders, Clean Plate & Auto-Mute | 0/2 | — | — | Planned |
+| 13. Canvas Shaders, Clean Plate & Auto-Mute | 2/2 | 0.1h | 0.1h | Complete |
 | 14. Popup UI, Web Showcase & Packaging | 0/2 | — | — | Planned |
 
 **Recent Trend:**

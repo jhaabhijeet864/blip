@@ -7,6 +7,10 @@ import {
 } from "./types";
 import { AudioClickDetector } from "./audio/click-detector";
 import { DualTriggerSnapKinematics } from "./gestures/snap-kinematics";
+import { CanvasParticlePool } from "./effects/particles";
+import { GokuSpeedlinesRenderer } from "./effects/goku-speedlines";
+import { BackgroundPlateManager } from "./effects/plate-manager";
+import { MeetingMuteManager } from "./effects/mute-manager";
 
 export interface StreamInterceptorOptions {
   onFrame?: (video: HTMLVideoElement, ctx: CanvasRenderingContext2D, width: number, height: number) => void;
@@ -26,6 +30,10 @@ export class BlipStreamInterceptor {
 
   private kinematics: DualTriggerSnapKinematics;
   private audioDetector: AudioClickDetector;
+  private particlePool: CanvasParticlePool;
+  private speedlinesRenderer: GokuSpeedlinesRenderer;
+  private plateManager: BackgroundPlateManager;
+  private muteManager: MeetingMuteManager;
 
   private originalGetUserMedia: typeof navigator.mediaDevices.getUserMedia | null = null;
   private hiddenVideo: HTMLVideoElement | null = null;
@@ -61,6 +69,10 @@ export class BlipStreamInterceptor {
   constructor(options?: StreamInterceptorOptions) {
     this.kinematics = new DualTriggerSnapKinematics(0.06, 1500);
     this.audioDetector = new AudioClickDetector(this.config.audioClickThreshold);
+    this.particlePool = new CanvasParticlePool(3000);
+    this.speedlinesRenderer = new GokuSpeedlinesRenderer(48);
+    this.plateManager = new BackgroundPlateManager();
+    this.muteManager = new MeetingMuteManager();
 
     this.audioDetector.setOnClickCallback((event) => {
       this.kinematics.registerAudioClick(event.timestamp);
@@ -253,8 +265,9 @@ export class BlipStreamInterceptor {
       this.processingCtx.drawImage(this.hiddenVideo, 0, 0, w, h);
       this.processingCtx.restore();
 
-      // Render drifting ash particles simulation
-      this.renderDustParticles(w, h, this.effectProgress);
+      // Render drifting ash particles with particle pool
+      this.particlePool.update(1 / 30, performance.now() / 1000);
+      this.particlePool.render(this.processingCtx);
     } else if (this.state.currentEffect === "goku") {
       // Goku Instant Transmission: Anime speedlines + white exposure flash
       if (this.state.hasBackgroundPlate && this.backgroundPlateCanvas) {
@@ -265,10 +278,10 @@ export class BlipStreamInterceptor {
       const flashAlpha = Math.max(0, 1.0 - this.effectProgress * 2);
       this.processingCtx.globalAlpha = flashAlpha;
       this.processingCtx.drawImage(this.hiddenVideo, 0, 0, w, h);
+      this.processingCtx.restore();
 
       // Radial speedlines
-      this.renderRadialSpeedlines(w, h, this.effectProgress);
-      this.processingCtx.restore();
+      this.speedlinesRenderer.render(this.processingCtx, w, h, this.effectProgress);
     }
 
     if (this.effectProgress >= 1.0) {
@@ -279,58 +292,6 @@ export class BlipStreamInterceptor {
     }
   }
 
-  private renderDustParticles(w: number, h: number, progress: number): void {
-    if (!this.processingCtx) {
-      return;
-    }
-
-    const ctx = this.processingCtx;
-    ctx.save();
-    const particleCount = 120;
-    const dy = -progress * 180;
-
-    for (let i = 0; i < particleCount; i++) {
-      const seedX = (Math.sin(i * 997.3) * 0.5 + 0.5) * w;
-      const seedY = (Math.cos(i * 613.7) * 0.5 + 0.5) * h;
-      const px = seedX + Math.sin(progress * 10 + i) * 20;
-      const py = seedY + dy + Math.cos(progress * 8 + i) * 15;
-      const radius = (1.0 - progress) * (2 + (i % 4));
-
-      ctx.fillStyle = i % 2 === 0 ? "rgba(180, 160, 140, 0.75)" : "rgba(80, 75, 70, 0.65)";
-      ctx.beginPath();
-      ctx.arc(px, py, Math.max(0.5, radius), 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-  }
-
-  private renderRadialSpeedlines(w: number, h: number, progress: number): void {
-    if (!this.processingCtx) {
-      return;
-    }
-
-    const ctx = this.processingCtx;
-    ctx.save();
-    const cx = w / 2;
-    const cy = h / 2;
-    const lineCount = 36;
-
-    ctx.strokeStyle = `rgba(255, 255, 255, ${Math.max(0, 1 - progress * 1.5)})`;
-    ctx.lineWidth = 2.5;
-
-    for (let i = 0; i < lineCount; i++) {
-      const angle = (i * (Math.PI * 2)) / lineCount;
-      const rInner = 80 + progress * 120;
-      const rOuter = Math.max(w, h);
-
-      ctx.beginPath();
-      ctx.moveTo(cx + Math.cos(angle) * rInner, cy + Math.sin(angle) * rInner);
-      ctx.lineTo(cx + Math.cos(angle) * rOuter, cy + Math.sin(angle) * rOuter);
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-
   public triggerVanish(effect: GestureEffectType): void {
     if (this.state.isVanished || this.state.currentEffect !== "none") {
       return;
@@ -338,6 +299,31 @@ export class BlipStreamInterceptor {
 
     this.state.currentEffect = effect;
     this.effectProgress = 0;
+
+    if (effect === "snap" && this.processingCtx && this.processingCanvas) {
+      const w = this.processingCanvas.width;
+      const h = this.processingCanvas.height;
+      try {
+        const frameData = this.processingCtx.getImageData(0, 0, w, h);
+        const dummyMask = new Uint8ClampedArray(w * h);
+        const cx = w / 2;
+        const cy = h / 2;
+        const rx = w * 0.28;
+        const ry = h * 0.42;
+        for (let y = 0; y < h; y += 4) {
+          for (let x = 0; x < w; x += 4) {
+            const dx = (x - cx) / rx;
+            const dy = (y - cy) / ry;
+            if (dx * dx + dy * dy <= 1.0) {
+              dummyMask[y * w + x] = 255;
+            }
+          }
+        }
+        this.particlePool.spawnFromSilhouette(dummyMask, frameData, 2000);
+      } catch {
+        // Mock environment or canvas security fallback
+      }
+    }
 
     if (this.config.autoMute) {
       this.setMicrophoneMuted(true);
@@ -350,6 +336,7 @@ export class BlipStreamInterceptor {
     this.state.isVanished = false;
     this.state.currentEffect = "none";
     this.effectProgress = 0;
+    this.particlePool.reset();
 
     if (this.config.autoMute) {
       this.setMicrophoneMuted(false);
