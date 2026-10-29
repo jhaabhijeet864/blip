@@ -8,7 +8,6 @@ function ensureMainWorldInjected(): void {
   const script = document.createElement("script");
   script.id = "blip-injected-script";
   script.src = chrome.runtime.getURL("dist/injected.js");
-  script.type = "module";
   (document.head || document.documentElement).appendChild(script);
 }
 

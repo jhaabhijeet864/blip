@@ -12,13 +12,12 @@
     "https://teams.microsoft.com/*",
     "https://*.zoom.us/*",
     "http://localhost/*",
+    "https://localhost/*",
     "http://127.0.0.1/*",
-    "http://localhost:*/*",
-    "http://127.0.0.1:*/*"
+    "https://127.0.0.1/*"
   ],
   "background": {
-    "service_worker": "dist/background.js",
-    "type": "module"
+    "service_worker": "dist/background.js"
   },
   "action": {
     "default_popup": "popup.html",
@@ -48,9 +47,9 @@
         "https://teams.microsoft.com/*",
         "https://*.zoom.us/*",
         "http://localhost/*",
+        "https://localhost/*",
         "http://127.0.0.1/*",
-        "http://localhost:*/*",
-        "http://127.0.0.1:*/*"
+        "https://127.0.0.1/*"
       ],
       "js": ["dist/injected.js"],
       "run_at": "document_start",
@@ -62,9 +61,9 @@
         "https://teams.microsoft.com/*",
         "https://*.zoom.us/*",
         "http://localhost/*",
+        "https://localhost/*",
         "http://127.0.0.1/*",
-        "http://localhost:*/*",
-        "http://127.0.0.1:*/*"
+        "https://127.0.0.1/*"
       ],
       "js": ["dist/content.js"],
       "run_at": "document_start",
@@ -82,9 +81,9 @@
         "https://teams.microsoft.com/*",
         "https://*.zoom.us/*",
         "http://localhost/*",
+        "https://localhost/*",
         "http://127.0.0.1/*",
-        "http://localhost:*/*",
-        "http://127.0.0.1:*/*"
+        "https://127.0.0.1/*"
       ]
     }
   ]

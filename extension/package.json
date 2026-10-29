@@ -2,9 +2,10 @@
   "name": "blip-extension",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Zero-install finger-snap disappearance Chrome extension for Google Meet, Teams, and Zoom",
   "scripts": {
-    "build": "vite build",
+    "build": "node build.js",
     "test": "vitest run"
   },
   "devDependencies": {
