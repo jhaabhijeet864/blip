@@ -1,0 +1,16 @@
+[package]
+name = "blip-core"
+version = "0.2.0"
+edition = "2021"
+authors = ["Abhijeet Jha <jhaabhijeet864@gmail.com>"]
+description = "High-performance native Rust capture, vision, and virtual camera engine for Blip."
+license = "MIT"
+
+[dependencies]
+nokhwa = { version = "0.10", features = ["input-native"] }
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
+crossbeam-channel = "0.5"
+thiserror = "2.0"
+parking_lot = "0.12"
+
+[dev-dependencies]

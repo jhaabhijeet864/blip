@@ -48,6 +48,11 @@ htmlcov/
 *.exe
 *.manifest
 
+# Rust
+target/
+**/*.rs.bk
+Cargo.lock.new
+
 # Next.js Web
 web/node_modules/
 web/.next/
