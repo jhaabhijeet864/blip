@@ -23,9 +23,6 @@ export class DualTriggerSnapKinematics {
   private recentClickTimestamp = 0;
   private lastTriggerTimestamp = 0;
 
-  private gokuFrameStreak = 0;
-  private gokuRequiredStreak = 3;
-
   private onGestureTriggered: GestureCallback | null = null;
   private onArmedChange: ((armed: boolean) => void) | null = null;
 
@@ -54,24 +51,10 @@ export class DualTriggerSnapKinematics {
 
     if (!hand) {
       this.resetArmState();
-      this.gokuFrameStreak = 0;
       return;
     }
 
-    // 1. Evaluate Goku Instant Transmission gesture
-    if (BrowserVisionDetector.isTempleTouchPose(hand)) {
-      this.gokuFrameStreak++;
-      if (this.gokuFrameStreak >= this.gokuRequiredStreak) {
-        this.fireTrigger("goku", now, 0.95);
-        this.gokuFrameStreak = 0;
-        this.resetArmState();
-        return;
-      }
-    } else {
-      this.gokuFrameStreak = 0;
-    }
-
-    // 2. Evaluate Thanos Finger Snap kinematics
+    // Evaluate Thanos Finger Snap kinematics
     const pinchDist = BrowserVisionDetector.calculateThumbMiddleDistance(hand);
 
     if (pinchDist < this.pinchThreshold) {

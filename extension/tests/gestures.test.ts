@@ -14,21 +14,6 @@ function createHandWithPinch(dist: number): HandLandmarks {
   return hand;
 }
 
-function createGokuTempleHand(): HandLandmarks {
-  const hand: HandLandmarks = [];
-  for (let i = 0; i < 21; i++) {
-    hand.push({ x: 0.5, y: 0.5, z: 0.0 });
-  }
-  hand[HandLandmarkIndex.INDEX_FINGER_TIP] = { x: 0.72, y: 0.22, z: 0 };
-  hand[HandLandmarkIndex.MIDDLE_FINGER_TIP] = { x: 0.74, y: 0.23, z: 0 };
-  hand[HandLandmarkIndex.RING_FINGER_PIP] = { x: 0.68, y: 0.35, z: 0 };
-  hand[HandLandmarkIndex.RING_FINGER_TIP] = { x: 0.68, y: 0.42, z: 0 };
-  hand[HandLandmarkIndex.PINKY_PIP] = { x: 0.66, y: 0.38, z: 0 };
-  hand[HandLandmarkIndex.PINKY_TIP] = { x: 0.66, y: 0.45, z: 0 };
-  hand[HandLandmarkIndex.WRIST] = { x: 0.7, y: 0.55, z: 0 };
-  return hand;
-}
-
 describe("DualTriggerSnapKinematics", () => {
   it("does NOT trigger snap on visual pinch release without audio click", () => {
     const kinematics = new DualTriggerSnapKinematics(0.06, 1500);
@@ -99,45 +84,21 @@ describe("DualTriggerSnapKinematics", () => {
     expect(triggerSpy).not.toHaveBeenCalled();
   });
 
-  it("triggers Goku Instant Transmission upon 3-frame temple hold", () => {
+  it("debounces subsequent snap triggers during 1.5s cooldown", () => {
     const kinematics = new DualTriggerSnapKinematics(0.06, 1500);
     const triggerSpy = vi.fn();
     kinematics.setOnGestureTriggered(triggerSpy);
-
-    const gokuHand = createGokuTempleHand();
-
-    kinematics.processHandFrame(gokuHand, 1000); // Frame 1
-    expect(triggerSpy).not.toHaveBeenCalled();
-
-    kinematics.processHandFrame(gokuHand, 1033); // Frame 2
-    expect(triggerSpy).not.toHaveBeenCalled();
-
-    kinematics.processHandFrame(gokuHand, 1066); // Frame 3 (Streak fulfilled!)
-    expect(triggerSpy).toHaveBeenCalledTimes(1);
-    expect(triggerSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: "goku",
-      })
-    );
-  });
-
-  it("debounces subsequent triggers during 1.5s cooldown", () => {
-    const kinematics = new DualTriggerSnapKinematics(0.06, 1500);
-    const triggerSpy = vi.fn();
-    kinematics.setOnGestureTriggered(triggerSpy);
-
-    const gokuHand = createGokuTempleHand();
 
     // Trigger first gesture at t = 1000ms
-    kinematics.processHandFrame(gokuHand, 1000);
-    kinematics.processHandFrame(gokuHand, 1033);
-    kinematics.processHandFrame(gokuHand, 1066);
+    kinematics.processHandFrame(createHandWithPinch(0.03), 1000);
+    kinematics.processHandFrame(createHandWithPinch(0.18), 1060);
+    kinematics.registerAudioClick(1080);
     expect(triggerSpy).toHaveBeenCalledTimes(1);
 
-    // Immediate next frames at t = 1100ms (inside cooldown)
-    kinematics.processHandFrame(gokuHand, 1100);
-    kinematics.processHandFrame(gokuHand, 1133);
-    kinematics.processHandFrame(gokuHand, 1166);
+    // Immediate next snap at t = 1100ms (inside cooldown)
+    kinematics.processHandFrame(createHandWithPinch(0.03), 1100);
+    kinematics.processHandFrame(createHandWithPinch(0.18), 1150);
+    kinematics.registerAudioClick(1160);
     expect(triggerSpy).toHaveBeenCalledTimes(1); // Blocked by debounce!
   });
 });

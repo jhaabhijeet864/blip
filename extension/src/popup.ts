@@ -3,7 +3,6 @@ import { BlipConfig, BlipMessage, DEFAULT_BLIP_CONFIG } from "./types";
 document.addEventListener("DOMContentLoaded", async () => {
   const toggleEnabled = document.getElementById("toggle-enabled") as HTMLInputElement;
   const btnSnap = document.getElementById("btn-snap") as HTMLButtonElement;
-  const btnGoku = document.getElementById("btn-goku") as HTMLButtonElement;
   const btnReappear = document.getElementById("btn-reappear") as HTMLButtonElement;
   const btnCalibrate = document.getElementById("btn-calibrate") as HTMLButtonElement;
 
@@ -70,10 +69,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   btnSnap.addEventListener("click", () => {
     sendTabMessage("BLIP_TRIGGER_SNAP");
-  });
-
-  btnGoku.addEventListener("click", () => {
-    sendTabMessage("BLIP_TRIGGER_GOKU");
   });
 
   btnReappear.addEventListener("click", () => {

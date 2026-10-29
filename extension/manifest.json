@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Blip: Gesture Disappearance for Meetings",
   "version": "1.0.0",
-  "description": "Disappear from Google Meet, Teams, and Zoom with a Thanos snap or Goku instant transmission.",
+  "description": "Disappear from Google Meet, Teams, and Zoom with a gesture-triggered Thanos snap vanish.",
   "permissions": [
     "storage",
     "activeTab"
