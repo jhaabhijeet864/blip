@@ -43,7 +43,7 @@ class VideoPipeline:
 
         # Core Subsystems
         self.bg_manager = BackgroundManager()
-        self.sound_manager = SoundManager()
+        self.sound_manager = SoundManager(enabled=self.config.sound_enabled)
         self.vcam_sink: VirtualCameraSink | None = None
         self.hand_tracker: HandTracker | None = None
         self.segmenter: SelfieSegmenter | None = None

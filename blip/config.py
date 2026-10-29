@@ -39,6 +39,7 @@ class BlipConfig:
     particle_count: int = 2500
     ash_drift_speed: float = 1.2
     auto_reappear_delay: float = 0.0  # 0.0 means manual reappear only
+    sound_enabled: bool = True
 
     @classmethod
     def load(cls, path: Path | None = None) -> BlipConfig:
