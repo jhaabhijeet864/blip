@@ -40,6 +40,7 @@ class SoundManager:
         try:
             if sys.platform == "win32":
                 import winsound
+
                 # Fast sharp transient
                 winsound.Beep(2400, 35)
                 winsound.Beep(1200, 45)
@@ -50,6 +51,7 @@ class SoundManager:
         try:
             if sys.platform == "win32":
                 import winsound
+
                 # Rising dual-tone zap
                 winsound.Beep(1500, 50)
                 winsound.Beep(2800, 80)
@@ -60,6 +62,7 @@ class SoundManager:
         try:
             if sys.platform == "win32":
                 import winsound
+
                 # Harmonious chime
                 winsound.Beep(1046, 70)  # C6
                 winsound.Beep(1318, 90)  # E6
