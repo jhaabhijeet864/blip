@@ -114,7 +114,10 @@ impl InstantTransmissionEffect {
         mask: Option<&[u8]>,
     ) {
         if !self.active {
-            target.as_flat_samples_mut().samples.copy_from_slice(live_frame.as_flat_samples().samples);
+            target
+                .as_flat_samples_mut()
+                .samples
+                .copy_from_slice(live_frame.as_flat_samples().samples);
             return;
         }
 
@@ -154,7 +157,8 @@ impl InstantTransmissionEffect {
                 }
             }
             GokuPhase::FlashShockwave => {
-                let flash_progress = ((self.elapsed - CHARGE_END) / (FLASH_END - CHARGE_END)).clamp(0.0, 1.0);
+                let flash_progress =
+                    ((self.elapsed - CHARGE_END) / (FLASH_END - CHARGE_END)).clamp(0.0, 1.0);
                 let flash_intensity = (1.0 - (flash_progress - 0.5).abs() * 2.0).clamp(0.0, 1.0);
 
                 // Blend subject region toward bright whiteout bloom
@@ -208,7 +212,8 @@ impl InstantTransmissionEffect {
                 target_raw.copy_from_slice(bg_raw);
 
                 // Residual shockwave dissipating to edge of screen
-                let vanish_progress = ((self.elapsed - FLASH_END) / (GOKU_DURATION - FLASH_END)).clamp(0.0, 1.0);
+                let vanish_progress =
+                    ((self.elapsed - FLASH_END) / (GOKU_DURATION - FLASH_END)).clamp(0.0, 1.0);
                 if vanish_progress < 1.0 {
                     let shock_radius = 400.0 + vanish_progress * 500.0;
                     let alpha = (1.0 - vanish_progress).clamp(0.0, 1.0);

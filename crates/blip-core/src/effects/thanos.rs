@@ -260,9 +260,12 @@ impl ThanosDisintegration {
 
                     if cx >= 0 && cx < width as i32 && cy >= 0 && cy < height as i32 {
                         let idx = (cy as u32 * width + cx as u32) as usize * 3;
-                        let r = (p.color[0] as f32 * alpha + target_raw[idx] as f32 * inv_alpha) as u8;
-                        let g = (p.color[1] as f32 * alpha + target_raw[idx + 1] as f32 * inv_alpha) as u8;
-                        let b = (p.color[2] as f32 * alpha + target_raw[idx + 2] as f32 * inv_alpha) as u8;
+                        let r =
+                            (p.color[0] as f32 * alpha + target_raw[idx] as f32 * inv_alpha) as u8;
+                        let g = (p.color[1] as f32 * alpha + target_raw[idx + 1] as f32 * inv_alpha)
+                            as u8;
+                        let b = (p.color[2] as f32 * alpha + target_raw[idx + 2] as f32 * inv_alpha)
+                            as u8;
 
                         target_raw[idx] = r;
                         target_raw[idx + 1] = g;

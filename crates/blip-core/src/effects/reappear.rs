@@ -72,7 +72,10 @@ impl ReappearEffect {
         mask: Option<&[u8]>,
     ) {
         if !self.active {
-            target.as_flat_samples_mut().samples.copy_from_slice(live_frame.as_flat_samples().samples);
+            target
+                .as_flat_samples_mut()
+                .samples
+                .copy_from_slice(live_frame.as_flat_samples().samples);
             return;
         }
 
@@ -150,13 +153,27 @@ impl ReappearEffect {
                             };
 
                             if is_subject {
-                                let base_r = if linear_t < 0.4 { bg_raw[pixel_idx] } else { live_raw[pixel_idx] } as f32;
-                                let base_g = if linear_t < 0.4 { bg_raw[pixel_idx + 1] } else { live_raw[pixel_idx + 1] } as f32;
-                                let base_b = if linear_t < 0.4 { bg_raw[pixel_idx + 2] } else { live_raw[pixel_idx + 2] } as f32;
+                                let base_r = if linear_t < 0.4 {
+                                    bg_raw[pixel_idx]
+                                } else {
+                                    live_raw[pixel_idx]
+                                } as f32;
+                                let base_g = if linear_t < 0.4 {
+                                    bg_raw[pixel_idx + 1]
+                                } else {
+                                    live_raw[pixel_idx + 1]
+                                } as f32;
+                                let base_b = if linear_t < 0.4 {
+                                    bg_raw[pixel_idx + 2]
+                                } else {
+                                    live_raw[pixel_idx + 2]
+                                } as f32;
 
                                 row[out_idx] = (base_r + (255.0 - base_r) * flash_intensity) as u8;
-                                row[out_idx + 1] = (base_g + (255.0 - base_g) * flash_intensity) as u8;
-                                row[out_idx + 2] = (base_b + (255.0 - base_b) * flash_intensity) as u8;
+                                row[out_idx + 1] =
+                                    (base_g + (255.0 - base_g) * flash_intensity) as u8;
+                                row[out_idx + 2] =
+                                    (base_b + (255.0 - base_b) * flash_intensity) as u8;
                             } else {
                                 row[out_idx] = live_raw[pixel_idx];
                                 row[out_idx + 1] = live_raw[pixel_idx + 1];

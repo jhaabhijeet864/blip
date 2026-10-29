@@ -45,7 +45,9 @@ impl CleanPlateManager {
 
     /// Start a 3-second countdown to calibrate an empty room plate.
     pub fn start_countdown(&mut self) {
-        self.state = CalibrationState::Countdown { remaining_secs: 3.0 };
+        self.state = CalibrationState::Countdown {
+            remaining_secs: 3.0,
+        };
         self.sample_accumulator.clear();
         self.samples_count = 0;
     }
@@ -56,12 +58,16 @@ impl CleanPlateManager {
             CalibrationState::Countdown { remaining_secs } => {
                 let next_remaining = remaining_secs - dt;
                 if next_remaining <= 0.0 {
-                    self.state = CalibrationState::Sampling { frames_collected: 0 };
+                    self.state = CalibrationState::Sampling {
+                        frames_collected: 0,
+                    };
                     let len = (live_frame.width() * live_frame.height() * 3) as usize;
                     self.sample_accumulator = vec![0u32; len];
                     self.samples_count = 0;
                 } else {
-                    self.state = CalibrationState::Countdown { remaining_secs: next_remaining };
+                    self.state = CalibrationState::Countdown {
+                        remaining_secs: next_remaining,
+                    };
                 }
             }
             CalibrationState::Sampling { .. } => {
@@ -109,7 +115,11 @@ impl CleanPlateManager {
     }
 
     /// Compensate clean plate for ambient luminance drift compared to live frame.
-    pub fn get_compensated_plate(&self, live_frame: &RgbImage, mask: Option<&[u8]>) -> Option<RgbImage> {
+    pub fn get_compensated_plate(
+        &self,
+        live_frame: &RgbImage,
+        mask: Option<&[u8]>,
+    ) -> Option<RgbImage> {
         let plate = self.plate.as_ref()?;
         if self.baseline_luma <= 1.0 {
             return Some((**plate).clone());
