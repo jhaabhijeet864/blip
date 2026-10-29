@@ -38,8 +38,9 @@ PINKY_TIP = 20
 @dataclass
 class HandLandmarkData:
     """Normalized 3D coordinates for a detected hand."""
+
     landmarks: list[Any]  # 21 points with .x, .y, .z
-    handedness: str       # "Left" or "Right"
+    handedness: str  # "Left" or "Right"
     confidence: float
 
 
@@ -52,7 +53,7 @@ class HandTracker:
         self,
         max_num_hands: int = 2,
         min_detection_confidence: float = 0.7,
-        min_tracking_confidence: float = 0.5
+        min_tracking_confidence: float = 0.5,
     ):
         import mediapipe as mp
 
@@ -64,7 +65,7 @@ class HandTracker:
             static_image_mode=False,
             max_num_hands=max_num_hands,
             min_detection_confidence=min_detection_confidence,
-            min_tracking_confidence=min_tracking_confidence
+            min_tracking_confidence=min_tracking_confidence,
         )
 
     def process(self, frame_rgb: np.ndarray) -> list[HandLandmarkData]:
@@ -87,11 +88,11 @@ class HandTracker:
                 label = classification.label
                 score = classification.score
 
-            detected_hands.append(HandLandmarkData(
-                landmarks=hand_landmarks.landmark,
-                handedness=label,
-                confidence=score
-            ))
+            detected_hands.append(
+                HandLandmarkData(
+                    landmarks=hand_landmarks.landmark, handedness=label, confidence=score
+                )
+            )
 
         return detected_hands
 
