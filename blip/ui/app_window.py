@@ -33,6 +33,16 @@ class BlipApp(ctk.CTk):
         self.geometry("1100x720")
         self.minsize(950, 650)
 
+        # Load window icon if available
+        import sys
+        from pathlib import Path
+        icon_path = Path(__file__).parent.parent.parent / "assets" / "icon.ico"
+        if icon_path.exists() and sys.platform == "win32":
+            try:
+                self.iconbitmap(str(icon_path))
+            except Exception:
+                pass
+
         # Initialize registries
         self.gesture_registry = GestureRegistry()
         self.effect_registry = EffectRegistry()
