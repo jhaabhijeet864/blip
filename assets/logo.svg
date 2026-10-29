@@ -21,3 +21,4 @@
   <!-- Central Lightning / Energy Bolt -->
   <path d="M280 64L144 288h96l-48 160 176-224h-96z" fill="url(#blipGrad)" filter="url(#glow)" />
 </svg>
+
