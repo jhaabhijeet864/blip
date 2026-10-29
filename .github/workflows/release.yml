@@ -4,12 +4,73 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag (e.g. v0.2.0 - leave blank to extract from pyproject.toml)'
+        required: false
+        default: ''
+      is_draft:
+        description: 'Publish as a Draft release'
+        type: boolean
+        required: false
+        default: false
+      is_prerelease:
+        description: 'Publish as a Pre-release'
+        type: boolean
+        required: false
+        default: false
+      dry_run:
+        description: 'Dry run (verify build and checksums without publishing to GitHub)'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
 
 jobs:
-  build-windows:
-    name: Build Windows Executable
+  build-windows-exe:
+    name: Build Standalone Windows Application
     runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: 'pip'
+
+      - name: Install Build Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          pip install -e .
+
+      - name: Compile Windows Executable via PyInstaller
+        run: |
+          python scripts/build_exe.py
+
+      - name: Package Windows Distribution Archive
+        run: |
+          Compress-Archive -Path dist\Blip\* -DestinationPath dist\Blip-Windows-x64.zip
+          $hash = (Get-FileHash -Algorithm SHA256 dist\Blip-Windows-x64.zip).Hash.ToLower()
+          "$hash  Blip-Windows-x64.zip" | Out-File -Encoding ascii dist\checksum_windows.txt
+
+      - name: Upload Windows Asset Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release-assets
+          path: |
+            dist/Blip-Windows-x64.zip
+            dist/checksum_windows.txt
+
+  build-python-packages:
+    name: Build Python Wheels & Source Distribution
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -19,21 +80,97 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install Dependencies
+      - name: Install Build Tooling
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
-          pip install pyinstaller
+          pip install build
 
-      - name: Build Standalone Executable
+      - name: Build Wheel and Source Tarball
         run: |
-          pyinstaller --noconsole --name "Blip" --collect-all mediapipe --collect-all customtkinter blip/__main__.py
+          python -m build
+          cd dist
+          sha256sum * > checksum_python.txt
 
-      - name: Upload Release Asset
+      - name: Upload Python Package Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-release-assets
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+            dist/checksum_python.txt
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: [ build-windows-exe, build-python-packages ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Determine Release Tag
+        id: get_tag
+        run: |
+          if [ -n "${{ inputs.tag_name }}" ]; then
+            TAG="${{ inputs.tag_name }}"
+          elif [ -n "${{ github.ref_name }}" ] && [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG="${{ github.ref_name }}"
+          else
+            VERSION=$(grep -m1 '^version' pyproject.toml | cut -d '"' -f2)
+            TAG="v$VERSION"
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Selected Release Tag: $TAG"
+
+      - name: Download Windows Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-release-assets
+          path: release_assets
+
+      - name: Download Python Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-release-assets
+          path: release_assets
+
+      - name: Assemble Global Checksum File
+        run: |
+          cd release_assets
+          cat checksum_windows.txt checksum_python.txt > checksums.sha256
+          rm -f checksum_windows.txt checksum_python.txt
+          echo "### Release Checksums (SHA-256)"
+          cat checksums.sha256
+
+      - name: Publish GitHub Release
+        if: ${{ !(inputs.dry_run) }}
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/Blip.exe
+          tag_name: ${{ steps.get_tag.outputs.tag }}
+          name: Blip ${{ steps.get_tag.outputs.tag }}
+          draft: ${{ inputs.is_draft || false }}
+          prerelease: ${{ inputs.is_prerelease || false }}
+          generate_release_notes: true
+          files: |
+            release_assets/Blip-Windows-x64.zip
+            release_assets/*.whl
+            release_assets/*.tar.gz
+            release_assets/checksums.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Record Step Summary
+        run: |
+          cat << 'EOF' >> $GITHUB_STEP_SUMMARY
+          ### 🚀 Release Build Completed
+
+          **Tag:** `${{ steps.get_tag.outputs.tag }}`
+          **Dry Run:** `${{ inputs.dry_run || false }}`
+          **Draft:** `${{ inputs.is_draft || false }}`
+          **Prerelease:** `${{ inputs.is_prerelease || false }}`
+
+          #### Built Assets
+          - `Blip-Windows-x64.zip` (Standalone Windows Application)
+          - Standard Python Wheel (`.whl`) and Source Tarball (`.tar.gz`)
+          - Cryptographic verification signatures (`checksums.sha256`)
+          EOF

@@ -61,6 +61,7 @@ Blip uses a modular plugin architecture. To add a new visual effect:
    from blip.effects.base import BaseEffect
    import numpy as np
 
+
    class MyCustomEffect(BaseEffect):
        def __init__(self, duration_frames: int = 45):
            super().__init__(name="My Custom Effect", duration_frames=duration_frames)
@@ -86,6 +87,7 @@ Blip uses a modular plugin architecture. To add a new visual effect:
 1. Create a detector in `blip/gestures/<gesture_name>.py` extending `BaseGesture`:
    ```python
    from blip.gestures.base import BaseGesture
+
 
    class MyGesture(BaseGesture):
        def detect(self, landmarks_3d) -> bool:

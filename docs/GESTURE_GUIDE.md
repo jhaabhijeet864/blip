@@ -70,6 +70,7 @@ To add a new gesture detector:
    ```python
    from blip.gestures.base import BaseGesture, GestureResult
 
+
    class VictorySignGesture(BaseGesture):
        def __init__(self):
            super().__init__(name="peace_sign", min_confidence=0.85)

@@ -133,6 +133,7 @@ Blip uses an open effect architecture. To create a new disappearance effect:
 import numpy as np
 from blip.effects.base import BaseEffect
 
+
 class MarioPipeEffect(BaseEffect):
     def __init__(self, duration_frames: int = 30):
         super().__init__(name="Mario Warp Pipe", duration_frames=duration_frames)
@@ -148,15 +149,37 @@ Register the class in `blip/effects/registry.py` and open a Pull Request.
 
 ---
 
-## Running Tests
+## Running Tests & Quality Gates
+
+Blip includes a hardware-independent test suite covering all video pipelines, gesture detectors, visual effects, and drivers:
 
 ```bash
-# Run test suite
-pytest
+# Run test suite with line-by-line coverage
+pytest --cov=blip --cov=scripts --cov-report=term-missing
 
-# Run linter
+# Run code linter and formatting checks
 ruff check .
+ruff format --check .
 ```
+
+---
+
+## Release Automation
+
+Blip provides assistive tooling for zero-error semantic releases:
+
+```bash
+# Preview next patch release (dry run)
+python scripts/release.py --dry-run --bump patch
+
+# Automatically run tests, bump version in pyproject.toml & blip/__init__.py, and create git tag
+python scripts/release.py --bump patch
+
+# Push release tag to trigger GitHub Actions release workflow
+git push origin main --tags
+```
+
+Releases can also be triggered manually via GitHub Actions (`workflow_dispatch`) with optional draft and pre-release flags.
 
 ---
 
