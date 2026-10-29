@@ -114,4 +114,3 @@ class EffectRegistry:
 ```
 
 The new effect will automatically populate in the Blip desktop UI dropdown for user assignment!
-

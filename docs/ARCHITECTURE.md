@@ -70,4 +70,3 @@ Blip leverages `pyvirtualcam` to expose an OS-native virtual video device:
 - **macOS:** Interfaces with the OBS VirtualCam DAL plugin.
 
 Applications like Google Meet, Zoom, and Microsoft Teams treat Blip identically to a physical USB webcam.
-

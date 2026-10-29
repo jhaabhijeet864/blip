@@ -24,11 +24,12 @@ from blip.vision.segmenter import SelfieSegmenter
 
 class PipelineState:
     """State constants for the disappearance lifecycle."""
-    NORMAL = "NORMAL"                # Normal live webcam feed
-    CALIBRATING = "CALIBRATING"      # Snapshotting empty room
-    DISAPPEARING = "DISAPPEARING"    # Running disappearance animation
-    DISAPPEARED = "DISAPPEARED"      # Sustained empty room background
-    REAPPEARING = "REAPPEARING"      # Running return animation
+
+    NORMAL = "NORMAL"  # Normal live webcam feed
+    CALIBRATING = "CALIBRATING"  # Snapshotting empty room
+    DISAPPEARING = "DISAPPEARING"  # Running disappearance animation
+    DISAPPEARED = "DISAPPEARED"  # Sustained empty room background
+    REAPPEARING = "REAPPEARING"  # Running return animation
 
 
 class VideoPipeline:
@@ -42,13 +43,15 @@ class VideoPipeline:
 
         # Core Subsystems
         self.bg_manager = BackgroundManager()
-        self.sound_manager = SoundManager()
+        self.sound_manager = SoundManager(enabled=self.config.sound_enabled)
         self.vcam_sink: VirtualCameraSink | None = None
         self.hand_tracker: HandTracker | None = None
         self.segmenter: SelfieSegmenter | None = None
 
         # Gesture & Effect hooks (wired by registry)
-        self.gesture_evaluator: Callable[[list[HandLandmarkData], tuple[int, int]], str | None] | None = None
+        self.gesture_evaluator: (
+            Callable[[list[HandLandmarkData], tuple[int, int]], str | None] | None
+        ) = None
         self.effects_map: dict[str, BaseEffect] = {}
         self.active_effect: BaseEffect | None = None
         self.reappear_effect: BaseEffect | None = None
@@ -70,7 +73,9 @@ class VideoPipeline:
         if self._running:
             return
         self._running = True
-        self._thread = threading.Thread(target=self._run_loop, name="BlipPipelineThread", daemon=True)
+        self._thread = threading.Thread(
+            target=self._run_loop, name="BlipPipelineThread", daemon=True
+        )
         self._thread.start()
 
     def stop(self) -> None:
@@ -174,7 +179,11 @@ class VideoPipeline:
                 if effect_key and effect_key in self.effects_map:
                     self.active_effect = self.effects_map[effect_key]
                     # Compute initial segmentation mask
-                    initial_mask = self.segmenter.process(frame_rgb) if self.segmenter else np.ones((h, w), dtype=np.float32)
+                    initial_mask = (
+                        self.segmenter.process(frame_rgb)
+                        if self.segmenter
+                        else np.ones((h, w), dtype=np.float32)
+                    )
                     bg_plate = self.bg_manager.get_plate(frame_rgb)
                     self.active_effect.start(frame_rgb, initial_mask, bg_plate)
                     self.state = PipelineState.DISAPPEARING
@@ -191,7 +200,11 @@ class VideoPipeline:
 
         if self.state == PipelineState.DISAPPEARING:
             if self.active_effect and self.active_effect.is_active:
-                mask = self.segmenter.process(frame_rgb) if self.segmenter else np.ones((h, w), dtype=np.float32)
+                mask = (
+                    self.segmenter.process(frame_rgb)
+                    if self.segmenter
+                    else np.ones((h, w), dtype=np.float32)
+                )
                 output_frame = self.active_effect.render(frame_rgb, mask, bg_plate)
                 self.active_effect.update()
 
@@ -205,7 +218,11 @@ class VideoPipeline:
 
         elif self.state == PipelineState.REAPPEARING:
             if self.active_effect and self.active_effect.is_active:
-                mask = self.segmenter.process(frame_rgb) if self.segmenter else np.ones((h, w), dtype=np.float32)
+                mask = (
+                    self.segmenter.process(frame_rgb)
+                    if self.segmenter
+                    else np.ones((h, w), dtype=np.float32)
+                )
                 output_frame = self.active_effect.render(frame_rgb, mask, bg_plate)
                 self.active_effect.update()
 
@@ -233,7 +250,9 @@ class VideoPipeline:
         if self.bg_manager.is_calibrating():
             rem = self.bg_manager.countdown_remaining
             text = f"STEP OUT OF FRAME: {rem:.1f}s" if rem > 0 else "CAPTURING EMPTY ROOM..."
-            cv2.putText(preview, text, (50, 80), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3, cv2.LINE_AA)
+            cv2.putText(
+                preview, text, (50, 80), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3, cv2.LINE_AA
+            )
 
         with self._lock:
             self.latest_preview_frame = preview
@@ -254,7 +273,7 @@ class VideoPipeline:
                 width=self.config.camera_width,
                 height=self.config.camera_height,
                 fps=self.config.target_fps,
-                backend=self.config.vcam_backend
+                backend=self.config.vcam_backend,
             )
             self.vcam_sink.start()
         except Exception as e:
@@ -277,7 +296,9 @@ class VideoPipeline:
             dt = max(1e-4, now - prev_time)
             prev_time = now
             inst_fps = 1.0 / dt
-            self.current_fps = (self.current_fps * fps_smoothing) + (inst_fps * (1.0 - fps_smoothing))
+            self.current_fps = (self.current_fps * fps_smoothing) + (
+                inst_fps * (1.0 - fps_smoothing)
+            )
 
             self.process_frame(frame_rgb, now)
 
