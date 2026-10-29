@@ -46,8 +46,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 07-01: Integrate `ort` ONNX Runtime session manager, tensor preprocessing, and model inference for hands and segmentation.
-- [ ] 07-02: Implement native Rust Thanos Snap and Goku Instant Transmission kinematics recognizers and debounce state machine.
+- [x] 07-01: Integrate `ort` ONNX Runtime session manager, tensor preprocessing, and model inference for hands and segmentation.
+- [x] 07-02: Implement native Rust Thanos Snap and Goku Instant Transmission kinematics recognizers and debounce state machine.
 
 ---
 
@@ -114,7 +114,7 @@ Phases execute in numeric order: Phase 6 → Phase 7 → Phase 8 → Phase 9 →
 | 4. Modern Desktop GUI | 1/1 | Complete | 2026-10-29 |
 | 5. Packaging, Testing & CI/CD | 1/1 | Complete | 2026-10-29 |
 | 6. Native Rust Capture & Virtual Camera | 2/2 | Complete | 2026-10-29 |
-| 7. Embedded ONNX Neural Vision & Kinematics | 0/2 | Planned | — |
+| 7. Embedded ONNX Neural Vision & Kinematics | 2/2 | Complete | 2026-10-29 |
 | 8. SIMD Effects & Background Plate | 0/2 | Not Started | — |
 | 9. Modern Tauri v2 Desktop Shell | 0/2 | Not Started | — |
 | 10. Packaging, Verification & CI/CD | 0/1 | Not Started | — |
