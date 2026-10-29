@@ -3,12 +3,12 @@ Unit tests for core video pipeline, background calibration, and driver checking.
 """
 
 import numpy as np
+
 from blip.config import BlipConfig
 from blip.core.background import BackgroundManager
+from blip.core.pipeline import PipelineState, VideoPipeline
 from blip.core.vcam import check_virtual_camera_driver
-from blip.core.pipeline import VideoPipeline, PipelineState
 from blip.gestures.base import GestureResult, Landmark3D
-from blip.effects.thanos_dust import ThanosSnapEffect
 
 
 def test_config_defaults_and_serialization(tmp_path):

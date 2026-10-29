@@ -13,6 +13,7 @@ from collections.abc import Callable
 import cv2
 import numpy as np
 
+from blip.audio.sound import SoundManager
 from blip.config import BlipConfig
 from blip.core.background import BackgroundManager
 from blip.core.vcam import VirtualCameraSink
@@ -41,6 +42,7 @@ class VideoPipeline:
 
         # Core Subsystems
         self.bg_manager = BackgroundManager()
+        self.sound_manager = SoundManager()
         self.vcam_sink: VirtualCameraSink | None = None
         self.hand_tracker: HandTracker | None = None
         self.segmenter: SelfieSegmenter | None = None
@@ -98,6 +100,7 @@ class VideoPipeline:
     def trigger_reappear(self) -> None:
         """Force manual reappearance back to normal live feed."""
         if self.state in (PipelineState.DISAPPEARED, PipelineState.DISAPPEARING):
+            self.sound_manager.play_reappear()
             if self.reappear_effect:
                 self.active_effect = self.reappear_effect
                 self.state = PipelineState.REAPPEARING
@@ -181,6 +184,12 @@ class VideoPipeline:
                 self.last_trigger_time = now
 
                 if self.state == PipelineState.NORMAL:
+                    # Play corresponding sound cue
+                    if detected_gesture == "snap":
+                        self.sound_manager.play_snap()
+                    elif detected_gesture == "instant_transmission":
+                        self.sound_manager.play_teleport()
+
                     # Lookup mapped effect
                     effect_key = self.config.gesture_mappings.get(detected_gesture)
                     if effect_key and effect_key in self.effects_map:
