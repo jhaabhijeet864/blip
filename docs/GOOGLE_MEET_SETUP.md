@@ -67,3 +67,4 @@ This guide provides instructions for connecting Blip's virtual camera feed to Go
   brew install --cask obs
   ```
   Launch OBS once to authorize the virtual camera plugin in System Settings > Privacy & Security.
+
