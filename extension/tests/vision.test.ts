@@ -85,3 +85,4 @@ describe("BrowserVisionDetector", () => {
     expect(mask[1]).toBe(0); // Identical background pixel
   });
 });
+

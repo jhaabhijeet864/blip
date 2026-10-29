@@ -52,19 +52,20 @@ Users can effortlessly choose, configure, and trigger fluid cinematic disappeara
 - ✓ **RVCAM-01**: Native Rust DirectShow virtual camera sink output for Google Meet / Zoom / Teams — Phase 6
 - ✓ **TAURI-01**: Tauri v2 modern desktop frontend with Vite, Tailwind CSS, GPU canvas preview, and mouse-resizable panels — Phase 9
 - ✓ **DIST-01**: Single compact native desktop executable distribution (<30MB) and CI/CD pipelines — Phase 10
+- ✓ **EXT-01**: Chrome Extension Manifest V3 structure (`extension/manifest.json`), service worker, and content scripts — Phase 11
+- ✓ **EXT-02**: Main-world WebRTC `navigator.mediaDevices.getUserMedia` stream interception returning canvas-streamed video — Phase 11
+- ✓ **EXT-03**: In-browser MediaPipe WASM integration for 21-landmark hand tracking and selfie matting — Phase 12
+- ✓ **EXT-04**: Web Audio API (`AudioContext` / `AnalyserNode`) transient click sound detector for dual-trigger snap confirmation — Phase 12
+- ✓ **EXT-05**: Automated empty room plate calibration and canvas inpainting — Phase 13
+- ✓ **EXT-06**: HTML5 Canvas Thanos ash particle disintegration physics and Goku Instant Transmission speedlines — Phase 13
+- ✓ **EXT-07**: Meeting microphone auto-muting on vanish and unmuting on reappear — Phase 13
+- ✓ **EXT-08**: Extension popup interface (`popup.html` / `popup.ts`) with on/off switch, manual snap trigger, sensitivity sliders, and hotkey (`Alt+Shift+S`) — Phase 14
+- ✓ **WEB-01**: Interactive live browser playground embedded directly into `web/` landing page — Phase 14
+- ✓ **PACK-02**: Standalone extension zip builder script (`scripts/package_extension.ps1`) for one-click "Load unpacked" distribution — Phase 14
 
 ### Active
 
-- [ ] **EXT-01**: Chrome Extension Manifest V3 structure (`extension/manifest.json`), service worker, and content scripts
-- [ ] **EXT-02**: Main-world WebRTC `navigator.mediaDevices.getUserMedia` stream interception returning canvas-streamed video
-- [ ] **EXT-03**: In-browser MediaPipe WASM integration for 21-landmark hand tracking and selfie matting
-- [ ] **EXT-04**: Web Audio API (`AudioContext` / `AnalyserNode`) transient click sound detector for dual-trigger snap confirmation
-- [ ] **EXT-05**: Automated empty room plate calibration and canvas inpainting
-- [ ] **EXT-06**: HTML5 Canvas Thanos ash particle disintegration physics and Goku Instant Transmission speedlines
-- [ ] **EXT-07**: Meeting microphone auto-muting on vanish and unmuting on reappear
-- [ ] **EXT-08**: Extension popup interface (`popup.html` / `popup.ts`) with on/off switch, manual snap trigger, sensitivity sliders, and hotkey (`Alt+Shift+S`)
-- [ ] **WEB-01**: Interactive live browser playground embedded directly into `web/` landing page
-- [ ] **PACK-02**: Standalone extension zip builder script (`scripts/package_extension.ps1`) for one-click "Load unpacked" distribution
+*(none - Milestone v3.0 fully validated)*
 
 ### Out of Scope
 

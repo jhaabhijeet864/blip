@@ -73,3 +73,4 @@ export class GokuSpeedlinesRenderer {
     ctx.restore();
   }
 }
+

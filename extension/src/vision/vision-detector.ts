@@ -109,3 +109,4 @@ export class BrowserVisionDetector {
     return alphaMask;
   }
 }
+

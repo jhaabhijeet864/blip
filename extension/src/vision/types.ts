@@ -36,3 +36,4 @@ export interface VisionDetectionResult {
   hasHand: boolean;
   timestamp: number;
 }
+

@@ -45,3 +45,18 @@ chrome.runtime.onMessage.addListener((message: BlipMessage, _sender, sendRespons
   return false;
 });
 
+chrome.commands.onCommand.addListener((command) => {
+  if (command === "toggle-vanish") {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const activeTabId = tabs[0]?.id;
+      if (activeTabId) {
+        chrome.tabs.sendMessage(activeTabId, {
+          source: "blip-extension-popup",
+          action: "BLIP_TRIGGER_SNAP",
+          timestamp: Date.now(),
+        });
+      }
+    });
+  }
+});
+

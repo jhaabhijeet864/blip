@@ -29,6 +29,14 @@
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
+  "commands": {
+    "toggle-vanish": {
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
+      "description": "Instant Thanos vanish or reappear toggle"
+    }
+  },
   "content_scripts": [
     {
       "matches": [

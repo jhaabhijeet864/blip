@@ -96,3 +96,4 @@ export class BackgroundPlateManager {
     this.hasPlate = false;
   }
 }
+

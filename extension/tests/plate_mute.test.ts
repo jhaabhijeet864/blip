@@ -92,3 +92,4 @@ describe("MeetingMuteManager", () => {
     expect(mockButton.click).toHaveBeenCalled();
   });
 });
+

@@ -164,3 +164,4 @@ export class CanvasParticlePool {
     this.activeCount = 0;
   }
 }
+

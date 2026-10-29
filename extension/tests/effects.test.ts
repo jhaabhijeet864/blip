@@ -84,3 +84,4 @@ describe("GokuSpeedlinesRenderer", () => {
     expect(mockCtx.restore).toHaveBeenCalled();
   });
 });
+

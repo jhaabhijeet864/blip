@@ -12,6 +12,7 @@ export default defineConfig({
         background: resolve(__dirname, "src/background.ts"),
         content: resolve(__dirname, "src/content.ts"),
         injected: resolve(__dirname, "src/injected.ts"),
+        popup: resolve(__dirname, "src/popup.ts"),
       },
       output: {
         entryFileNames: "[name].js",

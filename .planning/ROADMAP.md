@@ -72,8 +72,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 14-01: Build extension popup UI (`popup.html`, `popup.ts`) with controls, settings sync, and hotkey listener.
-- [ ] 14-02: Embed live interactive playground into `web/` showcase and implement automated extension zip packaging script.
+- [x] 14-01: Build extension popup UI (`popup.html`, `popup.ts`) with controls, settings sync, and hotkey listener.
+- [x] 14-02: Embed live interactive playground into `web/` showcase and implement automated extension zip packaging script.
 
 ---
 
