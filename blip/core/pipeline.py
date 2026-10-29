@@ -5,7 +5,6 @@ Coordinates camera capture, MediaPipe vision inference, effect rendering, and vi
 
 from __future__ import annotations
 
-import sys
 import threading
 import time
 from collections.abc import Callable
@@ -16,6 +15,7 @@ import numpy as np
 from blip.audio.sound import SoundManager
 from blip.config import BlipConfig
 from blip.core.background import BackgroundManager
+from blip.core.devices import get_best_default_camera
 from blip.core.vcam import VirtualCameraSink
 from blip.effects.base import BaseEffect
 from blip.vision.hand_tracker import HandLandmarkData, HandTracker
@@ -34,7 +34,8 @@ class PipelineState:
 
 class VideoPipeline:
     """
-    High-performance video processing pipeline running in a dedicated background thread.
+    Core video processing pipeline running in a background thread.
+    Manages camera I/O, gesture detection, effect state machine, and virtual camera sink.
     """
 
     def __init__(self, config: BlipConfig | None = None):
@@ -60,6 +61,8 @@ class VideoPipeline:
         self._thread: threading.Thread | None = None
         self._running = False
         self._lock = threading.Lock()
+        self._pending_camera_index: int | None = None
+        self.active_camera_name: str = "Webcam"
 
         # Frame buffers for UI preview
         self.latest_preview_frame: np.ndarray | None = None
@@ -117,14 +120,80 @@ class VideoPipeline:
                     self.active_effect.stop()
                     self.active_effect = None
 
-    def _open_camera(self) -> cv2.VideoCapture:
-        """Open physical webcam with DirectShow optimization on Windows."""
-        backend = cv2.CAP_DSHOW if sys.platform == "win32" else cv2.CAP_ANY
-        cap = cv2.VideoCapture(self.config.camera_index, backend)
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.config.camera_width)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.config.camera_height)
-        cap.set(cv2.CAP_PROP_FPS, self.config.target_fps)
-        return cap
+    def switch_camera(self, new_index: int, camera_name: str | None = None) -> None:
+        """
+        Thread-safe request to dynamically hot-swap the active webcam input.
+        """
+        with self._lock:
+            self._pending_camera_index = new_index
+            self.config.camera_index = new_index
+            if camera_name:
+                self.active_camera_name = camera_name
+
+    def create_offline_diagnostic_frame(self, message: str | None = None) -> np.ndarray:
+        """
+        Render an informative diagnostic frame on the canvas when the selected camera
+        is offline, disconnected, or failing to stream.
+        """
+        w, h = self.config.camera_width, self.config.camera_height
+        canvas = np.full((h, w, 3), (25, 25, 30), dtype=np.uint8)
+
+        text_title = f"CAMERA OFFLINE: {self.active_camera_name.upper()}"
+        text_sub = message or "Please select an active camera from the dropdown in Section 4."
+
+        cv2.putText(
+            canvas,
+            text_title,
+            (60, h // 2 - 20),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.9,
+            (100, 100, 240),
+            2,
+            cv2.LINE_AA,
+        )
+        cv2.putText(
+            canvas,
+            text_sub,
+            (60, h // 2 + 30),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.65,
+            (200, 200, 200),
+            1,
+            cv2.LINE_AA,
+        )
+        return canvas
+
+    def _open_camera(self, index: int | None = None) -> cv2.VideoCapture:
+        """
+        Safely open video capture for the specified camera index.
+        Falls back to best detected physical camera if specified index fails.
+        """
+        target_idx = self.config.camera_index if index is None else index
+
+        cap = None
+        try:
+            cap = cv2.VideoCapture(target_idx)
+        except Exception:
+            cap = None
+
+        # If opening failed and we haven't already fallen back, attempt best active default
+        if (cap is None or not cap.isOpened()) and index is None:
+            best_idx = get_best_default_camera()
+            if best_idx != target_idx:
+                try:
+                    if cap is not None:
+                        cap.release()
+                    cap = cv2.VideoCapture(best_idx)
+                    self.config.camera_index = best_idx
+                except Exception:
+                    pass
+
+        if cap is not None and cap.isOpened():
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.config.camera_width)
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.config.camera_height)
+            cap.set(cv2.CAP_PROP_FPS, self.config.target_fps)
+
+        return cap if cap is not None else cv2.VideoCapture()
 
     def process_frame(self, frame_rgb: np.ndarray, now: float | None = None) -> np.ndarray:
         """
@@ -264,7 +333,7 @@ class VideoPipeline:
         return output_frame
 
     def _run_loop(self) -> None:
-        """Main processing loop running at target FPS."""
+        """Main processing loop running at target FPS with hot-swappable camera capture."""
         cap = self._open_camera()
 
         # Initialize vision models
@@ -286,13 +355,44 @@ class VideoPipeline:
 
         prev_time = time.time()
         fps_smoothing = 0.9
+        consecutive_failures = 0
 
         while self._running:
-            ret, frame_bgr = cap.read()
+            # 1. Check for dynamic camera hot-swap request
+            with self._lock:
+                target_idx = self._pending_camera_index
+                if target_idx is not None:
+                    self._pending_camera_index = None
+
+            if target_idx is not None:
+                if cap is not None:
+                    try:
+                        cap.release()
+                    except Exception:
+                        pass
+                time.sleep(0.05)
+                cap = self._open_camera(target_idx)
+                consecutive_failures = 0
+
+            # 2. Read frame from active camera
+            ret, frame_bgr = False, None
+            if cap is not None and cap.isOpened():
+                try:
+                    ret, frame_bgr = cap.read()
+                except Exception:
+                    ret, frame_bgr = False, None
+
             if not ret or frame_bgr is None:
-                time.sleep(0.01)
+                consecutive_failures += 1
+                if consecutive_failures > 5:
+                    diagnostic = self.create_offline_diagnostic_frame()
+                    with self._lock:
+                        self.latest_preview_frame = diagnostic
+                    self.current_fps = 0.0
+                time.sleep(0.05)
                 continue
 
+            consecutive_failures = 0
             frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
 
             # Compute FPS
@@ -307,4 +407,8 @@ class VideoPipeline:
             self.process_frame(frame_rgb, now)
 
         # Cleanup
-        cap.release()
+        if cap is not None:
+            try:
+                cap.release()
+            except Exception:
+                pass

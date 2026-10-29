@@ -2,7 +2,7 @@
 Unit tests for core video pipeline, background calibration, and driver checking.
 """
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 
@@ -261,3 +261,34 @@ def test_pipeline_thread_start_stop():
     # Call stop when not started
     pipeline.stop()
     assert not pipeline._running
+
+
+def test_pipeline_switch_camera_and_diagnostics():
+    """Verify switch_camera updates pending target and diagnostic frame generation."""
+    pipeline = VideoPipeline()
+    assert pipeline._pending_camera_index is None
+
+    pipeline.switch_camera(2, "Test External Camera")
+    assert pipeline._pending_camera_index == 2
+    assert pipeline.config.camera_index == 2
+    assert pipeline.active_camera_name == "Test External Camera"
+
+    diag = pipeline.create_offline_diagnostic_frame()
+    assert diag.shape == (pipeline.config.camera_height, pipeline.config.camera_width, 3)
+    assert diag.dtype == np.uint8
+
+
+def test_pipeline_open_camera_fallback():
+    """Verify _open_camera falls back to best default if target index is closed."""
+    pipeline = VideoPipeline()
+    mock_bad_cap = MagicMock()
+    mock_bad_cap.isOpened.return_value = False
+
+    mock_good_cap = MagicMock()
+    mock_good_cap.isOpened.return_value = True
+
+    with patch("cv2.VideoCapture", side_effect=[mock_bad_cap, mock_good_cap]):
+        with patch("blip.core.pipeline.get_best_default_camera", return_value=1):
+            cap = pipeline._open_camera(index=None)
+            assert cap is mock_good_cap
+            assert pipeline.config.camera_index == 1
