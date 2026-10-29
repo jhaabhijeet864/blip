@@ -18,6 +18,8 @@ from pathlib import Path
 from typing import Any, Optional
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 DEFAULT_REPO_URL = "https://github.com/jhaabhijeet864/blip"
 
 CATEGORY_MAPPINGS: list[tuple[str, str, re.Pattern]] = [

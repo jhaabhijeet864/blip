@@ -25,6 +25,8 @@ import sys
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 PYPROJECT_PATH = ROOT_DIR / "pyproject.toml"
 INIT_PATH = ROOT_DIR / "blip" / "__init__.py"
 
@@ -197,8 +199,17 @@ def main(args: list[str] | None = None) -> int:
                 previous_tag=prev_tag,
                 commits=commits,
             )
+            if hasattr(sys.stdout, "reconfigure"):
+                try:
+                    sys.stdout.reconfigure(encoding="utf-8")
+                except Exception:
+                    pass
             print("\n--- [RELEASE NOTES PREVIEW] ---")
-            print(notes)
+            try:
+                print(notes)
+            except UnicodeEncodeError:
+                sys.stdout.buffer.write(notes.encode("utf-8", errors="replace"))
+                sys.stdout.buffer.write(b"\n")
             print("--- [END PREVIEW] ---\n")
         except Exception as e:
             print(f"Warning: Could not generate release notes preview: {e}", file=sys.stderr)
