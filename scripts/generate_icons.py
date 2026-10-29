@@ -35,7 +35,7 @@ def generate_icons():
         (int(240 * size / 512), int(288 * size / 512)),
         (int(192 * size / 512), int(448 * size / 512)),
         (int(368 * size / 512), int(224 * size / 512)),
-        (int(272 * size / 512), int(224 * size / 512))
+        (int(272 * size / 512), int(224 * size / 512)),
     ]
     draw.polygon(pts, fill=(139, 92, 246, 255))
 
@@ -46,7 +46,11 @@ def generate_icons():
 
     # Save multi-size Windows ICO
     ico_path = assets_dir / "icon.ico"
-    img.save(ico_path, format="ICO", sizes=[(256, 256), (128, 128), (64, 64), (48, 48), (32, 32), (16, 16)])
+    img.save(
+        ico_path,
+        format="ICO",
+        sizes=[(256, 256), (128, 128), (64, 64), (48, 48), (32, 32), (16, 16)],
+    )
     print(f"Generated {ico_path}")
 
 

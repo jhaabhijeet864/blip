@@ -15,7 +15,9 @@ def build():
     print("⚡ Compiling Blip standalone executable with PyInstaller...")
 
     cmd = [
-        sys.executable, "-m", "PyInstaller",
+        sys.executable,
+        "-m",
+        "PyInstaller",
         "--name=Blip",
         "--onedir",
         "--noconsole",
@@ -23,7 +25,7 @@ def build():
         "--collect-all=mediapipe",
         "--collect-all=customtkinter",
         "--collect-all=pyvirtualcam",
-        str(main_script)
+        str(main_script),
     ]
 
     print("Running command:", " ".join(cmd))
