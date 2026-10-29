@@ -47,3 +47,4 @@
 - **RGST-01**: Native Rust Thanos Finger Snap kinematics detector (thumb-middle contact, pinch hold, explosive velocity release).
 - **RGST-02**: Native Rust Goku Instant Transmission detector (dual-finger temple/forehead proximity).
 - **RGST-03**: Finite state machine debounce, streak tracking, and configurable cooldown timers.
+

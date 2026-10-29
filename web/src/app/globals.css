@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #09090b;
-  --foreground: #f4f4f5;
+  --background: #000000;
+  --foreground: #ededed;
 }
 
 * {
@@ -16,61 +16,64 @@ body {
   color: var(--foreground);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   overflow-x: hidden;
-  selection-background-color: #f59e0b;
-  selection-color: #000000;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 ::selection {
-  background: #f59e0b;
-  color: #09090b;
+  background: #ef4444;
+  color: #ffffff;
 }
 
-/* Custom dark glassmorphism card */
-.glass-panel {
-  background: rgba(18, 18, 20, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.glass-panel-hover {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.glass-panel-hover:hover {
-  background: rgba(24, 24, 27, 0.85);
-  border-color: rgba(255, 255, 255, 0.16);
-  transform: translateY(-2px);
-}
-
-/* Subtle grid overlay for texture */
-.bg-grid-subtle {
+/* Technical schematic grid background */
+.bg-blueprint-grid {
   background-size: 32px 32px;
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
 }
 
-/* Glow highlight without purple */
-.glow-amber {
-  box-shadow: 0 0 40px -10px rgba(245, 158, 11, 0.18);
+/* Corner Crosshair Reticle for Technical Blueprint Panels */
+.reticle-corner {
+  position: relative;
 }
 
-.glow-white {
-  box-shadow: 0 0 50px -15px rgba(255, 255, 255, 0.12);
+.reticle-corner::before {
+  content: "+";
+  position: absolute;
+  top: -7px;
+  left: -5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1;
+  color: #52525b;
+  pointer-events: none;
+  z-index: 10;
 }
 
-/* Smooth custom scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
+.reticle-corner::after {
+  content: "+";
+  position: absolute;
+  bottom: -7px;
+  right: -5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1;
+  color: #52525b;
+  pointer-events: none;
+  z-index: 10;
 }
-::-webkit-scrollbar-track {
-  background: #09090b;
+
+/* Viewfinder bracket corners */
+.viewfinder-bracket {
+  position: relative;
 }
-::-webkit-scrollbar-thumb {
-  background: #27272a;
-  border-radius: 4px;
+
+/* Subtle scanning line animation */
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(1000%); }
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+
+.animate-scanline {
+  animation: scanline 8s linear infinite;
 }

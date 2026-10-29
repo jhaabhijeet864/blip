@@ -1,24 +1,22 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
-import GoogleMeetDemo from "@/components/GoogleMeetDemo";
-import ThreeStepGuide from "@/components/ThreeStepGuide";
-import EffectSelector from "@/components/EffectSelector";
-import PracticalUseCases from "@/components/PracticalUseCases";
-import DownloadSection from "@/components/DownloadSection";
-import FaqSection from "@/components/FaqSection";
+import TelemetryStrip from "@/components/TelemetryStrip";
+import TechnicalArchitecture from "@/components/TechnicalArchitecture";
+import TerminalPanel from "@/components/TerminalPanel";
+import DownloadBlueprint from "@/components/DownloadBlueprint";
+import SystemFaq from "@/components/SystemFaq";
 import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#09090b] text-[#f4f4f5] overflow-x-hidden selection:bg-amber-400 selection:text-black">
+    <main className="min-h-screen bg-[#000000] text-[#ededed] overflow-x-hidden selection:bg-red-500 selection:text-white">
       <Navbar />
       <Hero />
-      <GoogleMeetDemo />
-      <ThreeStepGuide />
-      <EffectSelector />
-      <PracticalUseCases />
-      <DownloadSection />
-      <FaqSection />
+      <TelemetryStrip />
+      <TechnicalArchitecture />
+      <TerminalPanel />
+      <DownloadBlueprint />
+      <SystemFaq />
       <Footer />
     </main>
   );

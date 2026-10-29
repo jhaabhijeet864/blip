@@ -1,0 +1,67 @@
+name: Issue Auto-Triage
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  issues: write
+
+jobs:
+  triage-issue:
+    name: Auto-Label Issue
+    runs-on: ubuntu-latest
+    steps:
+      - name: Analyze Issue and Apply Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            if (!issue) return;
+
+            const title = (issue.title || '').toLowerCase();
+            const body = (issue.body || '').toLowerCase();
+            const content = `${title}\n${body}`;
+
+            const labelsToAdd = new Set();
+
+            // Type classification
+            if (/crash|error|exception|traceback|broken|freeze|hang|fail|segfault|black screen/i.test(content)) {
+              labelsToAdd.add('bug');
+            }
+            if (/feature|request|suggest|idea|new effect|new gesture|add support|proposal/i.test(content)) {
+              labelsToAdd.add('enhancement');
+            }
+            if (/documentation|docs|readme|guide|tutorial|typo/i.test(content)) {
+              labelsToAdd.add('documentation');
+            }
+
+            // Component classification
+            if (/camera|webcam|directshow|obs|virtualcam|vcam|v4l2|device|capture/i.test(content)) {
+              labelsToAdd.add('component:camera');
+            }
+            if (/thanos|snap|dissolve|smoke|goku|teleport|glitch|particle|effect/i.test(content)) {
+              labelsToAdd.add('component:effects');
+            }
+            if (/gesture|hand|tracking|mediapipe|pinch|peace|finger gun|detection/i.test(content)) {
+              labelsToAdd.add('component:gestures');
+            }
+            if (/gui|ui|window|dark mode|slider|resizer|sidebar|customtkinter/i.test(content)) {
+              labelsToAdd.add('component:ui');
+            }
+            if (/website|showcase|landing page|meet demo|nextjs|web/i.test(content)) {
+              labelsToAdd.add('area:web');
+            }
+            if (/rust|cargo|crates|blip-core/i.test(content)) {
+              labelsToAdd.add('area:rust');
+            }
+
+            if (labelsToAdd.size > 0) {
+              console.log(`Triaging issue #${issue.number}: adding [${Array.from(labelsToAdd).join(', ')}]`);
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: Array.from(labelsToAdd)
+              });
+            }

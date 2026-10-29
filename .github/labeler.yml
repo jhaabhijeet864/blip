@@ -1,0 +1,58 @@
+# Configuration for actions/labeler v5
+# Automatically labels pull requests based on modified file paths
+
+area:rust:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'crates/**'
+      - 'Cargo.*'
+
+area:python:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'blip/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'pyproject.toml'
+      - 'requirements*.txt'
+
+area:web:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'web/**'
+
+area:ci:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/**'
+
+area:docs:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'docs/**'
+      - '*.md'
+      - 'LICENSE'
+      - 'SECURITY.md'
+
+component:camera:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'blip/core/devices*'
+      - 'crates/blip-core/src/capture*'
+      - 'crates/blip-core/src/vcam*'
+
+component:gestures:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'blip/gestures/**'
+      - 'crates/blip-core/src/gestures*'
+
+component:effects:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'blip/effects/**'
+
+component:ui:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'blip/ui/**'

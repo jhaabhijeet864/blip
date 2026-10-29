@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Download, Video, ExternalLink } from "lucide-react";
+import { Download, ExternalLink, Terminal } from "lucide-react";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -17,78 +17,98 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 border-b ${
         scrolled
-          ? "bg-[#09090b]/85 backdrop-blur-md border-b border-zinc-800/80 py-3.5 shadow-2xl"
-          : "bg-transparent py-5"
+          ? "bg-[#000000]/95 backdrop-blur-md border-zinc-800 py-3 shadow-xl"
+          : "bg-[#000000]/80 backdrop-blur-sm border-zinc-900 py-4"
       }`}
     >
-      <div className="max-w-[1400px] mx-auto px-6 sm:px-10 lg:px-16 flex items-center justify-between">
-        {/* Brand with Official Vector Logo */}
-        <a href="#" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:border-amber-500/50 transition-colors shadow-inner overflow-hidden p-1.5">
-            <Image
-              src="/logo.svg"
-              alt="Blip Logo"
-              width={28}
-              height={28}
-              className="w-full h-full object-contain group-hover:scale-105 transition-transform"
-            />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-extrabold text-xl tracking-tight text-white flex items-center gap-2">
-              BLIP
-              <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-zinc-800/80 text-zinc-300 border border-zinc-700">
-                v0.1.0
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-12 flex items-center justify-between">
+        {/* Left: Technical Brand & Status */}
+        <div className="flex items-center gap-4">
+          <a href="#" className="flex items-center gap-3 group">
+            <div className="w-8 h-8 rounded bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1 group-hover:border-zinc-700 transition-colors">
+              <Image
+                src="/logo.svg"
+                alt="Blip Symbol"
+                width={20}
+                height={20}
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono font-bold text-sm tracking-wider text-white">
+                BLIP
               </span>
-            </span>
-            <span className="text-[10px] text-zinc-400 tracking-wide font-medium -mt-0.5">
-              Instant Meeting Vanish
-            </span>
-          </div>
-        </a>
+              <span className="font-mono text-[11px] text-zinc-500 hidden sm:inline">
+                // SYS.VCAM
+              </span>
+            </div>
+          </a>
 
-        {/* Navigation Links */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
+          {/* Active Record Indicator */}
+          <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded bg-zinc-950 border border-zinc-800/80 font-mono text-[11px] text-zinc-300">
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-red-400 font-semibold">REC</span>
+            <span className="text-zinc-600">|</span>
+            <span className="text-zinc-400">30.0 FPS</span>
+          </div>
+        </div>
+
+        {/* Center: Monospaced Nav Links */}
+        <nav className="hidden md:flex items-center gap-6 font-mono text-xs text-zinc-400">
           <a
-            href="#demo"
-            className="hover:text-white transition-colors flex items-center gap-1.5"
+            href="#simulator"
+            className="hover:text-white transition-colors flex items-center gap-1"
           >
-            <Video className="w-4 h-4 text-zinc-500" />
-            Live Meet Demo
+            <span className="text-zinc-600">01 //</span> SIMULATOR
           </a>
-          <a href="#how-it-works" className="hover:text-white transition-colors">
-            How It Works
+          <a
+            href="#architecture"
+            className="hover:text-white transition-colors flex items-center gap-1"
+          >
+            <span className="text-zinc-600">02 //</span> ARCHITECTURE
           </a>
-          <a href="#effects" className="hover:text-white transition-colors">
-            Cinematic Effects
+          <a
+            href="#telemetry"
+            className="hover:text-white transition-colors flex items-center gap-1"
+          >
+            <span className="text-zinc-600">03 //</span> TELEMETRY
           </a>
-          <a href="#scenarios" className="hover:text-white transition-colors">
-            Scenarios
+          <a
+            href="#terminal"
+            className="hover:text-white transition-colors flex items-center gap-1"
+          >
+            <span className="text-zinc-600">04 //</span> TERMINAL
           </a>
-          <a href="#faq" className="hover:text-white transition-colors">
-            FAQ
+          <a
+            href="#releases"
+            className="hover:text-white transition-colors flex items-center gap-1"
+          >
+            <span className="text-zinc-600">05 //</span> RELEASES
           </a>
         </nav>
 
-        {/* CTA Buttons */}
+        {/* Right: Actions */}
         <div className="flex items-center gap-3">
           <a
             href="https://github.com/jhaabhijeet864/blip"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-colors"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-zinc-800 bg-zinc-950 hover:bg-zinc-900 text-zinc-400 hover:text-zinc-200 font-mono text-xs transition-colors"
           >
-            GitHub
-            <ExternalLink className="w-3 h-3 text-zinc-500" />
+            <Terminal className="w-3.5 h-3.5" />
+            <span>GitHub</span>
+            <ExternalLink className="w-3 h-3 text-zinc-600" />
           </a>
 
+          {/* High-Contrast Single-Accent Red CTA */}
           <a
-            href="#download"
-            className="inline-flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-lg bg-white text-zinc-950 hover:bg-zinc-200 transition-all shadow-[0_0_20px_-3px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98]"
+            href="#releases"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded bg-red-500 hover:bg-red-600 text-white font-mono font-semibold text-xs transition-colors shadow-sm"
           >
             <Download className="w-3.5 h-3.5" />
-            Download for Windows
+            <span>DOWNLOAD V0.1.0</span>
           </a>
         </div>
       </div>
