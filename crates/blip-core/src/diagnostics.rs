@@ -3,12 +3,7 @@
 use image::{Rgb, RgbImage};
 
 /// Generates a synthetic diagnostic preview frame when a camera or driver is offline.
-pub fn render_offline_frame(
-    width: u32,
-    height: u32,
-    camera_name: &str,
-    reason: &str,
-) -> RgbImage {
+pub fn render_offline_frame(width: u32, height: u32, camera_name: &str, reason: &str) -> RgbImage {
     let mut img = RgbImage::new(width, height);
 
     // Deep dark slate background (#13151A)
@@ -37,7 +32,11 @@ pub fn render_offline_frame(
 
     for y in start_y..(start_y + card_h) {
         for x in start_x..(start_x + card_w) {
-            if x == start_x || x == start_x + card_w - 1 || y == start_y || y == start_y + card_h - 1 {
+            if x == start_x
+                || x == start_x + card_w - 1
+                || y == start_y
+                || y == start_y + card_h - 1
+            {
                 img.put_pixel(x, y, border_color);
             } else {
                 img.put_pixel(x, y, card_color);
@@ -73,4 +72,3 @@ pub fn render_offline_frame(
     let _ = (camera_name, reason); // Included for formatting log metadata
     img
 }
-

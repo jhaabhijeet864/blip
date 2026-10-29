@@ -39,8 +39,9 @@ fn test_virtual_cam_sink_lifecycle() {
         }
         Err(_) => {
             // If OBS driver is not installed in the test environment, open returns Err cleanly
-            println!("OBS Virtual Camera driver not active in test environment; error handled cleanly.");
+            println!(
+                "OBS Virtual Camera driver not active in test environment; error handled cleanly."
+            );
         }
     }
 }
-

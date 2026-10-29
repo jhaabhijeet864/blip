@@ -60,7 +60,9 @@ pub fn is_phone_bridge_name(name: &str) -> bool {
         "ivcam",
     ];
 
-    PHONE_BRIDGE_SUBSTRINGS.iter().any(|&sub| lower.contains(sub))
+    PHONE_BRIDGE_SUBSTRINGS
+        .iter()
+        .any(|&sub| lower.contains(sub))
 }
 
 /// Formats a friendly label for user interface dropdowns.
@@ -117,10 +119,7 @@ pub fn get_best_default_camera(devices: &[CameraDevice]) -> u32 {
     }
 
     // Tier 2: Any genuine physical hardware webcam
-    if let Some(dev) = devices
-        .iter()
-        .find(|d| !d.is_virtual && !d.is_phone_bridge)
-    {
+    if let Some(dev) = devices.iter().find(|d| !d.is_virtual && !d.is_phone_bridge) {
         return dev.index;
     }
 

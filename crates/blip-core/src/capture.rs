@@ -46,17 +46,19 @@ impl CameraCapture {
             ),
         ));
 
-        let mut camera = Camera::new(index.clone(), format).or_else(|_| {
-            let fallback_format = RequestedFormat::new::<RgbFormat>(
-                RequestedFormatType::AbsoluteHighestFrameRate,
-            );
-            Camera::new(index, fallback_format)
-        }).map_err(|e| {
-            BlipError::CaptureError(format!(
-                "Failed to initialize camera at index {}: {e}",
-                config.camera_index
-            ))
-        })?;
+        let mut camera = Camera::new(index.clone(), format)
+            .or_else(|_| {
+                let fallback_format = RequestedFormat::new::<RgbFormat>(
+                    RequestedFormatType::AbsoluteHighestFrameRate,
+                );
+                Camera::new(index, fallback_format)
+            })
+            .map_err(|e| {
+                BlipError::CaptureError(format!(
+                    "Failed to initialize camera at index {}: {e}",
+                    config.camera_index
+                ))
+            })?;
 
         camera.open_stream().map_err(|e| {
             BlipError::CaptureError(format!(
@@ -78,9 +80,9 @@ impl CameraCapture {
             .as_mut()
             .ok_or_else(|| BlipError::CaptureError("Camera stream is closed".into()))?;
 
-        let frame = camera.frame().map_err(|e| {
-            BlipError::CaptureError(format!("Failed to grab camera frame: {e}"))
-        })?;
+        let frame = camera
+            .frame()
+            .map_err(|e| BlipError::CaptureError(format!("Failed to grab camera frame: {e}")))?;
 
         let decoded = frame.decode_image::<RgbFormat>().map_err(|e| {
             BlipError::FormatUnsupported(format!("Failed to decode RGB frame: {e}"))
@@ -99,7 +101,7 @@ impl CameraCapture {
 
     /// Returns true if the camera stream is currently active.
     pub fn is_streaming(&self) -> bool {
-        self.inner.as_ref().map_or(false, |c| c.is_stream_open())
+        self.inner.as_ref().is_some_and(|c| c.is_stream_open())
     }
 }
 
@@ -108,4 +110,3 @@ impl Drop for CameraCapture {
         self.stop();
     }
 }
-

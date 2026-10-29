@@ -26,10 +26,9 @@ pub fn create_inference_session(
     model_bytes: &[u8],
 ) -> Result<(Session, ExecutionProvider), BlipError> {
     // Initialize or retrieve the global environment
-    let env = ort::init()
-        .with_name("blip")
-        .build()
-        .map_err(|e| BlipError::CaptureError(format!("Failed to initialize ORT environment: {e}")))?;
+    let env = ort::init().with_name("blip").build().map_err(|e| {
+        BlipError::CaptureError(format!("Failed to initialize ORT environment: {e}"))
+    })?;
 
     // Multi-threaded CPU with SIMD acceleration
     let session = Session::builder(&env)
@@ -37,7 +36,9 @@ pub fn create_inference_session(
         .with_intra_threads(4)
         .map_err(|e| BlipError::CaptureError(format!("Failed to configure thread pool: {e}")))?
         .commit_from_memory(model_bytes)
-        .map_err(|e| BlipError::CaptureError(format!("Failed to commit ONNX model from memory: {e}")))?;
+        .map_err(|e| {
+            BlipError::CaptureError(format!("Failed to commit ONNX model from memory: {e}"))
+        })?;
 
     Ok((session, ExecutionProvider::Cpu))
 }
