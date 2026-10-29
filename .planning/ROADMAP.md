@@ -22,8 +22,8 @@
 **Plans**: 2 plans
 
 Plans:
-- [ ] 11-01: Scaffold Chrome Extension Manifest V3 (`extension/manifest.json`), service worker, and main-world injector bridge.
-- [ ] 11-02: Implement main-world `navigator.mediaDevices.getUserMedia` interception with offscreen video/canvas pipeline.
+- [x] 11-01: Scaffold Chrome Extension Manifest V3 (`extension/manifest.json`), service worker, and main-world injector bridge.
+- [x] 11-02: Implement main-world `navigator.mediaDevices.getUserMedia` interception with offscreen video/canvas pipeline.
 
 ---
 

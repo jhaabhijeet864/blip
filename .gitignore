@@ -64,5 +64,8 @@ web/*.tsbuildinfo
 ui/node_modules/
 ui/dist/
 
+# Chrome Extension
+extension/node_modules/
+
 
 
