@@ -75,9 +75,7 @@ pub fn get_preview_frame(state: State<'_, AppState>) -> Option<String> {
     let mut buffer = Cursor::new(Vec::with_capacity(32768));
 
     // Fast JPEG encoding for 30+ FPS preview stream
-    frame
-        .write_to(&mut buffer, image::ImageFormat::Jpeg)
-        .ok()?;
+    frame.write_to(&mut buffer, image::ImageFormat::Jpeg).ok()?;
 
     let b64 = BASE64.encode(buffer.into_inner());
     Some(format!("data:image/jpeg;base64,{b64}"))
