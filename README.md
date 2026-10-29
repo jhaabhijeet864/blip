@@ -147,6 +147,8 @@ class MarioPipeEffect(BaseEffect):
 
 Register the class in `blip/effects/registry.py` and open a Pull Request.
 
+For full specifications and sample particle systems, read the [Custom Effect Authoring Guide](docs/EFFECT_AUTHORING.md) and [Gesture Math Guide](docs/GESTURE_GUIDE.md).
+
 ---
 
 ## Running Tests & Quality Gates
