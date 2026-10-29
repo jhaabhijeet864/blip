@@ -5,6 +5,7 @@ pub mod device;
 pub mod diagnostics;
 pub mod pipeline;
 pub mod vcam;
+pub mod vision;
 
 use thiserror::Error;
 
