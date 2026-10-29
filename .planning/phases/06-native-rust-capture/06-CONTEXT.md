@@ -43,3 +43,4 @@
 - **RDEV-02**: Dynamic thread-safe camera hot-swapping without process restart or DirectShow COM lock contention.
 - **RVCAM-01**: High-throughput DirectShow virtual camera output via `virtualcam` crate targeting the OBS Virtual Camera shared memory queue.
 - **RVCAM-02**: Pre-flight driver health inspection with fallback diagnostics when OBS Virtual Camera driver is absent.
+
