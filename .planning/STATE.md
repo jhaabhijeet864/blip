@@ -9,12 +9,12 @@ See: `.planning/PROJECT.md` (updated 2026-10-29)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-10-29 — Milestone v2.0 started (Full Native Rust + Tauri)
+Phase: 6 of 10 (Native Rust Video Capture & Virtual Camera Engine)
+Plan: 0 of 2 in current phase
+Status: Ready to plan Phase 6
+Last activity: 2026-10-29 — Milestone v2.0 roadmap created (Phases 6–10)
 
-Progress: [          ] 0%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
