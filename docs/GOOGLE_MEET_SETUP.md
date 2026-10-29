@@ -4,15 +4,30 @@ This guide provides instructions for connecting Blip's virtual camera feed to Go
 
 ---
 
+## Understanding Video Routing
+
+Blip separates the **video input source** from the **meeting output device**:
+
+1. **Input Camera (Configured in Blip):**
+   - The physical camera capturing your real face (e.g., `HP Wide Vision HD Camera`, `Logitech HD Pro Webcam`).
+   - Phone camera apps (like `DroidCam` or `Iriun`) will show up with their friendly names and can be selected if you are streaming from your phone, but Blip will prioritize your genuine physical laptop webcam by default.
+2. **Output Virtual Camera Sink (Selected in Google Meet / Zoom):**
+   - The virtual device where Blip broadcasts your processed feed.
+   - When you snap or vanish, Blip swaps your live silhouette for the empty room and pushes that stream directly into the virtual camera.
+   - You **do not** need to launch OBS Studio or keep it running. The virtual camera driver runs invisibly in the Windows background.
+
+---
+
 ## Google Meet
 
-1. Launch **Blip** on your desktop.
-2. In the Blip window, click **Calibrate Background** and step out of camera view for 3 seconds.
-3. Open [meet.google.com](https://meet.google.com) in any modern browser (Chrome, Edge, Brave, Firefox).
-4. Click **More Options** (vertical three dots in meeting controls) > **Settings**.
-5. Select the **Video** tab on the left.
-6. Under **Camera**, select **OBS Virtual Camera** (or the active virtual camera device).
-7. Close Settings and snap your fingers or tap your temple during your call.
+1. Launch **Blip** on your desktop (`python -m blip`).
+2. Verify your physical camera (e.g., `HP Wide Vision HD Camera`) is selected in **Section 4: Hardware & Audio**.
+3. In the Blip window, click **Calibrate Background** and step out of camera view for 3 seconds.
+4. Open [meet.google.com](https://meet.google.com) in any modern browser (Chrome, Edge, Brave, Firefox).
+5. Click **More Options** (vertical three dots in meeting controls) > **Settings**.
+6. Select the **Video** tab on the left.
+7. Under **Camera**, select **OBS Virtual Camera**.
+8. Close Settings and snap your fingers or tap your temple during your call to vanish into dust or teleport away!
 
 ---
 
@@ -48,22 +63,5 @@ This guide provides instructions for connecting Blip's virtual camera feed to Go
 
 ### Windows
 - **Recommended Backend:** [OBS Studio](https://obsproject.com/). Installing OBS automatically registers the OBS Virtual Camera DirectShow driver.
-- **Manual Driver Registration:** If OBS is installed but the camera does not show in browser settings, run PowerShell as Administrator:
-  ```powershell
-  cd "C:\Program Files\obs-studio\data\obs-plugins\win-dshow"
-  .\virtualcam-install.bat
-  ```
-
-### Linux
-- **Kernel Module:** Requires `v4l2loopback`.
-  ```bash
-  sudo apt-get install v4l2loopback-dkms v4l2loopback-utils
-  sudo modprobe v4l2loopback devices=1 video_nr=10 card_label="Blip Virtual Cam" exclusive_caps=1
-  ```
-
-### macOS
-- **DAL Plugin:** Install the OBS VirtualCam plugin:
-  ```bash
-  brew install --cask obs
-  ```
-  Launch OBS once to authorize the virtual camera plugin in System Settings > Privacy & Security.
+- **Alternative Backends:** Unity Virtual Camera or Windows Virtual Camera drivers.
+- **Phone Cam Bridges:** If you have DroidCam installed, Blip displays it as `DroidCam Video (Offline)` when your phone is disconnected and automatically defaults to your laptop's integrated camera (`HP Wide Vision HD Camera`). If you wish to switch back to DroidCam, simply select it from the dropdown once your phone is connected.
