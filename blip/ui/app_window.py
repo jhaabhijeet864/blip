@@ -36,6 +36,7 @@ class BlipApp(ctk.CTk):
         # Load window icon if available
         import sys
         from pathlib import Path
+
         icon_path = Path(__file__).parent.parent.parent / "assets" / "icon.ico"
         if icon_path.exists() and sys.platform == "win32":
             try:
@@ -92,9 +93,7 @@ class BlipApp(ctk.CTk):
         title_box.grid(row=0, column=0, padx=16, pady=(12, 4), sticky="ew")
 
         title_lbl = ctk.CTkLabel(
-            title_box,
-            text="⚡ BLIP",
-            font=ctk.CTkFont(size=24, weight="bold")
+            title_box, text="⚡ BLIP", font=ctk.CTkFont(size=24, weight="bold")
         )
         title_lbl.pack(side="left")
 
@@ -102,16 +101,13 @@ class BlipApp(ctk.CTk):
             title_box,
             text="  Now you see me. Blip.",
             font=ctk.CTkFont(size=14, slant="italic"),
-            text_color="gray70"
+            text_color="gray70",
         )
         subtitle_lbl.pack(side="left", pady=(4, 0))
 
         # Live Canvas Label
         self.canvas_label = ctk.CTkLabel(
-            self.preview_frame,
-            text="Initializing camera...",
-            fg_color="#18181b",
-            corner_radius=8
+            self.preview_frame, text="Initializing camera...", fg_color="#18181b", corner_radius=8
         )
         self.canvas_label.grid(row=1, column=0, padx=16, pady=8, sticky="nsew")
 
@@ -123,26 +119,29 @@ class BlipApp(ctk.CTk):
             status_bar,
             text="● LIVE",
             font=ctk.CTkFont(size=13, weight="bold"),
-            text_color="#22c55e"
+            text_color="#22c55e",
         )
         self.status_badge.pack(side="left")
 
         self.fps_label = ctk.CTkLabel(
-            status_bar,
-            text="FPS: 0.0",
-            font=ctk.CTkFont(size=12),
-            text_color="gray60"
+            status_bar, text="FPS: 0.0", font=ctk.CTkFont(size=12), text_color="gray60"
         )
         self.fps_label.pack(side="right")
 
         # ==========================================
         # RIGHT PANE: Controls & Configuration
         # ==========================================
-        self.control_panel = ctk.CTkScrollableFrame(self, corner_radius=12, label_text="CONTROL CENTER")
+        self.control_panel = ctk.CTkScrollableFrame(
+            self, corner_radius=12, label_text="CONTROL CENTER"
+        )
         self.control_panel.grid(row=0, column=1, padx=(8, 16), pady=16, sticky="nsew")
 
         # Section 1: Empty Room Calibration
-        sec1_lbl = ctk.CTkLabel(self.control_panel, text="1. EMPTY ROOM CALIBRATION", font=ctk.CTkFont(size=13, weight="bold"))
+        sec1_lbl = ctk.CTkLabel(
+            self.control_panel,
+            text="1. EMPTY ROOM CALIBRATION",
+            font=ctk.CTkFont(size=13, weight="bold"),
+        )
         sec1_lbl.pack(anchor="w", pady=(8, 4))
 
         sec1_desc = ctk.CTkLabel(
@@ -151,7 +150,7 @@ class BlipApp(ctk.CTk):
             font=ctk.CTkFont(size=11),
             text_color="gray60",
             wraplength=340,
-            justify="left"
+            justify="left",
         )
         sec1_desc.pack(anchor="w", pady=(0, 8))
 
@@ -162,12 +161,16 @@ class BlipApp(ctk.CTk):
             fg_color="#3b82f6",
             hover_color="#2563eb",
             height=38,
-            command=self._on_calibrate_clicked
+            command=self._on_calibrate_clicked,
         )
         self.btn_calibrate.pack(fill="x", pady=4)
 
         # Section 2: Gesture to Effect Mapping
-        sec2_lbl = ctk.CTkLabel(self.control_panel, text="2. GESTURE-TO-EFFECT MAPPING", font=ctk.CTkFont(size=13, weight="bold"))
+        sec2_lbl = ctk.CTkLabel(
+            self.control_panel,
+            text="2. GESTURE-TO-EFFECT MAPPING",
+            font=ctk.CTkFont(size=13, weight="bold"),
+        )
         sec2_lbl.pack(anchor="w", pady=(20, 4))
 
         effect_options = [name for _, name in self.effect_registry.list_effects()]
@@ -178,9 +181,7 @@ class BlipApp(ctk.CTk):
         snap_row.pack(fill="x", pady=4)
         ctk.CTkLabel(snap_row, text="🤌 Finger Snap:").pack(side="left")
         self.snap_combo = ctk.CTkComboBox(
-            snap_row,
-            values=effect_options,
-            command=self._on_mapping_changed
+            snap_row, values=effect_options, command=self._on_mapping_changed
         )
         self.snap_combo.set("Thanos Dust Dissolve")
         self.snap_combo.pack(side="right")
@@ -190,15 +191,17 @@ class BlipApp(ctk.CTk):
         it_row.pack(fill="x", pady=4)
         ctk.CTkLabel(it_row, text="👆 Instant Transmission:").pack(side="left")
         self.it_combo = ctk.CTkComboBox(
-            it_row,
-            values=effect_options,
-            command=self._on_mapping_changed
+            it_row, values=effect_options, command=self._on_mapping_changed
         )
         self.it_combo.set("Instant Transmission Vanish")
         self.it_combo.pack(side="right")
 
         # Section 3: Manual Triggers
-        sec3_lbl = ctk.CTkLabel(self.control_panel, text="3. INSTANT ACTION TRIGGERS", font=ctk.CTkFont(size=13, weight="bold"))
+        sec3_lbl = ctk.CTkLabel(
+            self.control_panel,
+            text="3. INSTANT ACTION TRIGGERS",
+            font=ctk.CTkFont(size=13, weight="bold"),
+        )
         sec3_lbl.pack(anchor="w", pady=(20, 4))
 
         btn_grid = ctk.CTkFrame(self.control_panel, fg_color="transparent")
@@ -209,7 +212,7 @@ class BlipApp(ctk.CTk):
             text="🌪️ Snap Dust",
             fg_color="#7c3aed",
             hover_color="#6d28d9",
-            command=lambda: self._trigger_effect_manual("thanos_dust")
+            command=lambda: self._trigger_effect_manual("thanos_dust"),
         )
         btn_thanos.pack(side="left", expand=True, fill="x", padx=(0, 4))
 
@@ -218,7 +221,7 @@ class BlipApp(ctk.CTk):
             text="⚡ Goku Vanish",
             fg_color="#ea580c",
             hover_color="#c2410c",
-            command=lambda: self._trigger_effect_manual("instant_transmission")
+            command=lambda: self._trigger_effect_manual("instant_transmission"),
         )
         btn_goku.pack(side="right", expand=True, fill="x", padx=(4, 0))
 
@@ -228,12 +231,16 @@ class BlipApp(ctk.CTk):
             fg_color="#059669",
             hover_color="#047857",
             height=36,
-            command=self.pipeline.trigger_reappear
+            command=self.pipeline.trigger_reappear,
         )
         self.btn_reappear.pack(fill="x", pady=(8, 4))
 
         # Section 4: Virtual Camera Integration
-        sec4_lbl = ctk.CTkLabel(self.control_panel, text="4. GOOGLE MEET CONNECTION", font=ctk.CTkFont(size=13, weight="bold"))
+        sec4_lbl = ctk.CTkLabel(
+            self.control_panel,
+            text="4. GOOGLE MEET CONNECTION",
+            font=ctk.CTkFont(size=13, weight="bold"),
+        )
         sec4_lbl.pack(anchor="w", pady=(20, 4))
 
         is_avail, vcam_msg = check_virtual_camera_driver()
@@ -244,7 +251,7 @@ class BlipApp(ctk.CTk):
             font=ctk.CTkFont(size=11),
             text_color=status_color,
             wraplength=340,
-            justify="left"
+            justify="left",
         )
         self.vcam_status_lbl.pack(anchor="w", pady=(0, 6))
 
@@ -259,7 +266,7 @@ class BlipApp(ctk.CTk):
             text=instructions,
             font=ctk.CTkFont(size=11, slant="italic"),
             text_color="gray60",
-            justify="left"
+            justify="left",
         )
 
     def _on_calibrate_clicked(self) -> None:
@@ -280,7 +287,11 @@ class BlipApp(ctk.CTk):
         if effect_key in self.pipeline.effects_map:
             eff = self.pipeline.effects_map[effect_key]
             self.pipeline.active_effect = eff
-            dummy_mask = self.pipeline.segmenter.process(self.pipeline.latest_preview_frame) if (self.pipeline.segmenter and self.pipeline.latest_preview_frame is not None) else None
+            dummy_mask = (
+                self.pipeline.segmenter.process(self.pipeline.latest_preview_frame)
+                if (self.pipeline.segmenter and self.pipeline.latest_preview_frame is not None)
+                else None
+            )
             bg = self.pipeline.bg_manager.get_plate(self.pipeline.latest_preview_frame)
             if dummy_mask is not None and self.pipeline.latest_preview_frame is not None:
                 eff.start(self.pipeline.latest_preview_frame, dummy_mask, bg)
@@ -294,17 +305,13 @@ class BlipApp(ctk.CTk):
             def on_activate():
                 self.pipeline.trigger_reappear()
 
-            hotkey = keyboard.HotKey(
-                keyboard.HotKey.parse('<ctrl>+<alt>+s'),
-                on_activate
-            )
+            hotkey = keyboard.HotKey(keyboard.HotKey.parse("<ctrl>+<alt>+s"), on_activate)
 
             def for_canonical(f):
                 return lambda k: f(listener.canonical(k))
 
             listener = keyboard.Listener(
-                on_press=for_canonical(hotkey.press),
-                on_release=for_canonical(hotkey.release)
+                on_press=for_canonical(hotkey.press), on_release=for_canonical(hotkey.release)
             )
             listener.daemon = True
             listener.start()
