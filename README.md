@@ -10,6 +10,7 @@ A high-performance, gesture-triggered virtual camera for Google Meet, Zoom, and 
 Snap your fingers like Thanos to dissolve into ash, or tap your temple like Goku to teleport out of calls.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Website](https://img.shields.io/badge/Website-Live%20Showcase-amber.svg)](https://jhaabhijeet864.github.io/blip)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)]()
