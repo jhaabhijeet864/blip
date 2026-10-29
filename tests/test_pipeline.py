@@ -2,13 +2,18 @@
 Unit tests for core video pipeline, background calibration, and driver checking.
 """
 
+from unittest.mock import MagicMock
+
 import numpy as np
 
 from blip.config import BlipConfig
 from blip.core.background import BackgroundManager
 from blip.core.pipeline import PipelineState, VideoPipeline
 from blip.core.vcam import check_virtual_camera_driver
+from blip.effects.base import BaseEffect
+from blip.effects.thanos_dust import ThanosSnapEffect
 from blip.gestures.base import GestureResult, Landmark3D
+from blip.vision.hand_tracker import HandLandmarkData
 
 
 def test_config_defaults_and_serialization(tmp_path):
@@ -117,3 +122,142 @@ def test_pipeline_state_transitions():
     pipeline.state = PipelineState.DISAPPEARED
     pipeline.trigger_reappear()
     assert pipeline.state == PipelineState.NORMAL
+
+
+def test_pipeline_process_frame_normal_feed():
+    """Verify process_frame passes through frame in NORMAL state."""
+    pipeline = VideoPipeline()
+    frame = np.full((720, 1280, 3), 150, dtype=np.uint8)
+
+    out = pipeline.process_frame(frame)
+    assert out.shape == frame.shape
+    np.testing.assert_array_equal(out, frame)
+    assert pipeline.latest_preview_frame is not None
+
+
+def test_pipeline_process_frame_calibration():
+    """Verify process_frame updates calibration and completes."""
+    pipeline = VideoPipeline()
+    pipeline.bg_manager = BackgroundManager(target_frames=2)
+    pipeline.trigger_calibration(countdown_seconds=0.0)
+    assert pipeline.state == PipelineState.CALIBRATING
+
+    frame = np.full((720, 1280, 3), 50, dtype=np.uint8)
+    pipeline.process_frame(frame)
+    assert pipeline.state == PipelineState.CALIBRATING
+
+    pipeline.process_frame(frame)
+    assert pipeline.state == PipelineState.NORMAL
+    assert pipeline.bg_manager.has_plate()
+
+
+def test_pipeline_disappearing_and_disappeared_lifecycle():
+    """Verify full gesture trigger to disappearing, disappeared, and reappear."""
+    pipeline = VideoPipeline()
+    effect = ThanosSnapEffect(duration_frames=2, particle_count=100)
+    pipeline.effects_map = {"thanos_dust": effect}
+
+    # Mock hand tracker and gesture evaluator
+    pipeline.hand_tracker = MagicMock()
+    pipeline.hand_tracker.process.return_value = [
+        HandLandmarkData(landmarks=[], handedness="Right", confidence=0.9)
+    ]
+    pipeline.hand_tracker.draw_landmarks = lambda f, h: f
+    pipeline.gesture_evaluator = MagicMock(return_value="snap")
+
+    frame = np.full((720, 1280, 3), 120, dtype=np.uint8)
+
+    # Frame 1: Triggers snap -> state becomes DISAPPEARING
+    pipeline.process_frame(frame, now=10.0)
+    assert pipeline.state == PipelineState.DISAPPEARING
+    assert pipeline.active_effect is not None
+
+    # Frame 2: Effect finishes -> state becomes DISAPPEARED
+    pipeline.process_frame(frame, now=10.05)
+    assert pipeline.state == PipelineState.DISAPPEARED
+
+    # Frame 3: Sustained DISAPPEARED state returns background plate
+    out3 = pipeline.process_frame(frame, now=10.10)
+    assert pipeline.state == PipelineState.DISAPPEARED
+    assert out3.shape == frame.shape
+
+    # Reappear trigger
+    pipeline.trigger_reappear()
+    assert pipeline.state == PipelineState.NORMAL
+
+
+def test_pipeline_reappear_with_effect():
+    """Verify reappearance when a reappear effect is attached."""
+
+    class DummyReappearEffect(BaseEffect):
+        def __init__(self):
+            super().__init__("DummyReappear", duration_frames=2)
+
+        def render(self, frame, mask, bg):
+            return frame
+
+    pipeline = VideoPipeline()
+    dummy_reappear = DummyReappearEffect()
+    pipeline.reappear_effect = dummy_reappear
+
+    frame = np.full((720, 1280, 3), 80, dtype=np.uint8)
+    pipeline.state = PipelineState.DISAPPEARED
+
+    pipeline.trigger_reappear()
+    assert pipeline.state == PipelineState.REAPPEARING
+    assert pipeline.active_effect is dummy_reappear
+
+    # Step frame
+    pipeline.process_frame(frame)
+    assert pipeline.state == PipelineState.REAPPEARING
+    # Step frame to completion
+    pipeline.process_frame(frame)
+    assert pipeline.state == PipelineState.NORMAL
+
+
+def test_pipeline_gesture_cooldown():
+    """Verify rapid consecutive gestures are suppressed by cooldown."""
+    pipeline = VideoPipeline()
+    pipeline.config.cooldown_seconds = 2.0
+    pipeline.hand_tracker = MagicMock()
+    pipeline.hand_tracker.process.return_value = [
+        HandLandmarkData(landmarks=[], handedness="Right", confidence=0.9)
+    ]
+    pipeline.gesture_evaluator = MagicMock(return_value="snap")
+
+    frame = np.full((720, 1280, 3), 100, dtype=np.uint8)
+
+    # First trigger at t=10.0
+    pipeline.process_frame(frame, now=10.0)
+    assert pipeline.last_trigger_time == 10.0
+
+    # Second trigger at t=10.5 (within 2s cooldown) - evaluator must NOT be called
+    pipeline.gesture_evaluator.reset_mock()
+    pipeline.process_frame(frame, now=10.5)
+    pipeline.gesture_evaluator.assert_not_called()
+
+    # Third trigger at t=12.1 (cooldown passed) - evaluator must be called
+    pipeline.process_frame(frame, now=12.1)
+    pipeline.gesture_evaluator.assert_called_once()
+
+
+def test_pipeline_vcam_streaming():
+    """Verify frame is sent to virtual camera when active."""
+    pipeline = VideoPipeline()
+    mock_sink = MagicMock()
+    mock_sink.is_active = True
+    pipeline.vcam_sink = mock_sink
+
+    frame = np.full((720, 1280, 3), 200, dtype=np.uint8)
+    pipeline.process_frame(frame)
+
+    mock_sink.send.assert_called_once()
+
+
+def test_pipeline_thread_start_stop():
+    """Verify thread start and stop methods behave safely without hardware."""
+    pipeline = VideoPipeline()
+    assert not pipeline._running
+    # Call stop when not started
+    pipeline.stop()
+    assert not pipeline._running

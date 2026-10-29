@@ -76,7 +76,9 @@ class BackgroundManager:
 
         return False
 
-    def get_plate(self, current_frame: np.ndarray | None = None, match_lighting: bool = True) -> np.ndarray:
+    def get_plate(
+        self, current_frame: np.ndarray | None = None, match_lighting: bool = True
+    ) -> np.ndarray:
         """
         Retrieve the current background plate.
         If current_frame is provided and match_lighting is True, adapts plate brightness
@@ -103,7 +105,9 @@ class BackgroundManager:
             # Ratio bound between 0.7 and 1.3 to avoid extreme washouts
             ratio = np.clip(curr_l_mean / (plate_l_mean + 1e-5), 0.7, 1.3)
 
-            adjusted_l = np.clip(plate_lab[:, :, 0].astype(np.float32) * ratio, 0, 255).astype(np.uint8)
+            adjusted_l = np.clip(plate_lab[:, :, 0].astype(np.float32) * ratio, 0, 255).astype(
+                np.uint8
+            )
             plate_lab[:, :, 0] = adjusted_l
 
             return cv2.cvtColor(plate_lab, cv2.COLOR_LAB2RGB)
