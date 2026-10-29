@@ -58,3 +58,4 @@
 | **Inference** | Zero per-frame heap allocations | Profile memory usage over 10 minutes of active tracking |
 | **IPC** | Low CPU usage on video preview | Confirm total application CPU remains <12% during live streaming |
 | **VCam** | DirectShow OBS compatibility | Verify stream reception in Google Meet, Zoom, and Teams |
+

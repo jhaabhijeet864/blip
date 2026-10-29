@@ -52,3 +52,4 @@ Milestone v2.0 transitions Blip from the Python/CustomTkinter prototype to a hig
 3. **Phase 8: High-Performance SIMD Effects & Background Plate** (Thanos ash particle simulation with `glam`/`rayon`, Goku anime speedlines, empty room plate calibration).
 4. **Phase 9: Modern Tauri v2 Desktop Shell & Live Canvas** (Vite + React + Tailwind frontend, draggable sidebar resizer, binary preview canvas, settings persistence).
 5. **Phase 10: Single-Binary Distribution & Cross-Platform CI/CD** (Tauri bundler, release optimization, automated test suite, GitHub Actions CI).
+

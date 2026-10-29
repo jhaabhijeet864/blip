@@ -104,3 +104,4 @@ flowchart TD
 | **RAM Usage** | <60MB | ~180MB | ~45MB |
 | **Frame Latency** | <15ms | ~32ms | ~8ms |
 | **Startup Time** | <500ms | ~2.8s | ~0.35s |
+

@@ -58,3 +58,4 @@
 - **Do NOT use `opencv` Rust crate:** Requires building OpenCV from source with CMake and LLVM, causing fragile developer environments.
 - **Do NOT use Electron:** Heavy resource drain on video call machines.
 - **Do NOT stream uncompressed video via Tauri IPC strings:** Base64 JSON IPC causes massive CPU lag. Use local binary IPC channels, shared memory, or local WebSocket for raw frame transfers.
+

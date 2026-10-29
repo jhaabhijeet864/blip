@@ -63,3 +63,4 @@
 - **No Heavy Electron Shell:** Electron adds 150MB+ bundle size and excessive RAM overhead. Tauri keeps it under 25MB.
 - **No Cloud Inference:** All ONNX inference and vision processing runs 100% locally on the CPU/GPU with complete privacy.
 - **No Telemetry / Analytics:** Zero external network calls or tracking.
+
