@@ -96,20 +96,48 @@ class HandTracker:
 
         return detected_hands
 
-    def draw_landmarks(self, frame: np.ndarray, hands_data: list[HandLandmarkData]) -> np.ndarray:
+    def draw_landmarks(
+        self,
+        frame: np.ndarray,
+        hands_data: list[HandLandmarkData],
+        is_snap_armed: bool = False,
+    ) -> np.ndarray:
         """
         Draw landmarks and skeleton connections onto a copy of the frame for GUI preview.
+        Highlights thumb and middle fingertip when snap is armed.
         """
         annotated = frame.copy()
-        # MediaPipe drawing requires landmark protobuf; if we have landmarks, draw them
+        h, w, _ = annotated.shape
+
         for hand in hands_data:
             # Draw circles on key tips: thumb, index, middle
-            h, w, _ = annotated.shape
             for tip_idx in (THUMB_TIP, INDEX_TIP, MIDDLE_TIP):
                 pt = hand.landmarks[tip_idx]
                 cx, cy = int(pt.x * w), int(pt.y * h)
-                cv2.circle(annotated, (cx, cy), 6, (0, 255, 255), -1)
-                cv2.circle(annotated, (cx, cy), 8, (255, 255, 255), 1)
+
+                if is_snap_armed and tip_idx in (THUMB_TIP, MIDDLE_TIP):
+                    # Glowing amber pulse for armed snap gesture
+                    cv2.circle(annotated, (cx, cy), 14, (30, 160, 255), 2, cv2.LINE_AA)  # BGR Amber
+                    cv2.circle(annotated, (cx, cy), 7, (0, 215, 255), -1, cv2.LINE_AA)
+                    cv2.circle(annotated, (cx, cy), 9, (255, 255, 255), 1, cv2.LINE_AA)
+                else:
+                    cv2.circle(annotated, (cx, cy), 6, (0, 255, 255), -1)
+                    cv2.circle(annotated, (cx, cy), 8, (255, 255, 255), 1)
+
+            if is_snap_armed:
+                # Draw subtle HUD pill above hand
+                m_pt = hand.landmarks[MIDDLE_TIP]
+                mx, my = int(m_pt.x * w), max(25, int(m_pt.y * h) - 25)
+                cv2.putText(
+                    annotated,
+                    "SNAP ARMED",
+                    (mx - 40, my),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (30, 200, 255),
+                    2,
+                    cv2.LINE_AA,
+                )
 
         return annotated
 
