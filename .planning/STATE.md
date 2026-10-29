@@ -5,16 +5,16 @@
 See: `.planning/PROJECT.md` (updated 2026-10-29)
 
 **Core value:** Users can effortlessly choose, configure, and trigger fluid cinematic disappearance effects (Thanos Snap ash disintegration or Goku Instant Transmission) using natural hand gestures in Google Meet without manual coding or terminal commands.
-**Current focus:** Phase 1: Open-Source Repository Foundation & Standards
+**Current focus:** Milestone v2.0: Full Native Rust + Tauri Core
 
 ## Current Position
 
-Phase: 5 of 5 (Packaging, Testing & CI/CD Release Automation)
-Plan: 1 of 1 in current phase
-Status: Milestone 1 Complete
-Last activity: 2026-10-29 — Completed all 5 phases of Blip v1.0. Full pipeline, Thanos Snap, Goku IT, CustomTkinter GUI, PyInstaller build script, and GitHub Actions CI passing 100%.
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-10-29 — Milestone v2.0 started (Full Native Rust + Tauri)
 
-Progress: [██████████] 100%
+Progress: [          ] 0%
 
 ## Performance Metrics
 
@@ -44,6 +44,7 @@ Progress: [██████████] 100%
 - [Branding]: Primary recommended repo name: `blip` (with `snapper` as the secondary natural alternative). No AI-slop naming.
 - [Arch]: Standalone Desktop Virtual Camera App (`pyvirtualcam`) ensures unbreakable integration with Google Meet across all browsers, Zoom, and Teams.
 - [UI]: CustomTkinter dark-mode desktop interface for clean zero-terminal usability.
+- [v2 Architecture]: Migrate from Python/CustomTkinter to Native Rust + Tauri v2 for 60+ FPS native frame capture, embedded ONNX runtime (`ort`), SIMD particle physics, and a modern Vite/Tailwind desktop UI.
 
 ### Pending Todos
 

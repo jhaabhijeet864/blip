@@ -11,6 +11,17 @@ Blip is a viral, open-source gesture-triggered virtual camera application for vi
 
 Users can effortlessly choose, configure, and trigger fluid cinematic disappearance effects (Thanos Snap ash disintegration or Goku Instant Transmission) using natural hand gestures in Google Meet without manual coding or terminal commands.
 
+## Current Milestone: v2.0 Full Native Rust + Tauri (Maximum Performance)
+
+**Goal:** Re-architect Blip into a standalone, single-binary Native Rust core with a Tauri v2 desktop shell for ultra-low latency, <50MB RAM usage, and fluid modern UI ergonomics.
+
+**Target features:**
+- Native Rust camera capture and DirectShow device enumeration (nokhwa / media-foundation)
+- Embedded ONNX Runtime (`ort`) for MediaPipe Hand Tracking and Person Segmentation
+- Native SIMD/vectorized particle physics and anime flash rendering in Rust
+- Native virtual camera output (OBS Virtual Camera DirectShow sink)
+- Modern Tauri v2 desktop frontend (Vite, React/Tailwind, WebGL/Canvas preview) with smooth draggable panels
+
 ## Requirements
 
 ### Validated
@@ -31,7 +42,12 @@ Users can effortlessly choose, configure, and trigger fluid cinematic disappeara
 
 ### Active
 
-(None — v1.0 Milestone complete)
+- [ ] **RUST-01**: Native Rust camera capture & DirectShow device enumeration pipeline (nokhwa / media-foundation)
+- [ ] **ONNX-01**: Local ONNX Runtime (`ort`) inference in Rust for 21-landmark hand tracking and selfie segmentation
+- [ ] **SIMD-01**: High-performance SIMD/vectorized particle physics & anime speedlines engine in Rust
+- [ ] **RVCAM-01**: Native Rust DirectShow virtual camera sink output for Google Meet / Zoom / Teams
+- [ ] **TAURI-01**: Tauri v2 modern desktop frontend with Vite, Tailwind CSS, GPU canvas preview, and mouse-resizable panels
+- [ ] **DIST-01**: Single compact native desktop executable distribution (<30MB) for Windows
 
 ### Out of Scope
 
@@ -57,9 +73,9 @@ Users can effortlessly choose, configure, and trigger fluid cinematic disappeara
 |----------|-----------|---------|
 | Project Name: `blip` | Cultural homage to Thanos's snap in Marvel lore + instant disappearance. Crisp, iconic, 4-letter star magnet. | ✓ Good |
 | Remote Origin: `https://github.com/jhaabhijeet864/blip.git` | Official personal profile repository URL with `main` as default production branch | ✓ Good |
-| Desktop Virtual Camera vs Chrome Extension | Virtual Camera works natively across Google Meet, Zoom, Teams, Discord without browser sandbox limitations | — Pending |
-| Focus on Thanos Snap & Goku IT for v1 | Concentrating on the two most viral, culturally iconic effects delivers the highest polish and viral star appeal | — Pending |
-| CustomTkinter for GUI | Lightweight, modern dark aesthetic, high DPI support, and easy PyInstaller bundling without PyQt's heavy licensing overhead | — Pending |
+| Desktop Virtual Camera vs Chrome Extension | Virtual Camera works natively across Google Meet, Zoom, Teams, Discord without browser sandbox limitations | ✓ Good |
+| Focus on Thanos Snap & Goku IT | Concentrating on the two most viral, culturally iconic effects delivers the highest polish and viral star appeal | ✓ Good |
+| Native Rust + Tauri v2 Core | Replaces Python/CustomTkinter to achieve sub-50MB memory footprint, native SIMD particle speed, and modern web UI ergonomics | — In Progress |
 
 ## Evolution
 
@@ -79,4 +95,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-29 after repository naming to blip and remote origin configuration*
+*Last updated: 2026-10-29 for Milestone v2.0: Full Native Rust + Tauri Core initialization*
