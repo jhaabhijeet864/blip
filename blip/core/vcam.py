@@ -21,12 +21,15 @@ def check_virtual_camera_driver() -> tuple[bool, str]:
     Returns (is_available, status_message).
     """
     import importlib.util
+
     if importlib.util.find_spec("pyvirtualcam") is None:
         return False, "pyvirtualcam library is not installed."
 
     # On Windows, check for OBS Virtual Camera or Unity DirectShow device
     if sys.platform == "win32":
-        obs_path_default = r"C:\Program Files\obs-studio\data\obs-plugins\win-dshow\virtualcam-install.bat"
+        obs_path_default = (
+            r"C:\Program Files\obs-studio\data\obs-plugins\win-dshow\virtualcam-install.bat"
+        )
         if os.path.exists(obs_path_default):
             return True, "OBS Virtual Camera driver ready."
         return True, "Virtual camera subsystem ready (Windows Virtual Camera / OBS)."
@@ -46,7 +49,9 @@ class VirtualCameraSink:
     Manages outputting RGB video frames to the OS virtual camera.
     """
 
-    def __init__(self, width: int = 1280, height: int = 720, fps: int = 30, backend: str | None = None):
+    def __init__(
+        self, width: int = 1280, height: int = 720, fps: int = 30, backend: str | None = None
+    ):
         self.width = width
         self.height = height
         self.fps = fps
@@ -71,14 +76,16 @@ class VirtualCameraSink:
                 "width": self.width,
                 "height": self.height,
                 "fps": self.fps,
-                "fmt": pyvirtualcam.PixelFormat.RGB
+                "fmt": pyvirtualcam.PixelFormat.RGB,
             }
             if self.backend:
                 kwargs["backend"] = self.backend
 
             self._cam = pyvirtualcam.Camera(**kwargs)
             self._is_active = True
-            print(f"🎥 Virtual Camera started: {self._cam.device} ({self._cam.width}x{self._cam.height} @ {self._cam.fps} FPS)")
+            print(
+                f"🎥 Virtual Camera started: {self._cam.device} ({self._cam.width}x{self._cam.height} @ {self._cam.fps} FPS)"
+            )
 
         except Exception as e:
             self._is_active = False
@@ -99,6 +106,7 @@ class VirtualCameraSink:
         # Ensure correct dimensions
         if frame.shape[0] != self.height or frame.shape[1] != self.width:
             import cv2
+
             frame = cv2.resize(frame, (self.width, self.height))
 
         self._cam.send(frame)
