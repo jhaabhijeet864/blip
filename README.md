@@ -32,46 +32,52 @@ Because Blip operates as a standard virtual camera device, it works natively wit
 
 ## Features
 
-- **The Thanos Snap:** MediaPipe detects thumb-and-middle-finger velocity flick. The silhouette dissolves into 2,000+ ash particles simulating wind drift before revealing the empty room plate.
-- **Goku Instant Transmission:** Two fingers extended to the temple trigger radial speed lines, a flash overexposure, and an instantaneous cut to the empty room.
-- **Fluid Reappearance:** Re-trigger the gesture or press `Ctrl+Alt+S` to restore the live camera feed without glitching.
-- **3-Second Background Calibration:** Step out of the frame, click Calibrate, and Blip captures a denoised, lighting-compensated clean plate of the empty room.
-- **Desktop GUI:** Dark-mode interface built with CustomTkinter featuring live canvas preview, sensitivity sliders, and dropdown selectors.
-- **100% Local and Private:** Zero cloud calls and no telemetry. Processing runs entirely on-device.
-- **Modular Effect Engine:** Extendable architecture allowing custom disappearance effects in clean Python.
+- **The Thanos Snap:** Native kinematics tracks thumb-and-middle-finger pinch and explosive flick velocity. The subject silhouette disintegrates into 3,500+ ash particles simulating upward buoyant lift and trigonometric curl turbulence before revealing the clean empty room plate.
+- **Goku Instant Transmission:** Dual-finger raise to the temple zone triggers high-contrast anime radial speedlines, whiteout exposure flash bloom, expanding shockwave ring, and instant vanish.
+- **Fluid Reappearance:** Re-trigger the gesture or press `Ctrl+Alt+S` to restore the live camera feed with smooth cubic ease-out alpha dissolve or reverse flash.
+- **3-Second Background Calibration:** Step out of the frame, click Calibrate, and Blip captures a denoised, lighting-compensated clean plate of the empty room using real-time LAB color space luminance drift compensation.
+- **Modern Tauri v2 Desktop GUI:** Sleek dark-mode interface built with React 19, Vite, and Tailwind CSS running in a lightweight native Windows WebView2 shell (<50MB RAM footprint).
+- **Mouse-Draggable Sidebar Resizer:** Interactive splitter between hero video viewfinder and control settings with smooth mouse drag and persistent `localStorage` width storage.
+- **Hardware Webcam Auto-Prioritization:** Intelligently discovers all connected devices, prioritizing genuine hardware webcams (e.g. HP Wide Vision HD Camera) and demoting phone bridges (DroidCam, Iriun) to prevent black-screen confusion.
+- **100% Local and Private:** Zero cloud calls and no telemetry. Processing runs entirely on-device with embedded ONNX models.
 
 ---
 
 ## Quickstart
 
-### Prerequisites
-- Python 3.10 or 3.11
-- Virtual camera driver:
-  - Windows: OBS Studio (comes with OBS VirtualCam pre-installed) or Unity Virtual Camera.
-  - Linux: `v4l2loopback` (`sudo apt install v4l2loopback-dkms`)
-  - macOS: OBS VirtualCam DAL plugin
+### Native Rust + Tauri Desktop (Recommended)
 
-### Installation
+Requires Rust 1.80+ and Node.js 20+:
 
 ```bash
 # Clone repository
 git clone https://github.com/jhaabhijeet864/blip.git
 cd blip
 
-# Create and activate virtual environment
-python -m venv .venv
+# Install frontend dependencies
+npm --prefix ui install
 
-# On Windows (PowerShell):
-.\.venv\Scripts\Activate.ps1
-# On macOS / Linux:
-source .venv/bin/activate
+# Run desktop app in development mode
+npm --prefix ui run build
+cargo run -p blip-desktop
+
+# Or package standalone distribution executable:
+powershell scripts/build_release.ps1
+```
+
+### Python Prototype
+
+```bash
+# Setup virtual environment
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1   # Windows
+source .venv/bin/activate       # macOS / Linux
 
 # Install dependencies
-pip install --upgrade pip
 pip install -r requirements.txt
 pip install -e .
 
-# Launch Blip
+# Launch Python app
 python -m blip
 ```
 
@@ -154,15 +160,19 @@ For full specifications and sample particle systems, read the [Custom Effect Aut
 
 ## Running Tests & Quality Gates
 
-Blip includes a hardware-independent test suite covering all video pipelines, gesture detectors, visual effects, and drivers:
+Blip includes comprehensive test suites across both native Rust and Python:
 
 ```bash
-# Run test suite with line-by-line coverage
+# Run native Rust workspace tests (27 unit & integration tests)
+cargo test --workspace
+
+# Run Python test suite with line-by-line coverage (77 tests)
 pytest --cov=blip --cov=scripts --cov-report=term-missing
 
-# Run code linter and formatting checks
+# Run code linters and formatting checks
+cargo fmt --all -- --check
+cargo check --workspace
 ruff check .
-ruff format --check .
 ```
 
 ---
