@@ -5,51 +5,56 @@
 See: `.planning/PROJECT.md` (updated 2026-10-29)
 
 **Core value:** Users can effortlessly choose, configure, and trigger fluid cinematic disappearance effects (Thanos Snap ash disintegration or Goku Instant Transmission) using natural hand gestures in Google Meet without manual coding or terminal commands.
-**Current focus:** Milestone v2.0: Full Native Rust + Tauri Core
+**Current focus:** Milestone v3.0: Blip Extension (Zero-Install Chrome Extension & WebRTC Hijacking)
 
 ## Current Position
 
-Phase: 10 of 10 (Standalone Packaging, Verification & CI/CD)
-Plan: 1 of 1 in current phase
-Status: Milestone v2.0 Complete
-Last activity: 2026-10-29 — Completed Phase 10 (Standalone Packaging, Verification & CI/CD) with release automation, CI workflows, 27 Rust tests, 77 Python tests, and React 19 UI.
+Phase: 11 of 14 (WebRTC Interceptor & Extension Shell)
+Plan: 0 of 2 in current phase
+Status: Milestone v3.0 Started — Ready for Phase 11 Planning
+Last activity: 2026-10-29 — Initialized Milestone v3.0 for zero-install Chrome Extension & WebRTC stream interception.
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0% (Milestone v3.0)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
-- Average duration: 5 min
-- Total execution time: 1.0 hours
+- Total plans completed (Milestones v1.0 & v2.0): 17
+- Milestone v1.0: 5 phases completed
+- Milestone v2.0: 5 phases completed
+- Active milestone: Milestone v3.0 (Phases 11-14)
 
 **By Phase:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 1. Repository Foundation & Standards | 1/1 | 0.1h | 0.1h |
-| 2. Vision & Virtual Camera Pipeline | 2/2 | 0.2h | 0.1h |
-| 3. Flagship Gesture & Effect Engines | 2/2 | 0.2h | 0.1h |
-| 4. Modern Desktop GUI | 1/1 | 0.1h | 0.1h |
-| 5. Packaging, Testing & CI/CD | 1/1 | 0.1h | 0.1h |
-| 6. Native Rust Capture & Virtual Camera | 2/2 | 0.2h | 0.1h |
-| 7. Embedded ONNX Neural Vision & Kinematics | 2/2 | 0.2h | 0.1h |
-| 8. SIMD Effects & Background Plate | 2/2 | 0.2h | 0.1h |
-| 9. Modern Tauri v2 Desktop Shell | 2/2 | 0.2h | 0.1h |
-| 10. Packaging, Verification & CI/CD | 1/1 | 0.1h | 0.1h |
+| Phase | Plans | Total | Avg/Plan | Status |
+|-------|-------|-------|----------|--------|
+| 1. Repository Foundation & Standards | 1/1 | 0.1h | 0.1h | Complete |
+| 2. Vision & Virtual Camera Pipeline | 2/2 | 0.2h | 0.1h | Complete |
+| 3. Flagship Gesture & Effect Engines | 2/2 | 0.2h | 0.1h | Complete |
+| 4. Modern Desktop GUI | 1/1 | 0.1h | 0.1h | Complete |
+| 5. Packaging, Testing & CI/CD | 1/1 | 0.1h | 0.1h | Complete |
+| 6. Native Rust Capture & Virtual Camera | 2/2 | 0.2h | 0.1h | Complete |
+| 7. Embedded ONNX Neural Vision & Kinematics | 2/2 | 0.2h | 0.1h | Complete |
+| 8. SIMD Effects & Background Plate | 2/2 | 0.2h | 0.1h | Complete |
+| 9. Modern Tauri v2 Desktop Shell | 2/2 | 0.2h | 0.1h | Complete |
+| 10. Packaging, Verification & CI/CD | 1/1 | 0.1h | 0.1h | Complete |
+| 11. WebRTC Interceptor & Extension Shell | 0/2 | — | — | Planned |
+| 12. Browser Vision & Dual-Trigger Kinematics | 0/2 | — | — | Planned |
+| 13. Canvas Shaders, Clean Plate & Auto-Mute | 0/2 | — | — | Planned |
+| 14. Popup UI, Web Showcase & Packaging | 0/2 | — | — | Planned |
 
 **Recent Trend:**
-- Trend: Stable (Scope refined & approved)
+- Trend: Milestone v3.0 initialized on branch `feat/chrome-extension`.
 
 ## Accumulated Context
 
 ### Decisions
 
-- [Scope]: Focus v1.0 strictly on the two viral flagships: Thanos Finger Snap (ash particle dissolve) and Goku Instant Transmission (temple tap & flash vanish) + Reappearance mechanism. Peace/palm/fist gestures and smoke/glitch effects deferred to v1.1 community plugin slots.
-- [Branding]: Primary recommended repo name: `blip` (with `snapper` as the secondary natural alternative). No AI-slop naming.
-- [Arch]: Standalone Desktop Virtual Camera App (`pyvirtualcam`) ensures unbreakable integration with Google Meet across all browsers, Zoom, and Teams.
-- [UI]: CustomTkinter dark-mode desktop interface for clean zero-terminal usability.
-- [v2 Architecture]: Migrate from Python/CustomTkinter to Native Rust + Tauri v2 for 60+ FPS native frame capture, embedded ONNX runtime (`ort`), SIMD particle physics, and a modern Vite/Tailwind desktop UI.
+- [Scope]: Deliver zero-install Chrome Extension alongside native Rust + Tauri desktop application (dual-architecture strategy).
+- [WebRTC Hijacking]: Monkey-patch `navigator.mediaDevices.getUserMedia` in main world (`world: "MAIN"`) before meeting scripts execute, returning `canvas.captureStream(30)`.
+- [Dual-Trigger Snap]: Visual pinch proximity (<0.06) + Web Audio API transient click sound spike within 200ms ensures zero false triggers during typing/talking.
+- [Auto-Mute]: Synchronize disappearing with meeting audio track muting and Google Meet DOM mute button triggering.
+- [No Paywalls]: Provide 100% free open-source MIT implementation to democratize effects sold by closed creators for ₹99.
 
 ### Pending Todos
 
@@ -65,6 +70,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-10-29 11:31
-Stopped at: Master architectural plan finalized and approved with focused scope; awaiting signal to commence Phase 1 execution.
+Last session: 2026-10-29 17:15
+Stopped at: Milestone v3.0 initialized; ready for Phase 11 planning (`/gsd-plan-phase 11`).
 Resume file: None
