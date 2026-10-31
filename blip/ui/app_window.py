@@ -62,9 +62,7 @@ class BlipApp(ctk.CTk):
             (d for d in self.discovered_devices if d.index == self.config.camera_index), None
         )
         current_is_phone_or_virtual = (
-            current_dev is None
-            or current_dev.is_virtual
-            or current_dev.is_phone_bridge
+            current_dev is None or current_dev.is_virtual or current_dev.is_phone_bridge
         )
         has_genuine_hardware = any(
             not d.is_virtual and not d.is_phone_bridge for d in self.discovered_devices
@@ -805,13 +803,9 @@ class BlipApp(ctk.CTk):
                     text=f"📸 CAPTURING ROOM ({rem:.1f}s)", text_color=Theme.STATUS_CALIBRATING
                 )
             elif self.pipeline.bg_manager.has_plate():
-                self.room_badge.configure(
-                    text="✅ ROOM CALIBRATED", text_color=Theme.STATUS_LIVE
-                )
+                self.room_badge.configure(text="✅ ROOM CALIBRATED", text_color=Theme.STATUS_LIVE)
             else:
-                self.room_badge.configure(
-                    text="✨ AUTO-INPAINT ROOM", text_color=Theme.TEXT_MUTED
-                )
+                self.room_badge.configure(text="✨ AUTO-INPAINT ROOM", text_color=Theme.TEXT_MUTED)
 
         self.after(30, self._update_gui_loop)
 

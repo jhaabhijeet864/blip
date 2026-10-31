@@ -28,4 +28,3 @@ pub enum EffectState {
     /// Reappear animation in progress restoring live camera subject.
     Reappearing { progress: f32 },
 }
-

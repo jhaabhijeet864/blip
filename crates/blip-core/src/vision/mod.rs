@@ -7,4 +7,3 @@ pub mod session;
 pub use hands::{HandLandmarks, HandTracker, Landmark3D};
 pub use segmentation::SelfieSegmenter;
 pub use session::{create_inference_session, ExecutionProvider};
-

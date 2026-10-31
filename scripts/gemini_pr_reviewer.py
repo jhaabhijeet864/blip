@@ -279,13 +279,13 @@ def format_full_comment(
     short_sha = head_sha[:7] if head_sha else "HEAD"
     lines = [
         STICKY_HEADER,
-        f"## 🤖 Blip Architectural Review Agent (`{model}`)",
+        "## 🤖 Blip Architectural Review Agent",
         f"> *High-level architectural, performance, and security evaluation for PR #{pr_number} at commit `{short_sha}`.*",
         "",
         review_body.strip(),
         "",
         "---",
-        "*Evaluated by Gemini 3.8 Flash • Focus: Real-time 30 FPS budget, thread safety, device privacy, and system modularity.*",
+        "*Focus: Real-time 30 FPS budget, thread safety, device privacy, and system modularity.*",
     ]
     return "\n".join(lines)
 

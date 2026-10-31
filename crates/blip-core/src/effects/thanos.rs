@@ -43,6 +43,12 @@ pub struct ThanosDisintegration {
     spawn_cursor: usize,
 }
 
+impl Default for ThanosDisintegration {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ThanosDisintegration {
     /// Create a new pre-allocated particle pool.
     pub fn new() -> Self {

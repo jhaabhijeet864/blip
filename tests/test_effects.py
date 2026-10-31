@@ -57,7 +57,9 @@ def test_thanos_snap_dissolve_monotonic_decay():
     person_frame = np.full((720, 1280, 3), 255, dtype=np.uint8)
     empty_bg = np.zeros((720, 1280, 3), dtype=np.uint8)
 
-    effect = ThanosSnapEffect(duration_frames=50, particle_count=0)  # 0 particles for pure silhouette test
+    effect = ThanosSnapEffect(
+        duration_frames=50, particle_count=0
+    )  # 0 particles for pure silhouette test
     effect.start(person_frame, mask, empty_bg)
 
     # Frame 0: p=0.0 -> Person should be fully visible

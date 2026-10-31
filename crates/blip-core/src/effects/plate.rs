@@ -20,6 +20,12 @@ pub struct CleanPlateManager {
     baseline_luma: f32,
 }
 
+impl Default for CleanPlateManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CleanPlateManager {
     /// Create a new CleanPlateManager.
     pub fn new() -> Self {

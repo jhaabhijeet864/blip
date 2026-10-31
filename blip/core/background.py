@@ -135,7 +135,9 @@ class BackgroundManager:
                         h, w, _ = current_frame.shape
                         small_w, small_h = 320, 180
                         small_f = cv2.resize(current_frame, (small_w, small_h))
-                        mask_u8 = (mask * 255.0).astype(np.uint8) if mask.dtype != np.uint8 else mask
+                        mask_u8 = (
+                            (mask * 255.0).astype(np.uint8) if mask.dtype != np.uint8 else mask
+                        )
                         small_m = cv2.resize(
                             mask_u8, (small_w, small_h), interpolation=cv2.INTER_NEAREST
                         )

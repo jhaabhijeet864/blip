@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/logo.svg" alt="Blip Logo" width="110" height="110" />
+<img src="assets/branding/logo.png" alt="Blip Logo" width="130" height="130" />
 
 # Blip
 

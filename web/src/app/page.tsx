@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
+import LivePlayground from "@/components/LivePlayground";
 import TelemetryStrip from "@/components/TelemetryStrip";
 import ThreeStepGuide from "@/components/ThreeStepGuide";
 import EffectSelector from "@/components/EffectSelector";
@@ -13,6 +14,7 @@ export default function Home() {
     <main className="min-h-screen bg-[#000000] text-[#ededed] overflow-x-hidden selection:bg-red-500 selection:text-white">
       <Navbar />
       <Hero />
+      <LivePlayground />
       <TelemetryStrip />
       <ThreeStepGuide />
       <EffectSelector />
