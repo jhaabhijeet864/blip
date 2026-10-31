@@ -8,12 +8,14 @@ from unittest.mock import patch
 import pytest
 
 from scripts.generate_release_notes import (
+    DEFAULT_AUTHOR_GITHUB_MAP,
     build_release_notes,
     categorize_commits,
     compute_sha256,
     describe_asset,
     format_file_size,
     inspect_release_assets,
+    resolve_author_attribution,
 )
 from scripts.generate_release_notes import (
     main as generate_notes_main,
@@ -45,6 +47,7 @@ def test_get_current_version():
 
 
 def re_semver(v: str) -> bool:
+    """Validate that a version string follows semantic versioning (X.Y.Z) format."""
     parts = v.split(".")
     return len(parts) == 3 and all(p.isdigit() for p in parts)
 
@@ -272,3 +275,77 @@ def test_generate_release_notes_cli(tmp_path: Path):
     assert "Blip v0.3.0" in content
     assert "Initial preview release" in content
     assert "test.zip" in content
+
+
+def test_resolve_author_attribution():
+    """Verify author name and email mapping to correct GitHub handle."""
+    assert "jhaabhijeet864" in DEFAULT_AUTHOR_GITHUB_MAP
+    assert "abhijeet jha" in DEFAULT_AUTHOR_GITHUB_MAP
+
+    # Verified maintainer identities map to @jhaabhijeet864
+    assert resolve_author_attribution("Abhijeet Jha") == "@jhaabhijeet864"
+    assert resolve_author_attribution("abhijeet") == "@jhaabhijeet864"
+    assert resolve_author_attribution("jhaabhijeet864") == "@jhaabhijeet864"
+    assert resolve_author_attribution("Abhijeet", "jhaabhijeet864@gmail.com") == "@jhaabhijeet864"
+    assert (
+        resolve_author_attribution("Abhijeet Jha <jhaabhijeet864@gmail.com>") == "@jhaabhijeet864"
+    )
+
+    # Pre-formatted handle or single word
+    assert resolve_author_attribution("@alice") == "@alice"
+    assert resolve_author_attribution("alice") == "@alice"
+
+    # Multi-word unmapped name stays safe plain text without broken @ mention
+    assert resolve_author_attribution("John Doe") == "John Doe"
+
+    # Custom mapping dictionary overrides/supplements defaults
+    assert (
+        resolve_author_attribution("John Doe", custom_map={"John Doe": "johndoe_gh"})
+        == "@johndoe_gh"
+    )
+
+    # Custom name mapping takes priority over default maintainer email mapping
+    assert (
+        resolve_author_attribution(
+            "Abhijeet Jha",
+            email="jhaabhijeet864@gmail.com",
+            custom_map={"Abhijeet Jha": "custom_override_handle"},
+        )
+        == "@custom_override_handle"
+    )
+
+
+def test_build_release_notes_author_attribution():
+    """Verify release notes generator properly credits @jhaabhijeet864."""
+    commits = [
+        {
+            "full_hash": "a1b2c3d4e5f67890",
+            "short_hash": "a1b2c3d",
+            "subject": "feat(core): implement rust camera sink",
+            "author": "Abhijeet Jha",
+            "email": "jhaabhijeet864@gmail.com",
+        },
+        {
+            "full_hash": "b2c3d4e5f6789012",
+            "short_hash": "b2c3d4e",
+            "subject": "fix(ci): fix secret scanner path filter",
+            "author": "Abhijeet Jha",
+        },
+        {
+            "full_hash": "c3d4e5f678901234",
+            "short_hash": "c3d4e5f",
+            "subject": "docs(readme): add troubleshooting note",
+            "author": "External Contributor",
+        },
+    ]
+
+    notes = build_release_notes(
+        tag="v1.0.1",
+        previous_tag="v1.0.0",
+        commits=commits,
+    )
+
+    # Ensure author is properly attributed to @jhaabhijeet864 and not @Abhijeet Jha
+    assert "by @jhaabhijeet864" in notes
+    assert "@Abhijeet Jha" not in notes
+    assert "by External Contributor" in notes

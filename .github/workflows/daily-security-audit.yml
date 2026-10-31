@@ -1,0 +1,281 @@
+name: Daily Security & Maintenance Automation
+
+on:
+  schedule:
+    # Runs at 04:00 UTC (9:30 AM IST) every single day
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+    inputs:
+      auto_create_pr:
+        description: 'Automatically create PR for fixes'
+        type: boolean
+        default: true
+      auto_create_issue:
+        description: 'Automatically create Issue for detected vulnerabilities'
+        type: boolean
+        default: true
+
+concurrency:
+  group: daily-security-audit
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  security-audit:
+    name: Security & Vulnerability Audit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      python_status: ${{ steps.python-audit.outputs.status }}
+      npm_status: ${{ steps.npm-audit.outputs.status }}
+      ruff_status: ${{ steps.ruff-check.outputs.status }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Python Security & Linter Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit ruff
+
+      - name: Run Python Dependency Vulnerability Audit
+        id: python-audit
+        run: |
+          echo "### Python Security Audit" > python-audit.log
+          if pip-audit -r requirements.txt --desc on >> python-audit.log 2>&1; then
+            echo "status=clean" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=vulnerable" >> "$GITHUB_OUTPUT"
+          fi
+          cat python-audit.log
+
+      - name: Run Node / NPM Security Audits
+        id: npm-audit
+        run: |
+          echo "### NPM Security Audit" > npm-audit.log
+          NPM_HAS_VULNS=false
+
+          for dir in extension web ui; do
+            if [ -d "$dir" ] && [ -f "$dir/package.json" ]; then
+              echo "#### Checking $dir..." >> npm-audit.log
+              if ! (cd "$dir" && npm audit --audit-level=high) >> npm-audit.log 2>&1; then
+                NPM_HAS_VULNS=true
+              fi
+            fi
+          done
+
+          if [ "$NPM_HAS_VULNS" = true ]; then
+            echo "status=vulnerable" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=clean" >> "$GITHUB_OUTPUT"
+          fi
+          cat npm-audit.log
+
+      - name: Run Code Lint & Security Check
+        id: ruff-check
+        run: |
+          echo "### Ruff Code Security & Quality Check" > ruff-check.log
+          if ruff check --extend-select S --ignore S101,S603,S607,S110,S310,S311 . >> ruff-check.log 2>&1; then
+            echo "status=clean" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=issues_found" >> "$GITHUB_OUTPUT"
+          fi
+          cat ruff-check.log
+
+      - name: Upload Audit Logs Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-logs
+          path: |
+            python-audit.log
+            npm-audit.log
+            ruff-check.log
+          retention-days: 7
+
+  auto-remediation-pr:
+    name: Automated Security Fixes PR
+    needs: security-audit
+    if: ${{ (github.event_name != 'workflow_dispatch' || inputs.auto_create_pr) && (needs.security-audit.outputs.python_status == 'vulnerable' || needs.security-audit.outputs.npm_status == 'vulnerable' || needs.security-audit.outputs.ruff_status == 'issues_found') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Ruff
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+
+      - name: Apply Automated Security & Style Fixes
+        run: |
+          # 1. Autofix Python lint and formatting
+          ruff check --fix . || true
+          ruff format . || true
+
+          # 2. Autofix NPM vulnerabilities in package-locks if possible
+          for dir in extension web ui; do
+            if [ -d "$dir" ] && [ -f "$dir/package.json" ]; then
+              (cd "$dir" && npm audit fix --package-lock-only) || true
+            fi
+          done
+
+      - name: Ensure PR Labels Exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for label in "automated" "security" "dependencies"; do
+            gh label create "$label" --force 2>/dev/null || true
+          done
+
+      - name: Create Pull Request with Automated Fixes
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "fix(security): apply automated daily security and lint fixes"
+          branch: "automation/daily-security-fixes"
+          title: "fix(security): automated daily maintenance and security fixes"
+          body: |
+            ### Automated Daily Security & Maintenance Fixes
+
+            This pull request was automatically generated by the [Daily Security & Maintenance Automation](https://github.com/${{ github.repository }}/actions/workflows/daily-security-audit.yml) workflow.
+
+            **What was automatically applied:**
+            - Python code style and linter security rules fixed via `ruff check --fix` and `ruff format`.
+            - Known high/critical npm dependency vulnerabilities patched via `npm audit fix --package-lock-only`.
+
+            *Please review the diff and merge if CI checks pass.*
+          labels: |
+            automated
+            security
+            dependencies
+          delete-branch: true
+
+  report-security-issue:
+    name: Report Security Issue
+    needs: [security-audit, auto-remediation-pr]
+    if: ${{ !cancelled() && (github.event_name != 'workflow_dispatch' || inputs.auto_create_issue) && (needs.security-audit.outputs.python_status == 'vulnerable' || needs.security-audit.outputs.npm_status == 'vulnerable' || needs.security-audit.outputs.ruff_status == 'issues_found') }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Download Audit Logs
+        uses: actions/download-artifact@v4
+        with:
+          name: security-audit-logs
+
+      - name: Ensure Issue Labels Exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for label in "security" "automated" "bug"; do
+            gh label create "$label" --force 2>/dev/null || true
+          done
+
+      - name: Create or Update Security Issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PYTHON_VULN_STATUS: ${{ needs.security-audit.outputs.python_status }}
+          NPM_VULN_STATUS: ${{ needs.security-audit.outputs.npm_status }}
+          RUFF_STATUS: ${{ needs.security-audit.outputs.ruff_status }}
+        run: |
+          AUDIT_DATE=$(date -u +"%Y-%m-%d")
+          ISSUE_TITLE="[Security Audit] Vulnerabilities Detected - ${AUDIT_DATE}"
+
+          cat << 'EOF' > issue_body.md
+          ### Automated Daily Security Audit Report
+
+          The daily security scan detected potential security vulnerabilities or unformatted code requiring attention.
+
+          #### Scan Summary:
+          EOF
+
+          echo "- **Python Dependencies:** ${PYTHON_VULN_STATUS}" >> issue_body.md
+          echo "- **NPM Dependencies:** ${NPM_VULN_STATUS}" >> issue_body.md
+          echo "- **Code Security & Linter:** ${RUFF_STATUS}" >> issue_body.md
+
+          cat << 'EOF' >> issue_body.md
+
+          <details>
+          <summary><b>Python Vulnerability Audit Log</b></summary>
+
+          ```text
+          EOF
+          cat python-audit.log >> issue_body.md 2>/dev/null || echo "No log captured" >> issue_body.md
+          cat << 'EOF' >> issue_body.md
+          ```
+          </details>
+
+          <details>
+          <summary><b>NPM Vulnerability Audit Log</b></summary>
+
+          ```text
+          EOF
+          cat npm-audit.log >> issue_body.md 2>/dev/null || echo "No log captured" >> issue_body.md
+          cat << 'EOF' >> issue_body.md
+          ```
+          </details>
+
+          <details>
+          <summary><b>Ruff Security & Linter Log</b></summary>
+
+          ```text
+          EOF
+          cat ruff-check.log >> issue_body.md 2>/dev/null || echo "No log captured" >> issue_body.md
+          cat << 'EOF' >> issue_body.md
+          ```
+          </details>
+
+          ---
+          *Created automatically by the [Daily Security & Maintenance Automation](https://github.com/${{ github.repository }}/actions/workflows/daily-security-audit.yml) workflow.*
+          EOF
+
+          EXISTING_ISSUE_NUM=$(gh issue list --state open --label "security" --search "[Security Audit]" --json number -q '.[0].number')
+
+          if [ -n "$EXISTING_ISSUE_NUM" ]; then
+            echo "Found existing open security issue #${EXISTING_ISSUE_NUM}. Adding audit update comment..."
+            gh issue comment "$EXISTING_ISSUE_NUM" --body-file issue_body.md
+          else
+            echo "Creating new security issue..."
+            gh issue create \
+              --title "$ISSUE_TITLE" \
+              --body-file issue_body.md \
+              --label "security,automated,bug"
+          fi

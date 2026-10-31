@@ -22,6 +22,73 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 DEFAULT_REPO_URL = "https://github.com/jhaabhijeet864/blip"
 
+DEFAULT_AUTHOR_GITHUB_MAP: dict[str, str] = {
+    "jhaabhijeet864": "jhaabhijeet864",
+    "jhaabhijeet864@gmail.com": "jhaabhijeet864",
+    "abhijeet jha": "jhaabhijeet864",
+    "abhijeet": "jhaabhijeet864",
+}
+
+
+def resolve_author_attribution(
+    author: str,
+    email: Optional[str] = None,
+    custom_map: Optional[dict[str, str]] = None,
+) -> str:
+    """Resolve git author name and email to a valid GitHub username mention or safe display string.
+
+    Prevents erroneous split mentions (such as '@Abhijeet Jha' which GitHub erroneously links to
+    https://github.com/abhijeet with a trailing 'Jha') by mapping known identities to '@jhaabhijeet864'.
+    Checks custom name and email mappings before default mappings to ensure explicit overrides take effect.
+    """
+    author_clean = (author or "").strip()
+    email_clean = (email or "").strip().lower()
+
+    normalized_custom: dict[str, str] = {}
+    if custom_map:
+        for k, v in custom_map.items():
+            normalized_custom[k.strip().lower()] = v.strip().lstrip("@")
+
+    normalized_default: dict[str, str] = {
+        k.strip().lower(): v.strip().lstrip("@") for k, v in DEFAULT_AUTHOR_GITHUB_MAP.items()
+    }
+
+    # If author contains embedded email like "Abhijeet Jha <jhaabhijeet864@gmail.com>"
+    if "<" in author_clean and ">" in author_clean:
+        match = re.search(r"<([^>]+)>", author_clean)
+        if match:
+            extracted_email = match.group(1).strip().lower()
+            if not email_clean:
+                email_clean = extracted_email
+            author_clean = re.sub(r"<[^>]+>", "", author_clean).strip()
+
+    name_lookup = author_clean.lower().lstrip("@")
+
+    # 1. Custom mappings take highest priority (check custom email then custom name)
+    if email_clean and email_clean in normalized_custom:
+        return f"@{normalized_custom[email_clean]}"
+    if name_lookup and name_lookup in normalized_custom:
+        return f"@{normalized_custom[name_lookup]}"
+
+    # 2. Default maintainer mappings (check default email then default name)
+    if email_clean and email_clean in normalized_default:
+        return f"@{normalized_default[email_clean]}"
+    if name_lookup and name_lookup in normalized_default:
+        return f"@{normalized_default[name_lookup]}"
+
+    # 3. If author is already a GitHub handle without whitespace (e.g. "@username")
+    if author_clean.startswith("@") and " " not in author_clean:
+        return author_clean
+
+    # 4. If author name contains whitespace and is not mapped, return plain display name
+    # without '@' to prevent GitHub markdown parser from splitting and linking only the first name
+    if " " in author_clean:
+        return author_clean
+
+    # 5. Single-word nickname or handle
+    return f"@{author_clean}" if author_clean else "@unknown"
+
+
 CATEGORY_MAPPINGS: list[tuple[str, str, re.Pattern]] = [
     (
         "features",
@@ -125,9 +192,15 @@ def get_git_commits(
     """Retrieve commits between two git references."""
     revision_range = f"{from_ref}..{to_ref}" if from_ref else to_ref
     try:
-        # Format: FullHash | ShortHash | Subject | AuthorName
+        # Format: FullHash \x1f ShortHash \x1f Subject \x1f AuthorName \x1f AuthorEmail
         res = subprocess.run(
-            ["git", "log", revision_range, "--no-merges", "--pretty=format:%H|%h|%s|%an"],
+            [
+                "git",
+                "log",
+                revision_range,
+                "--no-merges",
+                "--pretty=format:%H%x1f%h%x1f%s%x1f%an%x1f%ae",
+            ],
             cwd=ROOT_DIR,
             capture_output=True,
             text=True,
@@ -140,14 +213,18 @@ def get_git_commits(
         for line in res.stdout.strip().splitlines():
             if not line.strip():
                 continue
-            parts = line.split("|", 3)
-            if len(parts) == 4:
+            if "\x1f" in line:
+                parts = line.split("\x1f")
+            else:
+                parts = line.split("|", 4)
+            if len(parts) >= 4:
                 commits.append(
                     {
                         "full_hash": parts[0],
                         "short_hash": parts[1],
                         "subject": parts[2],
                         "author": parts[3],
+                        "email": parts[4] if len(parts) > 4 else "",
                     }
                 )
         return commits
@@ -244,6 +321,7 @@ def build_release_notes(
     assets: Optional[list[dict[str, Any]]] = None,
     custom_notes: Optional[str] = None,
     repo_url: str = DEFAULT_REPO_URL,
+    author_map: Optional[dict[str, str]] = None,
 ) -> str:
     """Synthesize complete release notes markdown document."""
     commits = commits or []
@@ -344,9 +422,11 @@ def build_release_notes(
                 for item in entries:
                     h = item["short_hash"]
                     subj = item["subject"]
-                    author = item["author"]
+                    author = item.get("author", "")
+                    email = item.get("email", "")
                     commit_link = f"[`{h}`]({repo_url}/commit/{item['full_hash']})"
-                    sections.append(f"- {subj} ({commit_link} by @{author})")
+                    credit = resolve_author_attribution(author, email=email, custom_map=author_map)
+                    sections.append(f"- {subj} ({commit_link} by {credit})")
                 sections.append("")
     else:
         sections.append(
@@ -407,6 +487,12 @@ def main(args: Optional[list[str]] = None) -> int:
         default=DEFAULT_REPO_URL,
         help=f"Base GitHub repository URL (default: {DEFAULT_REPO_URL}).",
     )
+    parser.add_argument(
+        "--author-map",
+        required=False,
+        default=None,
+        help="Optional author mappings formatted as 'Name=gh_handle,Name2=gh_handle2'.",
+    )
 
     parsed = parser.parse_args(args)
 
@@ -425,6 +511,19 @@ def main(args: Optional[list[str]] = None) -> int:
 
     custom_notes = parsed.custom_notes or os.environ.get("CUSTOM_NOTES", "").strip() or None
 
+    author_map: dict[str, str] = {}
+    env_map = os.environ.get("BLIP_AUTHOR_MAP", "").strip()
+    raw_maps: list[str] = []
+    if env_map:
+        raw_maps.extend(env_map.split(","))
+    if parsed.author_map:
+        raw_maps.extend(parsed.author_map.split(","))
+    for entry in raw_maps:
+        if "=" in entry:
+            k, v = entry.split("=", 1)
+            if k.strip() and v.strip():
+                author_map[k.strip()] = v.strip()
+
     commits = get_git_commits(prev_tag, "HEAD")
     assets = inspect_release_assets(parsed.assets_dir)
 
@@ -435,6 +534,7 @@ def main(args: Optional[list[str]] = None) -> int:
         assets=assets,
         custom_notes=custom_notes,
         repo_url=parsed.repo_url,
+        author_map=author_map or None,
     )
 
     if parsed.output:
