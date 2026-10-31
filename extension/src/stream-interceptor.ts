@@ -518,8 +518,9 @@ export class BlipStreamInterceptor {
       return false;
     }
 
-    const w = video.videoWidth || this.backgroundPlateCanvas.width || 1280;
-    const h = video.videoHeight || this.backgroundPlateCanvas.height || 720;
+    // Match exact native video resolution identically to LivePlayground.tsx
+    const w = video.videoWidth > 0 ? video.videoWidth : (this.processingCanvas?.width || 1280);
+    const h = video.videoHeight > 0 ? video.videoHeight : (this.processingCanvas?.height || 720);
     this.backgroundPlateCanvas.width = w;
     this.backgroundPlateCanvas.height = h;
 
@@ -531,6 +532,23 @@ export class BlipStreamInterceptor {
     } catch {
       return false;
     }
+  }
+
+  public loadBackgroundPlate(dataUrl: string): void {
+    if (!this.backgroundPlateCtx || !this.backgroundPlateCanvas) {
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      if (this.backgroundPlateCanvas && this.backgroundPlateCtx) {
+        this.backgroundPlateCanvas.width = img.width || 1280;
+        this.backgroundPlateCanvas.height = img.height || 720;
+        this.backgroundPlateCtx.drawImage(img, 0, 0);
+        this.state.hasBackgroundPlate = true;
+        this.broadcastState();
+      }
+    };
+    img.src = dataUrl;
   }
 
   public getBackgroundPlateDataUrl(): string | null {
@@ -585,11 +603,18 @@ export class BlipStreamInterceptor {
 
   private broadcastState(): void {
     if (typeof window !== "undefined") {
+      const statePayload: BlipState & { backgroundPlateDataUrl?: string } = {
+        ...this.getState(),
+      };
+      if (this.state.hasBackgroundPlate) {
+        statePayload.backgroundPlateDataUrl = this.getBackgroundPlateDataUrl() || undefined;
+      }
+
       window.postMessage(
         {
           source: "blip-extension-injected",
           action: "BLIP_STATUS_RESPONSE",
-          payload: this.getState(),
+          payload: statePayload,
           timestamp: Date.now(),
         } as BlipMessage,
         "*"
@@ -625,6 +650,11 @@ export class BlipStreamInterceptor {
           break;
         case "BLIP_CALIBRATE":
           this.captureBackgroundPlate();
+          break;
+        case "BLIP_LOAD_PLATE":
+          if (message.payload && typeof (message.payload as { dataUrl?: string }).dataUrl === "string") {
+            this.loadBackgroundPlate((message.payload as { dataUrl: string }).dataUrl);
+          }
           break;
         case "BLIP_STATUS_REQUEST":
           this.broadcastState();

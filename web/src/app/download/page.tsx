@@ -343,38 +343,6 @@ export default function DownloadPage() {
             </div>
           </div>
 
-          {/* ========================================================= */}
-          {/* TERMINAL / PIP INSTALLATION STRIP                         */}
-          {/* ========================================================= */}
-          <div className="rounded-2xl border border-zinc-800 bg-[#09090b] p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-            <div>
-              <span className="text-xs uppercase tracking-wider font-bold text-red-500 font-mono">
-                Developer &amp; Python CLI
-              </span>
-              <h3 className="text-lg font-bold text-white mt-1">
-                Install via Pip (Python 3.10+)
-              </h3>
-              <p className="text-xs text-zinc-400 mt-1">
-                For developers building custom gesture pipelines or integrating Blip into computer vision scripts.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-black border border-zinc-800 text-xs font-mono text-zinc-300 w-full sm:w-auto justify-between sm:justify-start">
-              <span>pip install --upgrade blip-gestures</span>
-              <button
-                onClick={() => copyToClipboard("pip install --upgrade blip-gestures", setCopiedPip)}
-                className="p-1 hover:text-white transition-colors"
-                title="Copy command"
-              >
-                {copiedPip ? (
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5 text-zinc-500" />
-                )}
-              </button>
-            </div>
-          </div>
-
         </div>
       </main>
 
