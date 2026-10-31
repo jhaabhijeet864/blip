@@ -47,6 +47,7 @@ def test_get_current_version():
 
 
 def re_semver(v: str) -> bool:
+    """Validate that a version string follows semantic versioning (X.Y.Z) format."""
     parts = v.split(".")
     return len(parts) == 3 and all(p.isdigit() for p in parts)
 
@@ -301,6 +302,16 @@ def test_resolve_author_attribution():
     assert (
         resolve_author_attribution("John Doe", custom_map={"John Doe": "johndoe_gh"})
         == "@johndoe_gh"
+    )
+
+    # Custom name mapping takes priority over default maintainer email mapping
+    assert (
+        resolve_author_attribution(
+            "Abhijeet Jha",
+            email="jhaabhijeet864@gmail.com",
+            custom_map={"Abhijeet Jha": "custom_override_handle"},
+        )
+        == "@custom_override_handle"
     )
 
 

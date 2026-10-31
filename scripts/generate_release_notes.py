@@ -39,14 +39,19 @@ def resolve_author_attribution(
 
     Prevents erroneous split mentions (such as '@Abhijeet Jha' which GitHub erroneously links to
     https://github.com/abhijeet with a trailing 'Jha') by mapping known identities to '@jhaabhijeet864'.
+    Checks custom name and email mappings before default mappings to ensure explicit overrides take effect.
     """
     author_clean = (author or "").strip()
     email_clean = (email or "").strip().lower()
 
-    active_map = dict(DEFAULT_AUTHOR_GITHUB_MAP)
+    normalized_custom: dict[str, str] = {}
     if custom_map:
         for k, v in custom_map.items():
-            active_map[k.strip().lower()] = v.strip().lstrip("@")
+            normalized_custom[k.strip().lower()] = v.strip().lstrip("@")
+
+    normalized_default: dict[str, str] = {
+        k.strip().lower(): v.strip().lstrip("@") for k, v in DEFAULT_AUTHOR_GITHUB_MAP.items()
+    }
 
     # If author contains embedded email like "Abhijeet Jha <jhaabhijeet864@gmail.com>"
     if "<" in author_clean and ">" in author_clean:
@@ -57,14 +62,19 @@ def resolve_author_attribution(
                 email_clean = extracted_email
             author_clean = re.sub(r"<[^>]+>", "", author_clean).strip()
 
-    # 1. Check email match
-    if email_clean and email_clean in active_map:
-        return f"@{active_map[email_clean]}"
-
-    # 2. Check full name match (case-insensitive)
     name_lookup = author_clean.lower().lstrip("@")
-    if name_lookup in active_map:
-        return f"@{active_map[name_lookup]}"
+
+    # 1. Custom mappings take highest priority (check custom email then custom name)
+    if email_clean and email_clean in normalized_custom:
+        return f"@{normalized_custom[email_clean]}"
+    if name_lookup and name_lookup in normalized_custom:
+        return f"@{normalized_custom[name_lookup]}"
+
+    # 2. Default maintainer mappings (check default email then default name)
+    if email_clean and email_clean in normalized_default:
+        return f"@{normalized_default[email_clean]}"
+    if name_lookup and name_lookup in normalized_default:
+        return f"@{normalized_default[name_lookup]}"
 
     # 3. If author is already a GitHub handle without whitespace (e.g. "@username")
     if author_clean.startswith("@") and " " not in author_clean:
