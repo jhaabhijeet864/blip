@@ -62,7 +62,7 @@ describe("BlipStreamInterceptor WebRTC Interception", () => {
       getAudioTracks: function () {
         return this.tracks.filter((t: unknown) => (t as { kind: string }).kind === "audio");
       },
-      addTrack: vi.fn(function (track: unknown) {
+      addTrack: vi.fn(function (this: { tracks: unknown[] }, track: unknown) {
         this.tracks.push(track);
       }),
     };

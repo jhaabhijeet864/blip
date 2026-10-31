@@ -10,7 +10,7 @@ export class AudioClickDetector {
   private audioContext: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
   private sourceNode: MediaStreamAudioSourceNode | null = null;
-  private dataBuffer: Uint8Array | null = null;
+  private dataBuffer: Uint8Array<ArrayBuffer> | null = null;
   private isRunning = false;
   private animationFrameId: number | null = null;
 
