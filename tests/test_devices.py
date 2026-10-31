@@ -63,7 +63,10 @@ def test_get_camera_devices_with_directshow():
     mock_pygrabber = MagicMock()
     mock_pygrabber.dshow_graph.FilterGraph.return_value = mock_graph
 
-    with patch.dict(sys.modules, {"pygrabber": mock_pygrabber, "pygrabber.dshow_graph": mock_pygrabber.dshow_graph}):
+    with patch.dict(
+        sys.modules,
+        {"pygrabber": mock_pygrabber, "pygrabber.dshow_graph": mock_pygrabber.dshow_graph},
+    ):
         with patch("sys.platform", "win32"):
             with patch("cv2.VideoCapture", side_effect=mock_video_capture):
                 devices = get_camera_devices()
