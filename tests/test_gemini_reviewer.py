@@ -79,7 +79,8 @@ def test_format_full_comment():
     assert comment.startswith(STICKY_HEADER)
     assert "PR #42" in comment
     assert "1234567" in comment
-    assert "gemini-3.8-flash" in comment
+    assert "## 🤖 Blip Architectural Review Agent" in comment
+    assert "gemini-3.8-flash" not in comment
 
 
 def test_main_dry_run_file_output(tmp_path: Path):
