@@ -1,6 +1,21 @@
 # Configuration for actions/labeler v5
 # Automatically labels pull requests based on modified file paths
 
+area:extension:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'extension/**'
+
+area:web:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'web/**'
+
+area:desktop-ui:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'ui/**'
+
 area:rust:
   - changed-files:
     - any-glob-to-any-file:
@@ -15,11 +30,6 @@ area:python:
       - 'scripts/**'
       - 'pyproject.toml'
       - 'requirements*.txt'
-
-area:web:
-  - changed-files:
-    - any-glob-to-any-file:
-      - 'web/**'
 
 area:ci:
   - changed-files:
@@ -40,19 +50,32 @@ component:camera:
       - 'blip/core/devices*'
       - 'crates/blip-core/src/capture*'
       - 'crates/blip-core/src/vcam*'
+      - 'crates/blip-core/src/device*'
+
+component:webrtc:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'extension/src/stream-interceptor.ts'
+      - 'extension/src/injected.ts'
 
 component:gestures:
   - changed-files:
     - any-glob-to-any-file:
       - 'blip/gestures/**'
       - 'crates/blip-core/src/gestures*'
+      - 'extension/src/gestures/**'
 
 component:effects:
   - changed-files:
     - any-glob-to-any-file:
       - 'blip/effects/**'
+      - 'crates/blip-core/src/effects/**'
+      - 'extension/src/effects/**'
 
 component:ui:
   - changed-files:
     - any-glob-to-any-file:
       - 'blip/ui/**'
+      - 'ui/**'
+      - 'extension/popup.html'
+      - 'extension/src/popup.ts'
