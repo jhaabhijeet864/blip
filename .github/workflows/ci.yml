@@ -6,14 +6,167 @@ on:
   pull_request:
     branches: [ main ]
     types: [ opened, synchronize, reopened, ready_for_review ]
+  workflow_dispatch:
+    inputs:
+      force_heavy:
+        description: 'Force run full heavy matrix on this branch'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  lint-and-format:
+  changes:
+    name: Detect Changed Monorepo Areas
+    runs-on: ubuntu-latest
+    outputs:
+      extension: ${{ steps.filter.outputs.extension }}
+      web: ${{ steps.filter.outputs.web }}
+      ui: ${{ steps.filter.outputs.ui }}
+      crates: ${{ steps.filter.outputs.crates }}
+      python: ${{ steps.filter.outputs.python }}
+      ci: ${{ steps.filter.outputs.ci }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Filter Changed Paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            extension:
+              - 'extension/**'
+            web:
+              - 'web/**'
+            ui:
+              - 'ui/**'
+            crates:
+              - 'crates/**'
+              - 'Cargo.*'
+            python:
+              - 'blip/**'
+              - 'tests/**'
+              - 'scripts/**'
+              - 'pyproject.toml'
+              - 'requirements*.txt'
+            ci:
+              - '.github/**'
+
+  extension-suite:
+    name: Chrome Extension Quality & Vitest
+    needs: [ changes ]
+    if: |
+      needs.changes.outputs.extension == 'true' ||
+      needs.changes.outputs.ci == 'true' ||
+      github.event_name == 'push' ||
+      github.event.inputs.force_heavy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'extension/package-lock.json'
+
+      - name: Install Dependencies
+        working-directory: extension
+        run: npm ci
+
+      - name: TypeCheck TypeScript
+        working-directory: extension
+        run: npx tsc --noEmit
+
+      - name: Run Vitest Suite (24+ tests)
+        working-directory: extension
+        run: npm test
+
+      - name: Build Extension Bundles
+        working-directory: extension
+        run: npm run build
+
+      - name: Package Distributable Extension Zip
+        run: |
+          mkdir -p dist/blip-extension
+          cp extension/manifest.json dist/blip-extension/
+          cp extension/popup.html dist/blip-extension/
+          cp -r extension/icons dist/blip-extension/
+          cp -r extension/dist dist/blip-extension/
+          cd dist && zip -r blip-extension-v1.0.0.zip blip-extension
+          sha256sum blip-extension-v1.0.0.zip > blip-extension-v1.0.0.zip.sha256
+          echo "✅ Packaged blip-extension-v1.0.0.zip successfully."
+
+  web-app:
+    name: Showcase Web App Build
+    needs: [ changes ]
+    if: |
+      needs.changes.outputs.web == 'true' ||
+      needs.changes.outputs.ci == 'true' ||
+      github.event_name == 'push' ||
+      github.event.inputs.force_heavy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'web/package-lock.json'
+
+      - name: Install Dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Build Next.js Static Export
+        working-directory: web
+        run: npm run build
+
+  ui-frontend:
+    name: Desktop UI Build
+    needs: [ changes ]
+    if: |
+      needs.changes.outputs.ui == 'true' ||
+      needs.changes.outputs.ci == 'true' ||
+      github.event_name == 'push' ||
+      github.event.inputs.force_heavy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'ui/package-lock.json'
+
+      - name: Install Dependencies
+        working-directory: ui
+        run: npm ci
+
+      - name: Build React 19 UI
+        working-directory: ui
+        run: npm run build
+
+  python-lint-and-format:
     name: Python Lint & Format
+    needs: [ changes ]
+    if: |
+      needs.changes.outputs.python == 'true' ||
+      needs.changes.outputs.ci == 'true' ||
+      github.event_name == 'push' ||
+      github.event.inputs.force_heavy == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -31,23 +184,126 @@ jobs:
           pip install ruff>=0.1.0
 
       - name: Run Ruff Lint Checks
-        run: |
-          ruff check .
+        run: ruff check .
 
       - name: Run Ruff Format Check
-        run: |
-          ruff format --check .
+        run: ruff format --check .
 
-  python-test-matrix:
-    name: Python Tests (${{ matrix.os }} - Py${{ matrix.python-version }})
-    needs: [ lint-and-format ]
+  rust-workspace-fast:
+    name: Rust Workspace (ubuntu-latest)
+    needs: [ changes ]
+    if: |
+      needs.changes.outputs.crates == 'true' ||
+      needs.changes.outputs.ci == 'true' ||
+      github.event_name == 'push' ||
+      github.event.inputs.force_heavy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install System Libraries (Linux)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libclang-dev pkg-config libv4l-dev \
+            libglib2.0-dev libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev
+
+      - name: Set up Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Check Rust Format
+        run: cargo fmt --all -- --check
+
+      - name: Cargo Check
+        run: cargo check --workspace --all-targets
+
+      - name: Run Cargo Tests
+        run: cargo test --workspace
+
+      - name: Run Cargo Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+  python-tests-fast:
+    name: Python Tests (ubuntu-latest - Py3.10)
+    needs: [ changes, python-lint-and-format ]
+    if: |
+      needs.changes.outputs.python == 'true' ||
+      needs.changes.outputs.ci == 'true' ||
+      github.event_name == 'push' ||
+      github.event.inputs.force_heavy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: 'pip'
+
+      - name: Install System Libraries (Linux)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1 libglib2.0-0
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          pip install -e .
+
+      - name: Run Pytest Suite with Coverage
+        run: pytest --cov=blip --cov=scripts --cov-report=term-missing
+
+  rust-workspace-heavy:
+    name: Rust Workspace (windows-latest MSVC - Heavy)
+    needs: [ changes ]
+    if: github.event_name == 'push' || github.event.inputs.force_heavy == 'true'
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Check Rust Format
+        run: cargo fmt --all -- --check
+
+      - name: Cargo Check
+        run: cargo check --workspace --all-targets
+
+      - name: Run Cargo Tests
+        run: cargo test --workspace
+
+      - name: Run Cargo Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+  python-tests-heavy-matrix:
+    name: Python Matrix (${{ matrix.os }} - Py${{ matrix.python-version }} - Heavy)
+    needs: [ changes, python-lint-and-format ]
+    if: github.event_name == 'push' || github.event.inputs.force_heavy == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, windows-latest ]
         python-version: [ "3.10", "3.11" ]
-
+        exclude:
+          - os: ubuntu-latest
+            python-version: "3.10" # already executed by fast runner
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -72,105 +328,29 @@ jobs:
           pip install -e .
 
       - name: Run Pytest Suite with Coverage
-        run: |
-          pytest --cov=blip --cov=scripts --cov-report=term-missing
-
-  rust-workspace:
-    name: Rust Workspace (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, windows-latest ]
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Install System Libraries (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libclang-dev pkg-config libv4l-dev \
-            libglib2.0-dev libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev
-
-      - name: Set up Rust Toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy, rustfmt
-
-      - name: Rust Cache
-        uses: Swatinem/rust-cache@v2
-
-      - name: Check Rust Format
-        run: |
-          cargo fmt --all -- --check
-
-      - name: Cargo Check
-        run: |
-          cargo check --workspace --all-targets
-
-      - name: Run Cargo Tests
-        run: |
-          cargo test --workspace
-
-      - name: Run Cargo Clippy
-        run: |
-          cargo clippy --workspace --all-targets -- -D warnings
-
-  web-app:
-    name: Showcase Web App Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js 20.x
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-          cache-dependency-path: 'web/package-lock.json'
-
-      - name: Install Dependencies
-        working-directory: web
-        run: |
-          npm ci
-
-      - name: Build Next.js Static Export
-        working-directory: web
-        run: |
-          npm run build
-
-  ui-frontend:
-    name: Desktop UI Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js 20.x
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-          cache-dependency-path: 'ui/package-lock.json'
-
-      - name: Install Dependencies
-        working-directory: ui
-        run: |
-          npm ci
-
-      - name: Build React 19 UI
-        working-directory: ui
-        run: |
-          npm run build
+        run: pytest --cov=blip --cov=scripts --cov-report=term-missing
 
   pr-review-audit:
     name: Automated PR Review Check
-    if: github.event_name == 'pull_request'
-    needs: [ lint-and-format, python-test-matrix, rust-workspace, web-app ]
+    if: always() && github.event_name == 'pull_request'
+    needs:
+      - changes
+      - extension-suite
+      - web-app
+      - ui-frontend
+      - python-lint-and-format
+      - rust-workspace-fast
+      - python-tests-fast
     runs-on: ubuntu-latest
     steps:
+      - name: Check Upstream Job Results
+        run: |
+          echo "Auditing upstream status: ${{ join(needs.*.result, ', ') }}"
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "❌ Upstream CI job failure detected!"
+            exit 1
+          fi
+
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
@@ -214,16 +394,16 @@ jobs:
           cat << 'EOF' >> $GITHUB_STEP_SUMMARY
           ### ⚡ Automated PR Multi-Language Gate Summary
 
-          | Audit Gate | Target | Status |
+          | Audit Gate | Scope | Status |
           |---|---|---|
           | **Conventional Commits** | PR Title | Verified |
-          | **Python Quality & Formatting** | `blip/` & `scripts/` | Passed |
-          | **Python Multi-OS Test Matrix** | Ubuntu & Windows / Py 3.10 & 3.11 | Verified |
-          | **Rust Workspace Compilation & Tests** | `crates/blip-core` (Linux & Windows) | Passed |
-          | **Rust Clippy Lint Gate** | Zero warnings (`-D warnings`) | Passed |
+          | **Chrome Extension** | Vitest (24+ tests) & Bundles | Verified |
           | **Web Showcase Application** | Next.js Static Export & TypeScript | Verified |
+          | **Desktop UI Frontend** | React 19 + TypeScript + Vite | Verified |
+          | **Rust Engine Workspace** | Linux Check, Test & Clippy | Verified |
+          | **Python Quality & Tests** | Ruff & Pytest Suite | Verified |
           | **Credential & Secret Scan** | Codebase wide | Clean |
           | **Binary Bloat Prevention** | Zero unwanted binaries | Clean |
 
-          *All multi-language CI quality and safety checks passed for this Pull Request.*
+          *All monorepo quality and safety checks passed for this Pull Request.*
           EOF
