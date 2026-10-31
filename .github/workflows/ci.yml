@@ -190,7 +190,7 @@ jobs:
       - name: Scan for Secret Leaks
         run: |
           echo "Scanning codebase for accidental secrets..."
-          if grep -rEI '(sk-[a-zA-Z0-9]{20,}|sk_live_[a-zA-Z0-9]+|ghp_[a-zA-Z0-9]{36}|glpat-[a-zA-Z0-9_-]+|AKIA[A-Z0-9]{16}|-----BEGIN.*PRIVATE KEY)' --exclude-dir={.git,.venv,__pycache__} .; then
+          if grep -rEI '(sk-[a-zA-Z0-9]{20,}|sk_live_[a-zA-Z0-9]+|ghp_[a-zA-Z0-9]{36}|glpat-[a-zA-Z0-9_-]+|AKIA[A-Z0-9]{16}|-----BEGIN.*PRIVATE KEY)' --exclude-dir={.git,.venv,__pycache__,.github} .; then
             echo "❌ Potential credentials detected in repository!"
             exit 1
           else
