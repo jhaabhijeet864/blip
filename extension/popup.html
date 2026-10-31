@@ -13,6 +13,7 @@
       --text-muted: #94a3b8;
       --primary: #8b5cf6;
       --primary-hover: #7c3aed;
+      --accent-goku: #f59e0b;
       --accent-reappear: #10b981;
       --success: #22c55e;
       --radius: 8px;
@@ -188,6 +189,10 @@
       background: var(--primary);
     }
 
+    .btn-goku {
+      background: var(--accent-goku);
+    }
+
     .btn-reappear {
       background: var(--accent-reappear);
       width: 100%;
@@ -276,15 +281,28 @@
         <span class="slider"></span>
       </label>
     </div>
+    <div class="toggle-row" style="margin-top: 8px; margin-bottom: 0;">
+      <span style="font-weight: 600;">In-Meeting Floating Dock</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggle-overlay">
+        <span class="slider"></span>
+      </label>
+    </div>
   </div>
 
   <div class="card">
     <div class="section-title">Instant Triggers</div>
-    <button id="btn-snap" class="btn-snap" style="width: 100%; margin-bottom: 8px;">Thanos Snap Vanish</button>
+    <div class="btn-grid">
+      <button id="btn-snap" class="btn-snap">🤌 Snap Dust</button>
+      <button id="btn-goku" class="btn-goku">⚡ Goku Flash</button>
+    </div>
     <button id="btn-reappear" class="btn-reappear">
       Reappear Live <span class="shortcut-badge">Alt+Shift+S</span>
     </button>
     <button id="btn-calibrate" class="btn-calib">Calibrate Room Plate (3s)</button>
+    <div id="plate-status-text" style="font-size: 11px; text-align: center; color: var(--text-muted); margin-top: 6px;">
+      No room plate saved
+    </div>
   </div>
 
   <div class="card">
@@ -327,4 +345,3 @@
   <script type="module" src="dist/popup.js"></script>
 </body>
 </html>
-

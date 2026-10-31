@@ -1,21 +1,47 @@
 import { BlipMessage, DEFAULT_BLIP_CONFIG } from "./types";
+import { BlipMeetingOverlay } from "./overlay";
 
-// Injected fallback check
+// Safe main-world injection fallback for non-CSP environments
 function ensureMainWorldInjected(): void {
-  if (document.getElementById("blip-injected-script")) {
-    return;
+  try {
+    if (document.getElementById("blip-injected-script")) {
+      return;
+    }
+    // Manifest V3 MAIN world content script handles modern Chrome; this is fallback for dev environments
+    if (!("chrome" in window && chrome.runtime && chrome.runtime.getURL)) {
+      return;
+    }
+  } catch {
+    // Ignore CSP errors
   }
-  const script = document.createElement("script");
-  script.id = "blip-injected-script";
-  script.src = chrome.runtime.getURL("dist/injected.js");
-  (document.head || document.documentElement).appendChild(script);
 }
 
 ensureMainWorldInjected();
 
+// Mount In-Meeting Overlay Dock only if enabled by user
+let overlayInstance: BlipMeetingOverlay | null = null;
+
+function syncOverlayWithConfig(config: { showInMeetingOverlay?: boolean }): void {
+  const show = Boolean(config.showInMeetingOverlay);
+  if (show) {
+    if (!overlayInstance) {
+      overlayInstance = new BlipMeetingOverlay();
+    }
+    overlayInstance.mount();
+  } else {
+    if (overlayInstance) {
+      overlayInstance.unmount();
+    }
+  }
+}
+
 // Read initial config from storage and sync to main-world interceptor
-chrome.storage.local.get("blip_config", (result) => {
+chrome.storage.local.get(["blip_config", "blip_saved_plate"], (result) => {
   const config = result.blip_config || DEFAULT_BLIP_CONFIG;
+  
+  // Sync overlay according to user choice
+  syncOverlayWithConfig(config);
+
   window.postMessage(
     {
       source: "blip-extension-content",
@@ -25,16 +51,32 @@ chrome.storage.local.get("blip_config", (result) => {
     } as BlipMessage,
     "*"
   );
+
+  // If saved plate exists, preload it into the main-world interceptor
+  if (result.blip_saved_plate) {
+    window.postMessage(
+      {
+        source: "blip-extension-content",
+        action: "BLIP_LOAD_PLATE",
+        payload: { dataUrl: result.blip_saved_plate },
+        timestamp: Date.now(),
+      } as BlipMessage,
+      "*"
+    );
+  }
 });
 
 // Watch storage updates and sync
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && changes.blip_config) {
+    const newConfig = changes.blip_config.newValue;
+    syncOverlayWithConfig(newConfig);
+
     window.postMessage(
       {
         source: "blip-extension-content",
         action: "BLIP_UPDATE_CONFIG",
-        payload: changes.blip_config.newValue,
+        payload: newConfig,
         timestamp: Date.now(),
       } as BlipMessage,
       "*"
@@ -83,7 +125,7 @@ function showCalibrationToast(seconds: number): void {
   `;
 
   let count = seconds;
-  toast.innerHTML = `<span style="background: #8b5cf6; color: white; width: 26px; height: 26px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;">B</span> Step aside! Capturing empty room in <span id="blip-toast-count" style="color: #a78bfa; font-weight: 800; font-size: 16px;">${count}</span>...`;
+  toast.innerHTML = `<span style="background: #8b5cf6; color: white; width: 26px; height: 26px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;">⚡</span> Step aside! Capturing empty room in <span id="blip-toast-count" style="color: #a78bfa; font-weight: 800; font-size: 16px;">${count}</span>...`;
 
   if (document.body) {
     document.body.appendChild(toast);
@@ -106,19 +148,36 @@ function showCalibrationToast(seconds: number): void {
   }, 1000);
 }
 
-// Listen to main-world messages from injected interceptor
+// Listen to main-world and overlay messages
 window.addEventListener("message", (event) => {
   if (event.source !== window || !event.data || typeof event.data !== "object") {
     return;
   }
 
   const message = event.data as BlipMessage;
+
+  // Handle overlay calibration countdown banner
+  if (message.source === "blip-extension-overlay" && message.action === "BLIP_CALIBRATE_START") {
+    const payload = message.payload as { seconds?: number } | undefined;
+    showCalibrationToast(payload?.seconds || 3);
+    return;
+  }
+
   if (message.source !== "blip-extension-injected") {
     return;
   }
 
   if (message.action === "BLIP_AUTO_MUTE") {
     handleDomMuteToggle(Boolean(message.payload));
+  } else if (message.action === "BLIP_STATUS_RESPONSE" && message.payload) {
+    const payload = message.payload as { backgroundPlateDataUrl?: string; hasBackgroundPlate?: boolean };
+    if (payload.backgroundPlateDataUrl) {
+      chrome.storage.local.set({ blip_saved_plate: payload.backgroundPlateDataUrl });
+    }
+    // Forward status to runtime so extension popup receives real-time effect and vanish state
+    if (chrome.runtime && typeof chrome.runtime.sendMessage === "function") {
+      chrome.runtime.sendMessage(message, () => void chrome.runtime.lastError);
+    }
   }
 });
 
@@ -134,4 +193,3 @@ function handleDomMuteToggle(mute: boolean): void {
     meetMicButton.click();
   }
 }
-

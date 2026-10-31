@@ -308,7 +308,7 @@ export default function LivePlayground() {
   }, [isStreaming, isVanished, activeEffect, hasPlate]);
 
   return (
-    <section className="py-20 border-t border-[#1e293b] bg-[#05070e] relative overflow-hidden">
+    <section id="demo" className="py-20 border-t border-[#1e293b] bg-[#05070e] relative overflow-hidden">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-violet-500/10 text-violet-400 border border-violet-500/20 mb-3 uppercase tracking-wider">

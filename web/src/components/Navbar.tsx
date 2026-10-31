@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Download, Terminal, ExternalLink } from "lucide-react";
 
 export default function Navbar() {
@@ -25,41 +26,38 @@ export default function Navbar() {
     >
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-12 flex items-center justify-between">
         {/* Left: Brand Logo and Product Name */}
-        <a href="#" className="flex items-center gap-3 group">
-          <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1 group-hover:border-zinc-700 transition-colors shadow-sm">
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1 group-hover:border-zinc-700 transition-colors">
             <Image
               src="/logo.svg"
               alt="Blip Logo"
-              width={26}
-              height={26}
+              width={24}
+              height={24}
               className="w-full h-full object-contain group-hover:scale-105 transition-transform"
             />
           </div>
           <span className="font-extrabold text-base tracking-tight text-white group-hover:text-zinc-200 transition-colors">
             BLIP
           </span>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
-            v0.1.0
-          </span>
-        </a>
+        </Link>
 
         {/* Center: Navigation Links */}
         <nav className="hidden md:flex items-center gap-7 text-xs font-medium text-zinc-400">
-          <a href="#demo" className="hover:text-white transition-colors">
+          <Link href="/#demo" className="hover:text-white transition-colors">
             Interactive Demo
-          </a>
-          <a href="#how-it-works" className="hover:text-white transition-colors">
+          </Link>
+          <Link href="/#how-it-works" className="hover:text-white transition-colors">
             How It Works
-          </a>
-          <a href="#scenarios" className="hover:text-white transition-colors">
+          </Link>
+          <Link href="/#scenarios" className="hover:text-white transition-colors">
             Everyday Uses
-          </a>
-          <a href="#download" className="hover:text-white transition-colors">
+          </Link>
+          <Link href="/download/" className="hover:text-white transition-colors font-semibold text-zinc-200">
             Download
-          </a>
-          <a href="#faq" className="hover:text-white transition-colors">
+          </Link>
+          <Link href="/#faq" className="hover:text-white transition-colors">
             FAQ
-          </a>
+          </Link>
         </nav>
 
         {/* Right: Actions */}
@@ -75,13 +73,13 @@ export default function Navbar() {
             <ExternalLink className="w-3 h-3 text-zinc-600" />
           </a>
 
-          <a
-            href="#download"
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white font-semibold text-xs transition-colors shadow-sm"
+          <Link
+            href="/download/"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white font-semibold text-xs transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Download Free</span>
-          </a>
+            <span>Download</span>
+          </Link>
         </div>
       </div>
     </header>

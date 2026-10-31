@@ -1,10 +1,13 @@
-import { BlipConfig, BlipMessage, DEFAULT_BLIP_CONFIG } from "./types";
+import { BlipConfig, BlipMessage, BlipState, DEFAULT_BLIP_CONFIG } from "./types";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const toggleEnabled = document.getElementById("toggle-enabled") as HTMLInputElement;
+  const toggleOverlay = document.getElementById("toggle-overlay") as HTMLInputElement;
   const btnSnap = document.getElementById("btn-snap") as HTMLButtonElement;
+  const btnGoku = document.getElementById("btn-goku") as HTMLButtonElement;
   const btnReappear = document.getElementById("btn-reappear") as HTMLButtonElement;
   const btnCalibrate = document.getElementById("btn-calibrate") as HTMLButtonElement;
+  const plateStatusText = document.getElementById("plate-status-text") as HTMLElement;
 
   const rangeSnap = document.getElementById("range-snap") as HTMLInputElement;
   const rangeAudio = document.getElementById("range-audio") as HTMLInputElement;
@@ -16,12 +19,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   const valDuration = document.getElementById("val-duration") as HTMLElement;
   const statusPill = document.getElementById("status-pill") as HTMLElement;
 
-  // Load saved config
-  const stored = await chrome.storage.local.get("blip_config");
+  // Load saved config & plate
+  const stored = await chrome.storage.local.get(["blip_config", "blip_saved_plate"]);
   const config: BlipConfig = stored.blip_config || { ...DEFAULT_BLIP_CONFIG };
 
   // Set initial UI values
   toggleEnabled.checked = config.enabled;
+  if (toggleOverlay) {
+    toggleOverlay.checked = Boolean(config.showInMeetingOverlay);
+  }
+
+  if (plateStatusText) {
+    if (stored.blip_saved_plate) {
+      plateStatusText.textContent = "✓ Empty room plate active";
+      plateStatusText.style.color = "var(--success)";
+    } else {
+      plateStatusText.textContent = "No room plate saved (defaults to dark ambience)";
+      plateStatusText.style.color = "var(--text-muted)";
+    }
+  }
   rangeSnap.value = String(Math.round(config.snapSensitivity * 100));
   valSnap.textContent = `${rangeSnap.value}%`;
 
@@ -75,9 +91,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  if (toggleOverlay) {
+    toggleOverlay.addEventListener("change", () => {
+      saveConfig({ showInMeetingOverlay: toggleOverlay.checked });
+      sendTabMessage("BLIP_UPDATE_CONFIG", { showInMeetingOverlay: toggleOverlay.checked });
+    });
+  }
+
   btnSnap.addEventListener("click", () => {
     sendTabMessage("BLIP_TRIGGER_SNAP");
   });
+
+  if (btnGoku) {
+    btnGoku.addEventListener("click", () => {
+      sendTabMessage("BLIP_TRIGGER_GOKU");
+    });
+  }
 
   btnReappear.addEventListener("click", () => {
     sendTabMessage("BLIP_TRIGGER_REAPPEAR");
@@ -104,6 +133,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Perform plate snapshot now that user has stepped aside
         sendTabMessage("BLIP_CALIBRATE");
         btnCalibrate.textContent = "Captured! Sit down";
+
+        if (plateStatusText) {
+          plateStatusText.textContent = "✓ Empty room plate active";
+          plateStatusText.style.color = "var(--success)";
+        }
 
         setTimeout(() => {
           btnCalibrate.disabled = false;
@@ -133,7 +167,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     saveConfig({ autoMute: checkAutoMute.checked });
   });
 
+  // Listen for runtime status responses to update popup UI
+  chrome.runtime.onMessage.addListener((message: BlipMessage) => {
+    if (message.action === "BLIP_STATUS_RESPONSE" && message.payload) {
+      const state = message.payload as BlipState;
+      if (state.currentEffect !== "none") {
+        statusPill.textContent = state.currentEffect === "snap" ? "Dissolving..." : "Teleporting...";
+        statusPill.style.color = "#f59e0b";
+      } else if (state.isVanished) {
+        statusPill.textContent = "Vanished";
+        statusPill.style.color = "#8b5cf6";
+      } else {
+        statusPill.textContent = "Live";
+        statusPill.style.color = "#22c55e";
+      }
+    }
+  });
+
   // Query status
   sendTabMessage("BLIP_STATUS_REQUEST");
 });
-

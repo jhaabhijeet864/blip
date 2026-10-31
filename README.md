@@ -16,7 +16,11 @@ Snap your fingers like Thanos to dissolve into ash, or tap your temple like Goku
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)]()
 [![Privacy: 100% Offline](https://img.shields.io/badge/Privacy-100%25%20Offline-success.svg)](SECURITY.md)
 
-[Features](#features) • [Quickstart](#quickstart) • [How to Use in Google Meet](#how-to-use-in-google-meet) • [Architecture](#architecture) • [Custom Effects](#adding-custom-effects) • [Contributing](#contributing)
+<br/>
+
+[![Blip Showcase Banner](assets/screenshots/hero-banner.png)](https://jhaabhijeet864.github.io/blip)
+
+[Features](#features) • [Interactive Showcase](#interactive-web-simulator) • [Quickstart](#quickstart) • [How to Use in Google Meet](#how-to-use-in-google-meet) • [Architecture](#architecture) • [Custom Effects](#adding-custom-effects) • [Contributing](#contributing)
 
 </div>
 
@@ -27,6 +31,20 @@ Snap your fingers like Thanos to dissolve into ash, or tap your temple like Goku
 Blip is a standalone desktop application that outputs an OS-level virtual camera stream. It runs local computer vision to track hand gestures in real time. When triggered, it executes cinematic visual effects and swaps your live silhouette for a pre-captured empty background frame, vanishing you from video calls in real time.
 
 Because Blip operates as a standard virtual camera device, it works natively with Google Meet, Zoom, Microsoft Teams, Discord, Slack, and OBS without requiring browser extensions or DOM tampering.
+
+---
+
+## Interactive Web Simulator
+
+Experience Blip directly in your browser without installing native drivers. The interactive web simulator runs camera-based canvas effects:
+
+<div align="center">
+
+<img src="assets/screenshots/interactive-demo.png" alt="Blip Interactive Simulator" width="850" />
+
+*Interactive Zero-Install Meeting Simulator running camera-based canvas effects and Thanos disintegration in the browser.*
+
+</div>
 
 ---
 

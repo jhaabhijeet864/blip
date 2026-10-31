@@ -47,6 +47,7 @@ export class BlipStreamInterceptor {
 
   private frameCount = 0;
   private lastFpsCalcTime = typeof performance !== "undefined" ? performance.now() : 0;
+  private lastEffectFrameTime = 0;
   private effectProgress = 0; // 0.0 to 1.0
 
   private safeRequestAnimationFrame(cb: FrameRequestCallback): number {
@@ -125,6 +126,9 @@ export class BlipStreamInterceptor {
       return realStream;
     }
 
+    // Clean up previous active pipeline if re-requesting stream (e.g. Google Meet camera toggle)
+    this.cleanupActivePipeline();
+
     this.realStream = realStream;
     this.setupProcessingPipeline(realStream);
 
@@ -137,8 +141,34 @@ export class BlipStreamInterceptor {
     return this.syntheticStream;
   }
 
+  private cleanupActivePipeline(): void {
+    if (this.animationFrameId !== null) {
+      this.safeCancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+    if (this.hiddenVideo) {
+      try {
+        this.hiddenVideo.pause();
+        this.hiddenVideo.srcObject = null;
+        if (this.hiddenVideo.parentNode) {
+          this.hiddenVideo.parentNode.removeChild(this.hiddenVideo);
+        }
+      } catch {
+        // Safe cleanup
+      }
+      this.hiddenVideo = null;
+    }
+    this.audioDetector.stop();
+  }
+
   private setupProcessingPipeline(realStream: MediaStream): void {
-    // 1. Create off-screen video element attached to DOM to guarantee hardware decoding in Chromium
+    const realVideoTrack = realStream.getVideoTracks()[0];
+    if (!realVideoTrack) {
+      return;
+    }
+
+    // 1. Create active off-screen video element attached to DOM
+    // Uses tiny dimensions and minimal opacity to guarantee active compositor decoding in Chromium
     this.hiddenVideo = document.createElement("video");
     this.hiddenVideo.id = "blip-internal-camera-feed";
     this.hiddenVideo.autoplay = true;
@@ -148,12 +178,13 @@ export class BlipStreamInterceptor {
       this.hiddenVideo.setAttribute("playsinline", "");
       this.hiddenVideo.setAttribute("webkit-playsinline", "");
     }
+
     this.hiddenVideo.style.position = "fixed";
-    this.hiddenVideo.style.top = "-9999px";
-    this.hiddenVideo.style.left = "-9999px";
-    this.hiddenVideo.style.width = "640px";
-    this.hiddenVideo.style.height = "360px";
-    this.hiddenVideo.style.opacity = "0";
+    this.hiddenVideo.style.top = "0px";
+    this.hiddenVideo.style.left = "0px";
+    this.hiddenVideo.style.width = "4px";
+    this.hiddenVideo.style.height = "4px";
+    this.hiddenVideo.style.opacity = "0.001";
     this.hiddenVideo.style.pointerEvents = "none";
     this.hiddenVideo.style.zIndex = "-99999";
     this.hiddenVideo.srcObject = realStream;
@@ -163,21 +194,64 @@ export class BlipStreamInterceptor {
     }
 
     // 2. Create offscreen canvas for rendering effects
+    const settings = typeof realVideoTrack.getSettings === "function" ? realVideoTrack.getSettings() : {};
+    const initialWidth = settings.width || 1280;
+    const initialHeight = settings.height || 720;
+
     this.processingCanvas = document.createElement("canvas");
-    this.processingCanvas.width = 1280;
-    this.processingCanvas.height = 720;
+    this.processingCanvas.width = initialWidth;
+    this.processingCanvas.height = initialHeight;
     this.processingCtx = this.processingCanvas.getContext("2d", { willReadFrequently: true });
 
     // 3. Create canvas for empty room background plate
     this.backgroundPlateCanvas = document.createElement("canvas");
-    this.backgroundPlateCanvas.width = 1280;
-    this.backgroundPlateCanvas.height = 720;
+    this.backgroundPlateCanvas.width = initialWidth;
+    this.backgroundPlateCanvas.height = initialHeight;
     this.backgroundPlateCtx = this.backgroundPlateCanvas.getContext("2d");
 
     // 4. Capture 30 FPS synthetic stream from offscreen canvas
     this.syntheticStream = this.processingCanvas.captureStream(30);
 
-    // 5. Transfer real audio tracks into synthetic stream
+    // 5. Wrap synthetic video track to delegate to real track (critical for Google Meet compatibility!)
+    const syntheticVideoTrack = this.syntheticStream.getVideoTracks()[0];
+    if (syntheticVideoTrack && realVideoTrack) {
+      const originalGetSettings = syntheticVideoTrack.getSettings?.bind(syntheticVideoTrack);
+      syntheticVideoTrack.getSettings = () => {
+        const synth = originalGetSettings ? originalGetSettings() : {};
+        const real = realVideoTrack.getSettings ? realVideoTrack.getSettings() : {};
+        return {
+          ...real,
+          ...synth,
+          deviceId: real.deviceId || "blip-virtual-camera",
+          groupId: real.groupId,
+          facingMode: real.facingMode,
+          aspectRatio: real.aspectRatio || (synth.width && synth.height ? synth.width / synth.height : 1.777),
+        };
+      };
+
+      if (typeof realVideoTrack.getCapabilities === "function") {
+        syntheticVideoTrack.getCapabilities = () => realVideoTrack.getCapabilities();
+      }
+      if (typeof realVideoTrack.getConstraints === "function") {
+        syntheticVideoTrack.getConstraints = () => realVideoTrack.getConstraints();
+      }
+      syntheticVideoTrack.applyConstraints = async (constraints) => {
+        return realVideoTrack.applyConstraints(constraints);
+      };
+
+      // When Google Meet turns off camera, stop real track and cleanup if still active
+      const ownRealStream = realStream;
+      const originalStop = syntheticVideoTrack.stop.bind(syntheticVideoTrack);
+      syntheticVideoTrack.stop = () => {
+        originalStop();
+        realVideoTrack.stop();
+        if (this.realStream === ownRealStream) {
+          this.cleanupActivePipeline();
+        }
+      };
+    }
+
+    // 6. Transfer real audio tracks into synthetic stream
     for (const audioTrack of realStream.getAudioTracks()) {
       this.syntheticStream.addTrack(audioTrack);
     }
@@ -188,8 +262,8 @@ export class BlipStreamInterceptor {
 
     const updateDimensions = () => {
       if (this.hiddenVideo && this.processingCanvas && this.backgroundPlateCanvas) {
-        const w = this.hiddenVideo.videoWidth || 1280;
-        const h = this.hiddenVideo.videoHeight || 720;
+        const w = this.hiddenVideo.videoWidth || initialWidth;
+        const h = this.hiddenVideo.videoHeight || initialHeight;
         if (w > 0 && h > 0) {
           this.processingCanvas.width = w;
           this.processingCanvas.height = h;
@@ -209,7 +283,7 @@ export class BlipStreamInterceptor {
       // Autoplay handled by browser permission grant
     });
 
-    // 6. Begin rendering loop
+    // 7. Begin rendering loop
     this.startRenderLoop();
   }
 
@@ -236,8 +310,23 @@ export class BlipStreamInterceptor {
       return;
     }
 
+    // Ensure hidden video is ready to produce valid frames
+    if (this.hiddenVideo.readyState < 2 || this.hiddenVideo.videoWidth === 0) {
+      return;
+    }
+
     const w = this.processingCanvas.width;
     const h = this.processingCanvas.height;
+
+    // Handle dynamic camera resolution adjustments
+    if (this.hiddenVideo.videoWidth > 0 && this.hiddenVideo.videoWidth !== w) {
+      this.processingCanvas.width = this.hiddenVideo.videoWidth;
+      this.processingCanvas.height = this.hiddenVideo.videoHeight;
+      if (this.backgroundPlateCanvas) {
+        this.backgroundPlateCanvas.width = this.hiddenVideo.videoWidth;
+        this.backgroundPlateCanvas.height = this.hiddenVideo.videoHeight;
+      }
+    }
 
     // Case 1: Normal Live View
     if (!this.state.isVanished && this.state.currentEffect === "none") {
@@ -245,7 +334,7 @@ export class BlipStreamInterceptor {
       return;
     }
 
-    // Case 2: Transition effect active (Thanos Snap Vanish)
+    // Case 2: Transition effect active (Thanos Snap Vanish or Goku Flash)
     if (this.state.currentEffect !== "none") {
       this.renderEffectFrame(w, h);
       return;
@@ -256,9 +345,13 @@ export class BlipStreamInterceptor {
       if (this.state.hasBackgroundPlate && this.backgroundPlateCanvas) {
         this.processingCtx.drawImage(this.backgroundPlateCanvas, 0, 0, w, h);
       } else {
-        // Fallback plate: slightly blurred darkened ambience if plate not yet captured
-        this.processingCtx.fillStyle = "#0f172a";
+        // Fallback plate: clean dark meeting ambience if plate not yet captured
+        this.processingCtx.fillStyle = "#090d16";
         this.processingCtx.fillRect(0, 0, w, h);
+        this.processingCtx.fillStyle = "#64748b";
+        this.processingCtx.font = "14px monospace";
+        this.processingCtx.textAlign = "center";
+        this.processingCtx.fillText("Empty Room Plate (Vanished)", w / 2, h / 2);
       }
     }
   }
@@ -268,34 +361,106 @@ export class BlipStreamInterceptor {
       return;
     }
 
-    this.effectProgress += 1 / (30 * (this.config.dustDurationMs / 1000));
+    const now = performance.now();
+    const dt = this.lastEffectFrameTime > 0
+      ? Math.min(0.1, (now - this.lastEffectFrameTime) / 1000)
+      : 1 / 30;
+    this.lastEffectFrameTime = now;
 
+    // 1. THANOS DUST SNAP DISSOLVE EFFECT
     if (this.state.currentEffect === "snap") {
+      this.effectProgress += dt / (this.config.dustDurationMs / 1000);
+      const progress = this.effectProgress;
+
       // Draw background plate underneath
       if (this.state.hasBackgroundPlate && this.backgroundPlateCanvas) {
         this.processingCtx.drawImage(this.backgroundPlateCanvas, 0, 0, w, h);
       } else {
-        this.processingCtx.fillStyle = "#0f172a";
+        this.processingCtx.fillStyle = "#090d16";
         this.processingCtx.fillRect(0, 0, w, h);
       }
 
       // Fade out live person silhouette simulation
       this.processingCtx.save();
-      const alpha = Math.max(0, 1.0 - this.effectProgress);
+      const alpha = Math.max(0, 1.0 - progress);
       this.processingCtx.globalAlpha = alpha;
       this.processingCtx.drawImage(this.hiddenVideo, 0, 0, w, h);
       this.processingCtx.restore();
 
-      // Render drifting ash particles with particle pool
-      this.particlePool.update(1 / 30, performance.now() / 1000);
+      // Render drifting ash particles with curl noise
+      this.particlePool.update(dt, now / 1000);
       this.particlePool.render(this.processingCtx);
+
+      if (progress >= 1.0) {
+        this.state.currentEffect = "none";
+        this.state.isVanished = true;
+        this.effectProgress = 0;
+        this.broadcastState();
+      }
+      return;
     }
 
-    if (this.effectProgress >= 1.0) {
-      this.state.currentEffect = "none";
-      this.state.isVanished = true;
-      this.effectProgress = 0;
-      this.broadcastState();
+    // 2. GOKU INSTANT TRANSMISSION ANIME FLASH EFFECT
+    if (this.state.currentEffect === "goku") {
+      this.effectProgress += dt / 0.85; // fast 850ms anime teleport
+      const progress = this.effectProgress;
+
+      // Draw background plate underneath
+      if (this.state.hasBackgroundPlate && this.backgroundPlateCanvas) {
+        this.processingCtx.drawImage(this.backgroundPlateCanvas, 0, 0, w, h);
+      } else {
+        this.processingCtx.fillStyle = "#090d16";
+        this.processingCtx.fillRect(0, 0, w, h);
+      }
+
+      // Fast vanish subject
+      this.processingCtx.save();
+      this.processingCtx.globalAlpha = Math.max(0, 1.0 - progress * 2);
+      this.processingCtx.drawImage(this.hiddenVideo, 0, 0, w, h);
+      this.processingCtx.restore();
+
+      // Anime radial speed lines
+      const cx = w / 2;
+      const cy = h * 0.45;
+      const lineCount = 36;
+
+      this.processingCtx.save();
+      this.processingCtx.strokeStyle = `rgba(255, 255, 255, ${Math.max(0, 1.0 - progress * 1.5)})`;
+      this.processingCtx.lineWidth = 2.5;
+
+      for (let i = 0; i < lineCount; i++) {
+        const angle = (i * (Math.PI * 2)) / lineCount;
+        const rInner = 60 + progress * 140;
+        const rOuter = Math.max(w, h);
+        this.processingCtx.beginPath();
+        this.processingCtx.moveTo(cx + Math.cos(angle) * rInner, cy + Math.sin(angle) * rInner);
+        this.processingCtx.lineTo(cx + Math.cos(angle) * rOuter, cy + Math.sin(angle) * rOuter);
+        this.processingCtx.stroke();
+      }
+      this.processingCtx.restore();
+
+      // Electric cyan / blinding white flash shockwave around peak
+      if (progress >= 0.35 && progress <= 0.75) {
+        const flashIntensity = 1.0 - Math.abs(progress - 0.55) / 0.2;
+        this.processingCtx.save();
+        this.processingCtx.fillStyle = `rgba(220, 255, 255, ${flashIntensity * 0.75})`;
+        this.processingCtx.fillRect(0, 0, w, h);
+
+        const shockRadius = (progress - 0.35) * (w * 0.7);
+        this.processingCtx.strokeStyle = `rgba(255, 255, 255, ${flashIntensity})`;
+        this.processingCtx.lineWidth = 6;
+        this.processingCtx.beginPath();
+        this.processingCtx.arc(cx, cy, shockRadius, 0, Math.PI * 2);
+        this.processingCtx.stroke();
+        this.processingCtx.restore();
+      }
+
+      if (progress >= 1.0) {
+        this.state.currentEffect = "none";
+        this.state.isVanished = true;
+        this.effectProgress = 0;
+        this.broadcastState();
+      }
     }
   }
 
@@ -306,6 +471,7 @@ export class BlipStreamInterceptor {
 
     this.state.currentEffect = effect;
     this.effectProgress = 0;
+    this.lastEffectFrameTime = performance.now();
 
     if (effect === "snap" && this.processingCtx && this.processingCanvas) {
       const w = this.processingCanvas.width;
@@ -314,7 +480,7 @@ export class BlipStreamInterceptor {
         const frameData = this.processingCtx.getImageData(0, 0, w, h);
         const dummyMask = new Uint8ClampedArray(w * h);
         const cx = w / 2;
-        const cy = h / 2;
+        const cy = h * 0.55;
         const rx = w * 0.28;
         const ry = h * 0.42;
         for (let y = 0; y < h; y += 4) {
@@ -328,7 +494,9 @@ export class BlipStreamInterceptor {
         }
         this.particlePool.spawnFromSilhouette(dummyMask, frameData, 2000);
       } catch {
-        // Mock environment or canvas security fallback
+        // Fallback center spawning
+        const dummyMask = new Uint8ClampedArray(w * h);
+        this.particlePool.spawnFromSilhouette(dummyMask, { width: w, height: h, data: new Uint8ClampedArray(w * h * 4) } as ImageData, 1500);
       }
     }
 
@@ -358,8 +526,9 @@ export class BlipStreamInterceptor {
       return false;
     }
 
-    const w = video.videoWidth || this.backgroundPlateCanvas.width || 1280;
-    const h = video.videoHeight || this.backgroundPlateCanvas.height || 720;
+    // Match exact native video resolution identically to LivePlayground.tsx
+    const w = video.videoWidth > 0 ? video.videoWidth : (this.processingCanvas?.width || 1280);
+    const h = video.videoHeight > 0 ? video.videoHeight : (this.processingCanvas?.height || 720);
     this.backgroundPlateCanvas.width = w;
     this.backgroundPlateCanvas.height = h;
 
@@ -371,6 +540,23 @@ export class BlipStreamInterceptor {
     } catch {
       return false;
     }
+  }
+
+  public loadBackgroundPlate(dataUrl: string): void {
+    if (!this.backgroundPlateCtx || !this.backgroundPlateCanvas) {
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      if (this.backgroundPlateCanvas && this.backgroundPlateCtx) {
+        this.backgroundPlateCanvas.width = img.width || 1280;
+        this.backgroundPlateCanvas.height = img.height || 720;
+        this.backgroundPlateCtx.drawImage(img, 0, 0);
+        this.state.hasBackgroundPlate = true;
+        this.broadcastState();
+      }
+    };
+    img.src = dataUrl;
   }
 
   public getBackgroundPlateDataUrl(): string | null {
@@ -425,11 +611,18 @@ export class BlipStreamInterceptor {
 
   private broadcastState(): void {
     if (typeof window !== "undefined") {
+      const statePayload: BlipState & { backgroundPlateDataUrl?: string } = {
+        ...this.getState(),
+      };
+      if (this.state.hasBackgroundPlate) {
+        statePayload.backgroundPlateDataUrl = this.getBackgroundPlateDataUrl() || undefined;
+      }
+
       window.postMessage(
         {
           source: "blip-extension-injected",
           action: "BLIP_STATUS_RESPONSE",
-          payload: this.getState(),
+          payload: statePayload,
           timestamp: Date.now(),
         } as BlipMessage,
         "*"
@@ -457,11 +650,19 @@ export class BlipStreamInterceptor {
         case "BLIP_TRIGGER_SNAP":
           this.triggerVanish("snap");
           break;
+        case "BLIP_TRIGGER_GOKU":
+          this.triggerVanish("goku");
+          break;
         case "BLIP_TRIGGER_REAPPEAR":
           this.triggerReappear();
           break;
         case "BLIP_CALIBRATE":
           this.captureBackgroundPlate();
+          break;
+        case "BLIP_LOAD_PLATE":
+          if (message.payload && typeof (message.payload as { dataUrl?: string }).dataUrl === "string") {
+            this.loadBackgroundPlate((message.payload as { dataUrl: string }).dataUrl);
+          }
           break;
         case "BLIP_STATUS_REQUEST":
           this.broadcastState();
@@ -472,25 +673,12 @@ export class BlipStreamInterceptor {
 
   public destroy(): void {
     this.isDestroyed = true;
-    this.audioDetector.stop();
-    if (this.animationFrameId !== null) {
-      this.safeCancelAnimationFrame(this.animationFrameId);
-      this.animationFrameId = null;
-    }
-    if (this.hiddenVideo) {
-      if (typeof this.hiddenVideo.pause === "function") {
-        this.hiddenVideo.pause();
-      }
-      this.hiddenVideo.srcObject = null;
-      if (this.hiddenVideo.parentNode && typeof this.hiddenVideo.parentNode.removeChild === "function") {
-        this.hiddenVideo.parentNode.removeChild(this.hiddenVideo);
-      }
-      this.hiddenVideo = null;
-    }
+    this.cleanupActivePipeline();
     if (this.realStream) {
       for (const track of this.realStream.getTracks()) {
         track.stop();
       }
+      this.realStream = null;
     }
     if (this.originalGetUserMedia && typeof navigator !== "undefined" && navigator.mediaDevices) {
       navigator.mediaDevices.getUserMedia = this.originalGetUserMedia;
