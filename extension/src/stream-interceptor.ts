@@ -47,6 +47,7 @@ export class BlipStreamInterceptor {
 
   private frameCount = 0;
   private lastFpsCalcTime = typeof performance !== "undefined" ? performance.now() : 0;
+  private lastEffectFrameTime = 0;
   private effectProgress = 0; // 0.0 to 1.0
 
   private safeRequestAnimationFrame(cb: FrameRequestCallback): number {
@@ -238,12 +239,15 @@ export class BlipStreamInterceptor {
         return realVideoTrack.applyConstraints(constraints);
       };
 
-      // When Google Meet turns off camera, stop real track and cleanup
+      // When Google Meet turns off camera, stop real track and cleanup if still active
+      const ownRealStream = realStream;
       const originalStop = syntheticVideoTrack.stop.bind(syntheticVideoTrack);
       syntheticVideoTrack.stop = () => {
         originalStop();
         realVideoTrack.stop();
-        this.cleanupActivePipeline();
+        if (this.realStream === ownRealStream) {
+          this.cleanupActivePipeline();
+        }
       };
     }
 
@@ -357,8 +361,11 @@ export class BlipStreamInterceptor {
       return;
     }
 
-    const dt = 1 / 30;
     const now = performance.now();
+    const dt = this.lastEffectFrameTime > 0
+      ? Math.min(0.1, (now - this.lastEffectFrameTime) / 1000)
+      : 1 / 30;
+    this.lastEffectFrameTime = now;
 
     // 1. THANOS DUST SNAP DISSOLVE EFFECT
     if (this.state.currentEffect === "snap") {
@@ -464,6 +471,7 @@ export class BlipStreamInterceptor {
 
     this.state.currentEffect = effect;
     this.effectProgress = 0;
+    this.lastEffectFrameTime = performance.now();
 
     if (effect === "snap" && this.processingCtx && this.processingCanvas) {
       const w = this.processingCanvas.width;

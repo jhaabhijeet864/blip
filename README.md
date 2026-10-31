@@ -36,13 +36,13 @@ Because Blip operates as a standard virtual camera device, it works natively wit
 
 ## Interactive Web Simulator
 
-Experience Blip directly in your browser without installing native drivers. The interactive web simulator runs real-time MediaPipe vision tracking and procedural canvas shaders:
+Experience Blip directly in your browser without installing native drivers. The interactive web simulator runs camera-based canvas effects:
 
 <div align="center">
 
 <img src="assets/screenshots/interactive-demo.png" alt="Blip Interactive Simulator" width="850" />
 
-*Interactive Zero-Install Meeting Simulator running real-time silhouette tracking and Thanos disintegration in the browser.*
+*Interactive Zero-Install Meeting Simulator running camera-based canvas effects and Thanos disintegration in the browser.*
 
 </div>
 

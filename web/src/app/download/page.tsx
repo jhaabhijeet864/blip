@@ -29,7 +29,7 @@ export default function DownloadPage() {
   const [copiedShaExtension, setCopiedShaExtension] = useState(false);
 
   const windowsSha256 = "158b77631b41138a3f552329f01af72d7d580d15298a9713881713f39e198e37";
-  const extensionSha256 = "283D32B0AFF3CF10CCF742857DA9FEF1861843ED64B0A061BC9F4E3C1820711B";
+  const extensionSha256 = "02ED5C7DFCB90F275556D758C372B4F2AABC9B06DB139F4336ECA01239A41C0F";
 
   const copyToClipboard = (text: string, setter: (val: boolean) => void) => {
     navigator.clipboard.writeText(text);
@@ -104,7 +104,7 @@ export default function DownloadPage() {
                 {/* Direct Download Button */}
                 <div className="flex flex-col sm:flex-row items-stretch gap-3 mb-6">
                   <a
-                    href="/downloads/blip-extension.zip"
+                    href={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/downloads/blip-extension.zip`}
                     download="blip-extension.zip"
                     className="flex-1 inline-flex items-center justify-center gap-2.5 px-6 py-4 rounded-xl bg-red-500 hover:bg-red-600 text-white font-mono font-bold text-sm tracking-wide transition-all shadow-[0_0_25px_-5px_rgba(239,68,68,0.5)] hover:scale-[1.01] active:scale-[0.99] text-center"
                   >

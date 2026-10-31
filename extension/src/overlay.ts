@@ -252,6 +252,7 @@ export class BlipMeetingOverlay {
           if (this.container) {
             this.container.remove();
             this.container = null;
+            this.isMinimized = false;
             this.mount();
           }
         };

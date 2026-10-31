@@ -148,13 +148,21 @@ function showCalibrationToast(seconds: number): void {
   }, 1000);
 }
 
-// Listen to main-world messages from injected interceptor
+// Listen to main-world and overlay messages
 window.addEventListener("message", (event) => {
   if (event.source !== window || !event.data || typeof event.data !== "object") {
     return;
   }
 
   const message = event.data as BlipMessage;
+
+  // Handle overlay calibration countdown banner
+  if (message.source === "blip-extension-overlay" && message.action === "BLIP_CALIBRATE_START") {
+    const payload = message.payload as { seconds?: number } | undefined;
+    showCalibrationToast(payload?.seconds || 3);
+    return;
+  }
+
   if (message.source !== "blip-extension-injected") {
     return;
   }
@@ -165,6 +173,10 @@ window.addEventListener("message", (event) => {
     const payload = message.payload as { backgroundPlateDataUrl?: string; hasBackgroundPlate?: boolean };
     if (payload.backgroundPlateDataUrl) {
       chrome.storage.local.set({ blip_saved_plate: payload.backgroundPlateDataUrl });
+    }
+    // Forward status to runtime so extension popup receives real-time effect and vanish state
+    if (chrome.runtime && typeof chrome.runtime.sendMessage === "function") {
+      chrome.runtime.sendMessage(message, () => void chrome.runtime.lastError);
     }
   }
 });
