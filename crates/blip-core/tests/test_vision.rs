@@ -68,4 +68,3 @@ fn test_execution_provider_formatting() {
     assert_eq!(ExecutionProvider::DirectML.to_string(), "Windows DirectML");
     assert_eq!(ExecutionProvider::Cpu.to_string(), "Multi-Threaded CPU");
 }
-

@@ -18,6 +18,12 @@ pub struct ReappearEffect {
     mode: ReappearMode,
 }
 
+impl Default for ReappearEffect {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ReappearEffect {
     /// Create a new ReappearEffect engine.
     pub fn new() -> Self {

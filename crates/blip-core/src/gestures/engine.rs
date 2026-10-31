@@ -97,4 +97,3 @@ impl GestureEngine {
         self.last_trigger_time = None;
     }
 }
-

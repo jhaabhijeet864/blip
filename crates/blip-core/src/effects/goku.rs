@@ -25,6 +25,12 @@ pub struct InstantTransmissionEffect {
     speedline_angles: Vec<f32>,
 }
 
+impl Default for InstantTransmissionEffect {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl InstantTransmissionEffect {
     /// Create a new Instant Transmission effect engine.
     pub fn new() -> Self {
@@ -236,6 +242,7 @@ impl InstantTransmissionEffect {
 }
 
 /// Draw an anti-aliased Bresenham line for anime speedlines.
+#[allow(clippy::too_many_arguments)]
 fn draw_line(
     raw: &mut [u8],
     width: u32,

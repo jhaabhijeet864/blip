@@ -286,10 +286,7 @@ impl VideoPipeline {
                 goku.step(dt);
                 goku.render(&mut output_frame, &live_frame, &background_plate, None);
 
-                if goku.is_completed() {
-                    is_subject_vanished = true;
-                    *effect_slot.write() = EffectState::Vanished;
-                } else if goku.is_vanished() {
+                if goku.is_completed() || goku.is_vanished() {
                     is_subject_vanished = true;
                     *effect_slot.write() = EffectState::Vanished;
                 } else {
