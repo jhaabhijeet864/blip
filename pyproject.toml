@@ -42,7 +42,7 @@ dependencies = [
     "mediapipe>=0.10.0,<=0.10.20",
     "pyvirtualcam>=0.11.0",
     "customtkinter>=5.2.0",
-    "pillow>=10.0.0",
+    "pillow>=12.3.0",
     "numpy>=1.24.0",
     "pynput>=1.7.6",
     "pygrabber>=0.2; platform_system == 'Windows'"
