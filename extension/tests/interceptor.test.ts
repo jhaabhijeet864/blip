@@ -4,7 +4,15 @@ import { DEFAULT_BLIP_CONFIG } from "../src/types";
 
 describe("BlipStreamInterceptor WebRTC Interception", () => {
   let mockOriginalGetUserMedia: ReturnType<typeof vi.fn>;
-  let mockVideoTrack: { kind: string; stop: ReturnType<typeof vi.fn>; enabled: boolean };
+  let mockVideoTrack: {
+    kind: string;
+    stop: ReturnType<typeof vi.fn>;
+    enabled: boolean;
+    getSettings?: ReturnType<typeof vi.fn>;
+    getCapabilities?: ReturnType<typeof vi.fn>;
+    getConstraints?: ReturnType<typeof vi.fn>;
+    applyConstraints?: ReturnType<typeof vi.fn>;
+  };
   let mockAudioTrack: { kind: string; stop: ReturnType<typeof vi.fn>; enabled: boolean };
   let mockRealStream: {
     getTracks: () => unknown[];
@@ -15,7 +23,15 @@ describe("BlipStreamInterceptor WebRTC Interception", () => {
   let interceptor: BlipStreamInterceptor;
 
   beforeEach(() => {
-    mockVideoTrack = { kind: "video", stop: vi.fn(), enabled: true };
+    mockVideoTrack = {
+      kind: "video",
+      stop: vi.fn(),
+      enabled: true,
+      getSettings: vi.fn().mockReturnValue({ width: 1280, height: 720, deviceId: "mock-camera-id", facingMode: "user" }),
+      getCapabilities: vi.fn().mockReturnValue({ width: { min: 640, max: 1920 } }),
+      getConstraints: vi.fn().mockReturnValue({}),
+      applyConstraints: vi.fn().mockResolvedValue(undefined),
+    };
     mockAudioTrack = { kind: "audio", stop: vi.fn(), enabled: true };
 
     mockRealStream = {
@@ -50,7 +66,15 @@ describe("BlipStreamInterceptor WebRTC Interception", () => {
       globalAlpha: 1,
     };
 
-    const mockSyntheticVideoTrack = { kind: "video", stop: vi.fn(), enabled: true };
+    const mockSyntheticVideoTrack = {
+      kind: "video",
+      stop: vi.fn(),
+      enabled: true,
+      getSettings: vi.fn().mockReturnValue({ width: 1280, height: 720 }),
+      getCapabilities: vi.fn().mockReturnValue({}),
+      getConstraints: vi.fn().mockReturnValue({}),
+      applyConstraints: vi.fn().mockResolvedValue(undefined),
+    };
     const mockSyntheticStream = {
       tracks: [mockSyntheticVideoTrack] as unknown[],
       getTracks: function () {
@@ -156,6 +180,31 @@ describe("BlipStreamInterceptor WebRTC Interception", () => {
     expect(mockAudioTrack.enabled).toBe(false);
   });
 
+  it("triggers goku vanish effect and mutes audio tracks when autoMute is enabled", async () => {
+    interceptor.install();
+    await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+
+    interceptor.triggerVanish("goku");
+    const state = interceptor.getState();
+    expect(state.currentEffect).toBe("goku");
+    expect(mockAudioTrack.enabled).toBe(false);
+  });
+
+  it("proxies synthetic video track settings to the real video track for Google Meet", async () => {
+    interceptor.install();
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    const videoTrack = stream.getVideoTracks()[0] as any;
+
+    expect(videoTrack.getSettings()).toMatchObject({
+      width: 1280,
+      height: 720,
+      deviceId: "mock-camera-id",
+      facingMode: "user",
+    });
+    expect(videoTrack.getCapabilities()).toEqual({ width: { min: 640, max: 1920 } });
+    expect(mockVideoTrack.getSettings).toHaveBeenCalled();
+  });
+
   it("triggers reappear and restores audio track state", async () => {
     interceptor.install();
     await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -193,4 +242,3 @@ describe("BlipStreamInterceptor WebRTC Interception", () => {
     expect(navigator.mediaDevices.getUserMedia).toBe(mockOriginalGetUserMedia);
   });
 });
-

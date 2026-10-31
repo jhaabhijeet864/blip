@@ -1,17 +1,39 @@
 import { BlipMessage, DEFAULT_BLIP_CONFIG } from "./types";
+import { BlipMeetingOverlay } from "./overlay";
 
-// Injected fallback check
+// Safe main-world injection fallback for non-CSP environments
 function ensureMainWorldInjected(): void {
-  if (document.getElementById("blip-injected-script")) {
-    return;
+  try {
+    if (document.getElementById("blip-injected-script")) {
+      return;
+    }
+    // Manifest V3 MAIN world content script handles modern Chrome; this is fallback for dev environments
+    if (!("chrome" in window && chrome.runtime && chrome.runtime.getURL)) {
+      return;
+    }
+  } catch {
+    // Ignore CSP errors
   }
-  const script = document.createElement("script");
-  script.id = "blip-injected-script";
-  script.src = chrome.runtime.getURL("dist/injected.js");
-  (document.head || document.documentElement).appendChild(script);
 }
 
 ensureMainWorldInjected();
+
+// Mount In-Meeting Overlay Dock
+let overlayInstance: BlipMeetingOverlay | null = null;
+
+function initOverlay(): void {
+  if (overlayInstance) {
+    return;
+  }
+  overlayInstance = new BlipMeetingOverlay();
+  overlayInstance.mount();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initOverlay);
+} else {
+  initOverlay();
+}
 
 // Read initial config from storage and sync to main-world interceptor
 chrome.storage.local.get("blip_config", (result) => {
@@ -83,7 +105,7 @@ function showCalibrationToast(seconds: number): void {
   `;
 
   let count = seconds;
-  toast.innerHTML = `<span style="background: #8b5cf6; color: white; width: 26px; height: 26px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;">B</span> Step aside! Capturing empty room in <span id="blip-toast-count" style="color: #a78bfa; font-weight: 800; font-size: 16px;">${count}</span>...`;
+  toast.innerHTML = `<span style="background: #8b5cf6; color: white; width: 26px; height: 26px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;">⚡</span> Step aside! Capturing empty room in <span id="blip-toast-count" style="color: #a78bfa; font-weight: 800; font-size: 16px;">${count}</span>...`;
 
   if (document.body) {
     document.body.appendChild(toast);
@@ -134,4 +156,3 @@ function handleDomMuteToggle(mute: boolean): void {
     meetMicButton.click();
   }
 }
-

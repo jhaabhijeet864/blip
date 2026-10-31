@@ -406,6 +406,9 @@
           <button id="btn-snap" style="background: #8b5cf6; color: white;" disabled>
             Snap to Dust <span class="hotkey-tag">S</span>
           </button>
+          <button id="btn-goku" style="background: #d97706; color: white;" disabled>
+            ⚡ Goku Flash <span class="hotkey-tag">G</span>
+          </button>
           <button id="btn-reappear" class="success" disabled>
             Reappear Live <span class="hotkey-tag">Alt+Shift+S</span>
           </button>
@@ -456,6 +459,7 @@
     const btnHeroStart = document.getElementById("btn-hero-start");
     const btnStop = document.getElementById("btn-stop");
     const btnSnap = document.getElementById("btn-snap");
+    const btnGoku = document.getElementById("btn-goku");
     const btnReappear = document.getElementById("btn-reappear");
     const btnCalib = document.getElementById("btn-calib");
 
@@ -491,6 +495,7 @@
         btnStart.disabled = true;
         btnStop.disabled = false;
         btnSnap.disabled = false;
+        btnGoku.disabled = false;
         btnReappear.disabled = false;
         btnCalib.disabled = false;
 
@@ -520,6 +525,7 @@
       btnStart.disabled = false;
       btnStop.disabled = true;
       btnSnap.disabled = true;
+      btnGoku.disabled = true;
       btnReappear.disabled = true;
       btnCalib.disabled = true;
 
@@ -593,6 +599,23 @@
       hudStatus.textContent = "VANISHED";
     }
 
+    function triggerGoku() {
+      if (window.__BLIP_INTERCEPTOR__) {
+        window.__BLIP_INTERCEPTOR__.triggerVanish("goku");
+      } else {
+        window.postMessage({
+          source: "blip-extension-popup",
+          action: "BLIP_TRIGGER_GOKU",
+          timestamp: Date.now(),
+        }, "*");
+      }
+      diagState.textContent = "Vanishing (Goku Flash)";
+      diagState.style.color = "#f59e0b";
+      hudStatus.textContent = "VANISHED (GOKU)";
+    }
+
+    btnGoku.addEventListener("click", triggerGoku);
+
     function triggerReappear() {
       if (window.__BLIP_INTERCEPTOR__) {
         window.__BLIP_INTERCEPTOR__.triggerReappear();
@@ -618,6 +641,8 @@
         triggerReappear();
       } else if (e.key === "s" || e.key === "S") {
         if (!e.ctrlKey && !e.metaKey && activeStream) triggerSnap();
+      } else if (e.key === "g" || e.key === "G") {
+        if (!e.ctrlKey && !e.metaKey && activeStream) triggerGoku();
       } else if (e.key === "r" || e.key === "R") {
         if (!e.ctrlKey && !e.metaKey && activeStream) triggerReappear();
       } else if (e.key === "c" || e.key === "C") {
