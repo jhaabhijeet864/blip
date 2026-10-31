@@ -14,7 +14,7 @@ export default function Footer() {
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1 shadow-sm">
               <Image
-                src="/logo.svg"
+                src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/logo.svg`}
                 alt="Blip Logo"
                 width={24}
                 height={24}

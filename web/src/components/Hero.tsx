@@ -55,7 +55,7 @@ export default function Hero() {
                 <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-zinc-700 pointer-events-none" />
 
                 <img
-                  src="/logo.svg"
+                  src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/logo.svg`}
                   alt="Blip Gesture Hand Snap"
                   className="w-full h-full object-contain filter drop-shadow-[0_10px_30px_rgba(0,0,0,0.85)] hover:scale-105 transition-transform duration-300 select-none pointer-events-none"
                 />

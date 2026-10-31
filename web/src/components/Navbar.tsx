@@ -29,7 +29,7 @@ export default function Navbar() {
         <Link href="/" className="flex items-center gap-2.5 group">
           <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1 group-hover:border-zinc-700 transition-colors">
             <Image
-              src="/logo.svg"
+              src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/logo.svg`}
               alt="Blip Logo"
               width={24}
               height={24}
