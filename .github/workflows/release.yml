@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*'
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       tag_name:
@@ -148,9 +150,44 @@ jobs:
             dist/Blip-Studio.exe
             dist/checksum_tauri.txt
 
+  build-extension:
+    name: Package Chrome Extension (.zip)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'extension/package-lock.json'
+
+      - name: Install and Build Extension
+        working-directory: extension
+        run: |
+          npm ci
+          npm run build
+
+      - name: Package Extension Archive
+        shell: pwsh
+        run: |
+          powershell -ExecutionPolicy Bypass -File scripts/package_extension.ps1
+          $hash = (Get-FileHash -Algorithm SHA256 dist\blip-extension-v1.0.0.zip).Hash.ToLower()
+          "$hash  blip-extension-v1.0.0.zip" | Out-File -Encoding ascii dist\checksum_extension.txt
+
+      - name: Upload Extension Asset Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-release-assets
+          path: |
+            dist/blip-extension-v1.0.0.zip
+            dist/checksum_extension.txt
+
   publish-release:
     name: Publish GitHub Release
-    needs: [ build-windows-exe, build-python-packages, build-tauri-desktop ]
+    needs: [ build-windows-exe, build-python-packages, build-tauri-desktop, build-extension ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository with Full History
@@ -195,11 +232,17 @@ jobs:
           name: python-release-assets
           path: release_assets
 
+      - name: Download Extension Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-release-assets
+          path: release_assets
+
       - name: Assemble Global Checksum File
         run: |
           cd release_assets
-          cat checksum_windows.txt checksum_tauri.txt checksum_python.txt > checksums.sha256
-          rm -f checksum_windows.txt checksum_tauri.txt checksum_python.txt
+          cat checksum_windows.txt checksum_tauri.txt checksum_python.txt checksum_extension.txt > checksums.sha256
+          rm -f checksum_windows.txt checksum_tauri.txt checksum_python.txt checksum_extension.txt
           echo "### Release Checksums (SHA-256)"
           cat checksums.sha256
 
@@ -228,6 +271,7 @@ jobs:
           files: |
             release_assets/Blip-Studio.exe
             release_assets/Blip-Windows-x64.zip
+            release_assets/blip-extension-v1.0.0.zip
             release_assets/*.whl
             release_assets/*.tar.gz
             release_assets/checksums.sha256
