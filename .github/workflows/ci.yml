@@ -62,7 +62,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgl1-mesa-glx libglib2.0-0
+          sudo apt-get install -y libgl1 libglib2.0-0
 
       - name: Install Python Dependencies
         run: |
@@ -90,7 +90,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libclang-dev pkg-config libv4l-dev
+          sudo apt-get install -y libclang-dev pkg-config libv4l-dev \
+            libglib2.0-dev libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev
 
       - name: Set up Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
