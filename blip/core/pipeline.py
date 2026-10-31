@@ -321,8 +321,8 @@ class VideoPipeline:
         preview = output_frame.copy()
         if hands_data and self.state == PipelineState.NORMAL and self.hand_tracker:
             is_armed = False
-            if hasattr(self.gesture_evaluator, '__self__') and hasattr(
-                self.gesture_evaluator.__self__, 'is_snap_armed'
+            if hasattr(self.gesture_evaluator, "__self__") and hasattr(
+                self.gesture_evaluator.__self__, "is_snap_armed"
             ):
                 is_armed = self.gesture_evaluator.__self__.is_snap_armed()
             preview = self.hand_tracker.draw_landmarks(preview, hands_data, is_snap_armed=is_armed)

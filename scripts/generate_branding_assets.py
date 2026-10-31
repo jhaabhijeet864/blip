@@ -8,9 +8,10 @@ ui, extension).
 from __future__ import annotations
 
 import base64
-import os
 from pathlib import Path
+
 from PIL import Image
+
 
 def generate_branding_assets(master_image_path: str | Path | None = None) -> None:
     root_dir = Path(__file__).parent.parent
@@ -22,7 +23,9 @@ def generate_branding_assets(master_image_path: str | Path | None = None) -> Non
     elif (branding_dir / "logo-master.png").exists():
         master_path = branding_dir / "logo-master.png"
     else:
-        raise FileNotFoundError(f"Master logo image not found at {master_image_path} or {branding_dir / 'logo-master.png'}")
+        raise FileNotFoundError(
+            f"Master logo image not found at {master_image_path} or {branding_dir / 'logo-master.png'}"
+        )
 
     desktop_icons_dir = root_dir / "crates" / "blip-desktop" / "icons"
     ui_public_dir = root_dir / "ui" / "public"
@@ -136,13 +139,18 @@ def generate_branding_assets(master_image_path: str | Path | None = None) -> Non
         resized_images[32].save(icon_dir / "icon-32.png", "PNG")
         resized_images[48].save(icon_dir / "icon-48.png", "PNG")
         resized_images[128].save(icon_dir / "icon-128.png", "PNG")
-    print(f"Updated Chrome extension icons in extension/icons and dist/blip-extension/icons")
+    print("Updated Chrome extension icons in extension/icons and dist/blip-extension/icons")
 
-    if master_image_path and Path(master_image_path).exists() and Path(master_image_path) != master_dest:
+    if (
+        master_image_path
+        and Path(master_image_path).exists()
+        and Path(master_image_path) != master_dest
+    ):
         Path(master_image_path).unlink()
         print(f"Cleaned up and removed root file: {master_image_path}")
 
     print("All branding assets successfully created and synchronized!")
+
 
 if __name__ == "__main__":
     generate_branding_assets()
