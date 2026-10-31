@@ -1,0 +1,106 @@
+# Dependabot configuration for Blip
+# Checks dependencies daily across all package ecosystems and creates pull requests automatically.
+version: 2
+
+updates:
+  # Python dependencies (root pyproject.toml & requirements*.txt)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "03:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(deps-python)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "area:python"
+    reviewers:
+      - "jhaabhijeet864"
+
+  # Browser Extension dependencies
+  - package-ecosystem: "npm"
+    directory: "/extension"
+    schedule:
+      interval: "daily"
+      time: "03:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(deps-ext)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "area:web"
+    reviewers:
+      - "jhaabhijeet864"
+
+  # Web landing page dependencies
+  - package-ecosystem: "npm"
+    directory: "/web"
+    schedule:
+      interval: "daily"
+      time: "03:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(deps-web)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "area:web"
+    reviewers:
+      - "jhaabhijeet864"
+
+  # Desktop UI dependencies
+  - package-ecosystem: "npm"
+    directory: "/ui"
+    schedule:
+      interval: "daily"
+      time: "03:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(deps-ui)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "area:web"
+    reviewers:
+      - "jhaabhijeet864"
+
+  # Rust Crates (Cargo workspace & crates)
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "03:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(deps-rust)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "area:rust"
+    reviewers:
+      - "jhaabhijeet864"
+
+  # GitHub Actions workflows (.github/workflows)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "03:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(deps-ci)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "area:ci"
+    reviewers:
+      - "jhaabhijeet864"
