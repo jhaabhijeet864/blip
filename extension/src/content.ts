@@ -18,26 +18,30 @@ function ensureMainWorldInjected(): void {
 
 ensureMainWorldInjected();
 
-// Mount In-Meeting Overlay Dock
+// Mount In-Meeting Overlay Dock only if enabled by user
 let overlayInstance: BlipMeetingOverlay | null = null;
 
-function initOverlay(): void {
-  if (overlayInstance) {
-    return;
+function syncOverlayWithConfig(config: { showInMeetingOverlay?: boolean }): void {
+  const show = Boolean(config.showInMeetingOverlay);
+  if (show) {
+    if (!overlayInstance) {
+      overlayInstance = new BlipMeetingOverlay();
+    }
+    overlayInstance.mount();
+  } else {
+    if (overlayInstance) {
+      overlayInstance.unmount();
+    }
   }
-  overlayInstance = new BlipMeetingOverlay();
-  overlayInstance.mount();
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initOverlay);
-} else {
-  initOverlay();
 }
 
 // Read initial config from storage and sync to main-world interceptor
-chrome.storage.local.get("blip_config", (result) => {
+chrome.storage.local.get(["blip_config", "blip_saved_plate"], (result) => {
   const config = result.blip_config || DEFAULT_BLIP_CONFIG;
+  
+  // Sync overlay according to user choice
+  syncOverlayWithConfig(config);
+
   window.postMessage(
     {
       source: "blip-extension-content",
@@ -47,16 +51,32 @@ chrome.storage.local.get("blip_config", (result) => {
     } as BlipMessage,
     "*"
   );
+
+  // If saved plate exists, preload it into the main-world interceptor
+  if (result.blip_saved_plate) {
+    window.postMessage(
+      {
+        source: "blip-extension-content",
+        action: "BLIP_LOAD_PLATE",
+        payload: { dataUrl: result.blip_saved_plate },
+        timestamp: Date.now(),
+      } as BlipMessage,
+      "*"
+    );
+  }
 });
 
 // Watch storage updates and sync
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && changes.blip_config) {
+    const newConfig = changes.blip_config.newValue;
+    syncOverlayWithConfig(newConfig);
+
     window.postMessage(
       {
         source: "blip-extension-content",
         action: "BLIP_UPDATE_CONFIG",
-        payload: changes.blip_config.newValue,
+        payload: newConfig,
         timestamp: Date.now(),
       } as BlipMessage,
       "*"
@@ -141,6 +161,11 @@ window.addEventListener("message", (event) => {
 
   if (message.action === "BLIP_AUTO_MUTE") {
     handleDomMuteToggle(Boolean(message.payload));
+  } else if (message.action === "BLIP_STATUS_RESPONSE" && message.payload) {
+    const payload = message.payload as { backgroundPlateDataUrl?: string; hasBackgroundPlate?: boolean };
+    if (payload.backgroundPlateDataUrl) {
+      chrome.storage.local.set({ blip_saved_plate: payload.backgroundPlateDataUrl });
+    }
   }
 });
 

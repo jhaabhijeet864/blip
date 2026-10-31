@@ -4,6 +4,8 @@ export type BlipActionType =
   | "BLIP_TRIGGER_REAPPEAR"
   | "BLIP_CALIBRATE"
   | "BLIP_CALIBRATE_START"
+  | "BLIP_LOAD_PLATE"
+  | "BLIP_TOGGLE_OVERLAY"
   | "BLIP_UPDATE_CONFIG"
   | "BLIP_STATUS_REQUEST"
   | "BLIP_STATUS_RESPONSE"
@@ -32,7 +34,7 @@ export const DEFAULT_BLIP_CONFIG: BlipConfig = {
   dustDirection: "up",
   autoMute: true,
   gestureMode: "snap",
-  showInMeetingOverlay: true,
+  showInMeetingOverlay: false, // Default opt-in: clean experience unless enabled
 };
 
 export interface BlipState {

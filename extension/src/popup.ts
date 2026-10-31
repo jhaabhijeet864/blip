@@ -2,10 +2,12 @@ import { BlipConfig, BlipMessage, BlipState, DEFAULT_BLIP_CONFIG } from "./types
 
 document.addEventListener("DOMContentLoaded", async () => {
   const toggleEnabled = document.getElementById("toggle-enabled") as HTMLInputElement;
+  const toggleOverlay = document.getElementById("toggle-overlay") as HTMLInputElement;
   const btnSnap = document.getElementById("btn-snap") as HTMLButtonElement;
   const btnGoku = document.getElementById("btn-goku") as HTMLButtonElement;
   const btnReappear = document.getElementById("btn-reappear") as HTMLButtonElement;
   const btnCalibrate = document.getElementById("btn-calibrate") as HTMLButtonElement;
+  const plateStatusText = document.getElementById("plate-status-text") as HTMLElement;
 
   const rangeSnap = document.getElementById("range-snap") as HTMLInputElement;
   const rangeAudio = document.getElementById("range-audio") as HTMLInputElement;
@@ -17,12 +19,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   const valDuration = document.getElementById("val-duration") as HTMLElement;
   const statusPill = document.getElementById("status-pill") as HTMLElement;
 
-  // Load saved config
-  const stored = await chrome.storage.local.get("blip_config");
+  // Load saved config & plate
+  const stored = await chrome.storage.local.get(["blip_config", "blip_saved_plate"]);
   const config: BlipConfig = stored.blip_config || { ...DEFAULT_BLIP_CONFIG };
 
   // Set initial UI values
   toggleEnabled.checked = config.enabled;
+  if (toggleOverlay) {
+    toggleOverlay.checked = Boolean(config.showInMeetingOverlay);
+  }
+
+  if (plateStatusText) {
+    if (stored.blip_saved_plate) {
+      plateStatusText.textContent = "✓ Empty room plate active";
+      plateStatusText.style.color = "var(--success)";
+    } else {
+      plateStatusText.textContent = "No room plate saved (defaults to dark ambience)";
+      plateStatusText.style.color = "var(--text-muted)";
+    }
+  }
   rangeSnap.value = String(Math.round(config.snapSensitivity * 100));
   valSnap.textContent = `${rangeSnap.value}%`;
 
@@ -76,6 +91,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  if (toggleOverlay) {
+    toggleOverlay.addEventListener("change", () => {
+      saveConfig({ showInMeetingOverlay: toggleOverlay.checked });
+      sendTabMessage("BLIP_UPDATE_CONFIG", { showInMeetingOverlay: toggleOverlay.checked });
+    });
+  }
+
   btnSnap.addEventListener("click", () => {
     sendTabMessage("BLIP_TRIGGER_SNAP");
   });
@@ -111,6 +133,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Perform plate snapshot now that user has stepped aside
         sendTabMessage("BLIP_CALIBRATE");
         btnCalibrate.textContent = "Captured! Sit down";
+
+        if (plateStatusText) {
+          plateStatusText.textContent = "✓ Empty room plate active";
+          plateStatusText.style.color = "var(--success)";
+        }
 
         setTimeout(() => {
           btnCalibrate.disabled = false;

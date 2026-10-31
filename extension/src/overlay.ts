@@ -15,6 +15,20 @@ export class BlipMeetingOverlay {
     this.initMessageListener();
   }
 
+  public unmount(): void {
+    const existing = document.getElementById("blip-in-meeting-dock");
+    if (existing) {
+      existing.remove();
+    }
+    this.container = null;
+    this.statusBadge = null;
+    this.snapBtn = null;
+    this.gokuBtn = null;
+    this.reappearBtn = null;
+    this.calibBtn = null;
+    this.isMinimized = false;
+  }
+
   public mount(): void {
     if (document.getElementById("blip-in-meeting-dock")) {
       return;
@@ -22,6 +36,7 @@ export class BlipMeetingOverlay {
 
     const dock = document.createElement("div");
     dock.id = "blip-in-meeting-dock";
+    this.container = dock;
     dock.style.cssText = `
       position: fixed;
       bottom: 84px;
