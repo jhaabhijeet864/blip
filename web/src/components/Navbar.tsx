@@ -43,7 +43,7 @@ export default function Navbar() {
 
         {/* Center: Navigation Links */}
         <nav className="hidden md:flex items-center gap-7 text-xs font-medium text-zinc-400">
-          <Link href="/#demo" className="hover:text-white transition-colors">
+          <Link href="/demo/" className="hover:text-white transition-colors text-red-400/90 font-semibold">
             Interactive Demo
           </Link>
           <Link href="/#how-it-works" className="hover:text-white transition-colors">
@@ -78,7 +78,7 @@ export default function Navbar() {
             className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white font-semibold text-xs transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Download</span>
+            <span>Get Blip</span>
           </Link>
         </div>
       </div>

@@ -27,7 +27,7 @@ export default function Hero() {
             </p>
 
             {/* High-Contrast Action CTAs */}
-            <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
               <Link
                 href="/download/"
                 className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-lg bg-red-500 hover:bg-red-600 text-white font-semibold text-sm tracking-normal transition-colors text-center shadow-sm"
@@ -35,6 +35,22 @@ export default function Hero() {
                 <Download className="w-4 h-4" />
                 <span>Download</span>
               </Link>
+
+              {/* Product Hunt Featured Badge */}
+              <a
+                href="https://www.producthunt.com/products/blip-12?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-blip-13"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center transition-opacity hover:opacity-90"
+              >
+                <img
+                  alt="Blip - Snap your fingers to vanish from your meetings. 100% Free. | Product Hunt"
+                  width="250"
+                  height="54"
+                  src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1300131&theme=dark&t=1793521394392"
+                  className="w-[220px] sm:w-[250px] h-auto object-contain"
+                />
+              </a>
             </div>
           </div>
 

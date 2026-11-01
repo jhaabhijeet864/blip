@@ -31,7 +31,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Links */}
+          {/* Links & Product Hunt Badge */}
           <div className="flex flex-wrap items-center gap-6 text-zinc-400">
             <a
               href="https://github.com/jhaabhijeet864/blip"
@@ -65,6 +65,20 @@ export default function Footer() {
               className="hover:text-white transition-colors"
             >
               Support &amp; Issues
+            </a>
+            <a
+              href="https://www.producthunt.com/products/blip-12?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-blip-13"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block transition-opacity hover:opacity-90 ml-0 sm:ml-2"
+            >
+              <img
+                alt="Blip - Snap your fingers to vanish from your meetings. 100% Free. | Product Hunt"
+                width="180"
+                height="38"
+                src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1300131&theme=dark&t=1793521394392"
+                className="w-[180px] h-auto object-contain"
+              />
             </a>
           </div>
 

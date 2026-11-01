@@ -11,14 +11,25 @@ Snap your fingers like Thanos to dissolve into ash, or tap your temple like Goku
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Website](https://img.shields.io/badge/Website-Live%20Showcase-amber.svg)](https://jhaabhijeet864.github.io/blip)
+[![Interactive Simulator](https://img.shields.io/badge/Simulator-Live%20Demo-red.svg)](https://jhaabhijeet864.github.io/blip/demo/)
 [![Downloads](https://img.shields.io/badge/Downloads-Hub-red.svg)](https://jhaabhijeet864.github.io/blip/download/)
 [![Privacy: 100% Offline](https://img.shields.io/badge/Privacy-100%25%20Offline-success.svg)](SECURITY.md)
 
 <br/>
 
-[![Blip Showcase Banner](assets/screenshots/hero-banner.png)](https://jhaabhijeet864.github.io/blip)
+<a href="https://www.producthunt.com/products/blip-12?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-blip-13" target="_blank" rel="noopener noreferrer">
+  <img alt="Blip - Snap your fingers to vanish from your meetings. 100% Free. | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1300131&theme=dark&t=1793521394392" />
+</a>
 
-[Live Browser Demo](https://jhaabhijeet864.github.io/blip/#demo) • [Download Extension & Desktop](https://jhaabhijeet864.github.io/blip/download/) • [How It Works](#how-it-works) • [Quickstart](#quickstart)
+<br/><br/>
+
+[![Watch Google Meet Live Demo](assets/videos/demo-poster.jpg)](https://jhaabhijeet864.github.io/blip)
+
+*Click the image above to watch the live Google Meet call demo on the [official showcase website](https://jhaabhijeet864.github.io/blip).*
+
+<br/>
+
+[Live Browser Demo](https://jhaabhijeet864.github.io/blip/demo/) • [Download Extension & Desktop](https://jhaabhijeet864.github.io/blip/download/) • [How It Works](#how-it-works) • [Quickstart](#quickstart)
 
 </div>
 
@@ -36,13 +47,13 @@ Blip lets you vanish from live video meetings in real time. Snap your fingers or
 
 ## Interactive Browser Demo
 
-Test the snap physics right in your browser with zero installation:
+Test the snap physics directly in your browser with zero installation:
 
 <div align="center">
 
-[![Blip Interactive Simulator](assets/screenshots/interactive-demo.png)](https://jhaabhijeet864.github.io/blip/#demo)
+[![Blip Interactive Simulator](assets/screenshots/interactive-demo.png)](https://jhaabhijeet864.github.io/blip/demo/)
 
-*[Launch the Live Simulator](https://jhaabhijeet864.github.io/blip/#demo) to test camera capture, Thanos ash disintegration, and empty room calibration.*
+*[Launch the Live Simulator](https://jhaabhijeet864.github.io/blip/demo/) to test camera capture, Thanos ash disintegration, and empty room calibration.*
 
 </div>
 
