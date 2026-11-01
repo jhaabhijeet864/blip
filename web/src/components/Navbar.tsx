@@ -88,14 +88,14 @@ export default function Navbar() {
             <button
               type="button"
               onClick={toggleTheme}
-              className="w-9 h-9 rounded-full border border-black/10 dark:border-white/15 bg-black/[0.04] dark:bg-white/[0.05] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] flex items-center justify-center text-zinc-700 dark:text-zinc-200 transition-all hover:scale-110 active:scale-95 shadow-sm"
+              className="w-9 h-9 rounded-full border border-black/10 dark:border-white/15 bg-black/[0.04] dark:bg-white/[0.05] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-sm"
               aria-label="Toggle Dark / Light Theme"
               title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
               {theme === "dark" ? (
-                <Sun className="w-4 h-4 text-amber-400 animate-[spin_10s_linear_infinite]" />
+                <Sun className="w-4 h-4 text-white" />
               ) : (
-                <Moon className="w-4 h-4 text-indigo-600" />
+                <Moon className="w-4 h-4 text-zinc-900" />
               )}
             </button>
 
