@@ -50,14 +50,30 @@ export class AudioClickDetector {
       }
 
       this.audioContext = new AudioCtx();
+
+      // In Chromium, audio contexts created without prior user gesture often start suspended.
+      if (this.audioContext.state === "suspended") {
+        this.audioContext.resume().catch(() => {});
+        // Also ensure on first user interaction we resume immediately
+        const resumeAudio = () => {
+          if (this.audioContext && this.audioContext.state === "suspended") {
+            this.audioContext.resume().catch(() => {});
+          }
+          window.removeEventListener("click", resumeAudio);
+          window.removeEventListener("keydown", resumeAudio);
+        };
+        window.addEventListener("click", resumeAudio, { once: true });
+        window.addEventListener("keydown", resumeAudio, { once: true });
+      }
+
       this.analyser = this.audioContext.createAnalyser();
       this.analyser.fftSize = 512;
       this.analyser.smoothingTimeConstant = 0.05; // Ultra-fast transient attack response
 
-      // High-pass filter to isolate finger snap high-frequency transient (2000Hz+)
+      // High-pass filter to isolate finger snap high-frequency transient (1800Hz+)
       const highPassFilter = this.audioContext.createBiquadFilter();
       highPassFilter.type = "highpass";
-      highPassFilter.frequency.value = 2200;
+      highPassFilter.frequency.value = 1800;
 
       this.sourceNode = this.audioContext.createMediaStreamSource(stream);
       this.sourceNode.connect(highPassFilter);
@@ -79,6 +95,11 @@ export class AudioClickDetector {
         return;
       }
 
+      // Check if context suspended and resume
+      if (this.audioContext && this.audioContext.state === "suspended") {
+        this.audioContext.resume().catch(() => {});
+      }
+
       this.analyser.getByteFrequencyData(this.dataBuffer);
       this.evaluateFrequencySpike(this.dataBuffer, performance.now());
 
@@ -97,12 +118,12 @@ export class AudioClickDetector {
   }
 
   public evaluateFrequencySpike(freqData: Uint8Array, now: number): boolean {
-    // Calculate RMS energy in snap band (approx bins 25 to 80 for 512 FFT at 48kHz)
+    // Calculate RMS energy in snap band (approx bins 20 to 90 for 512 FFT at 48kHz)
     let sum = 0;
     let peak = 0;
-    const startBin = Math.floor(freqData.length * 0.15); // ~2.2 kHz
-    const endBin = Math.floor(freqData.length * 0.70); // ~8 kHz
-    const binCount = endBin - startBin;
+    const startBin = Math.floor(freqData.length * 0.12); // ~1.8 kHz
+    const endBin = Math.floor(freqData.length * 0.75); // ~8 kHz
+    const binCount = Math.max(1, endBin - startBin);
 
     for (let i = startBin; i < endBin; i++) {
       const val = freqData[i] / 255;
@@ -114,12 +135,13 @@ export class AudioClickDetector {
 
     const rms = Math.sqrt(sum / binCount);
     const delta = rms - this.previousRms;
-    this.previousRms = rms * 0.6 + this.previousRms * 0.4; // Moving baseline
+    this.previousRms = rms * 0.5 + this.previousRms * 0.5; // Moving baseline
 
     // Sharp rise attack + peak threshold + cooldown
-    // Higher clickThreshold means more sensitive (lower required delta)
-    const sensitivityTrigger = (1.0 - this.clickThreshold) * 0.35 + 0.08;
-    const isTransientClick = delta > sensitivityTrigger && peak > 0.28 && (now - this.lastClickTime > this.cooldownMs || this.lastClickTime === 0);
+    // Practical real-world microphone calibration:
+    // Sensitivity scale: higher threshold slider makes it more sensitive
+    const sensitivityTrigger = Math.max(0.04, (1.0 - this.clickThreshold) * 0.25 + 0.05);
+    const isTransientClick = delta > sensitivityTrigger && peak > 0.20 && (now - this.lastClickTime > this.cooldownMs || this.lastClickTime === 0);
 
     if (isTransientClick) {
       this.lastClickTime = now;

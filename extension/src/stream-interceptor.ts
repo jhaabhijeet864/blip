@@ -138,6 +138,11 @@ export class BlipStreamInterceptor {
 
     const realStream = await this.originalGetUserMedia.call(navigator.mediaDevices, constraints);
 
+    // If audio was requested in this call (Google Meet often calls getUserMedia({audio: true}) separately)
+    if (realStream.getAudioTracks().length > 0) {
+      this.audioDetector.start(realStream);
+    }
+
     // If video is not requested or Blip is disabled, pass through original stream
     const hasVideo = Boolean(constraints && constraints.video);
     if (!hasVideo || !this.config.enabled) {
