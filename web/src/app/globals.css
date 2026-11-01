@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 :root {
+  --background: #ffffff;
+  --foreground: #18181b;
+}
+
+html.dark {
   --background: #000000;
   --foreground: #ededed;
 }
@@ -28,6 +33,12 @@ body {
 .bg-blueprint-grid {
   background-size: 32px 32px;
   background-image: 
+    linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+}
+
+html.dark .bg-blueprint-grid {
+  background-image: 
     linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
 }
@@ -45,9 +56,13 @@ body {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 11px;
   line-height: 1;
-  color: #52525b;
+  color: #a1a1aa;
   pointer-events: none;
   z-index: 10;
+}
+
+html.dark .reticle-corner::before {
+  color: #52525b;
 }
 
 .reticle-corner::after {
@@ -58,31 +73,29 @@ body {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 11px;
   line-height: 1;
-  color: #52525b;
+  color: #a1a1aa;
   pointer-events: none;
   z-index: 10;
 }
 
-/* Viewfinder bracket corners */
-.viewfinder-bracket {
-  position: relative;
+html.dark .reticle-corner::after {
+  color: #52525b;
 }
 
-/* Subtle scanning line animation */
-@keyframes scanline {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(1000%); }
-}
-
-.animate-scanline {
-  animation: scanline 8s linear infinite;
-}
-
-/* Hard glassmorphism pill styling */
+/* Hard glassmorphism pill styling (Dark Mode) */
 .hard-glass-navbar {
-  background: rgba(18, 18, 22, 0.65);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(28px) saturate(190%);
   -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 
+    0 12px 35px rgba(0, 0, 0, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.04),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+html.dark .hard-glass-navbar {
+  background: rgba(18, 18, 22, 0.65);
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 
     0 12px 40px rgba(0, 0, 0, 0.65),
@@ -92,9 +105,18 @@ body {
 }
 
 .hard-glass-navbar-scrolled {
-  background: rgba(12, 12, 16, 0.85);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(32px) saturate(200%);
   -webkit-backdrop-filter: blur(32px) saturate(200%);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  box-shadow: 
+    0 16px 45px rgba(0, 0, 0, 0.1),
+    0 6px 20px rgba(239, 68, 68, 0.15),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+html.dark .hard-glass-navbar-scrolled {
+  background: rgba(12, 12, 16, 0.85);
   border: 1px solid rgba(239, 68, 68, 0.35);
   box-shadow: 
     0 16px 45px rgba(0, 0, 0, 0.8),
@@ -105,19 +127,35 @@ body {
 
 /* Hard Glassmorphism Card Style across the entire site */
 .hard-glass-card {
-  background: rgba(13, 13, 17, 0.72);
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 
+    0 10px 30px -10px rgba(0, 0, 0, 0.06),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.8);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html.dark .hard-glass-card {
+  background: rgba(13, 13, 17, 0.72);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 
     0 10px 30px -10px rgba(0, 0, 0, 0.8),
     inset 0 1px 1px 0 rgba(255, 255, 255, 0.12);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .hard-glass-card:hover {
   transform: translateY(-6px) scale(1.015);
-  border-color: rgba(239, 68, 68, 0.4);
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 
+    0 20px 40px -10px rgba(0, 0, 0, 0.1),
+    0 8px 25px -5px rgba(239, 68, 68, 0.2),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.9);
+}
+
+html.dark .hard-glass-card:hover {
   background: rgba(20, 18, 24, 0.82);
   box-shadow: 
     0 20px 40px -10px rgba(0, 0, 0, 0.9),
@@ -138,7 +176,7 @@ body {
 .animate-marquee {
   display: flex;
   width: max-content;
-  animation: marquee 28s linear infinite;
+  animation: marquee 24s linear infinite;
 }
 
 .animate-marquee:hover {

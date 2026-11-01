@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { ThemeProvider } from "@/context/ThemeContext";
 import "./globals.css";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
@@ -50,8 +51,10 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="16x16" href={`${basePath}/favicon-16x16.png`} />
         <link rel="apple-touch-icon" href={`${basePath}/apple-touch-icon.png`} />
       </head>
-      <body className="min-h-screen bg-[#000000] text-[#ededed] antialiased selection:bg-red-500 selection:text-white">
-        {children}
+      <body className="min-h-screen bg-white dark:bg-[#000000] text-zinc-900 dark:text-[#ededed] antialiased selection:bg-red-500 selection:text-white transition-colors duration-300">
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
         {/* Cloudflare Web Analytics */}
         <Script
           strategy="afterInteractive"
