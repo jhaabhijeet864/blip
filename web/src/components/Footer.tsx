@@ -2,17 +2,17 @@
 
 import React from "react";
 import Image from "next/image";
-import { Terminal, Shield, ExternalLink } from "lucide-react";
+import { Terminal } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="py-12 bg-[#050507] text-zinc-400 text-xs">
+    <footer className="py-12 bg-[#050507] text-zinc-400 text-sm">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-12">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-b border-zinc-900">
           
-          {/* Brand & Tagline */}
+          {/* Brand */}
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1 shadow-sm">
+            <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1.5 shadow-sm">
               <Image
                 src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/logo.svg`}
                 alt="Blip Logo"
@@ -22,24 +22,21 @@ export default function Footer() {
               />
             </div>
             <div>
-              <span className="font-extrabold text-white tracking-tight text-sm">
+              <span className="font-extrabold text-white tracking-tight text-base">
                 BLIP
-              </span>
-              <span className="text-zinc-500 ml-2">
-                · Gesture-Controlled Disappearance for Online Meetings
               </span>
             </div>
           </div>
 
           {/* Links & Product Hunt Badge */}
-          <div className="flex flex-wrap items-center gap-6 text-zinc-400">
+          <div className="flex flex-wrap items-center gap-6 text-zinc-400 text-sm">
             <a
               href="https://github.com/jhaabhijeet864/blip"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-white transition-colors flex items-center gap-1.5 font-mono"
             >
-              <Terminal className="w-3.5 h-3.5" />
+              <Terminal className="w-4 h-4 text-zinc-400" />
               <span>GitHub</span>
             </a>
             <a
@@ -87,7 +84,7 @@ export default function Footer() {
         {/* Bottom Status Bar */}
         <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-zinc-500 text-xs">
           <div>
-            100% Offline &amp; Safe · Runs locally on your device with zero cloud tracking
+            100% Local &amp; Private · Open Source Software
           </div>
           <div>
             © {new Date().getFullYear()} Blip. Free &amp; Open Source.
