@@ -43,105 +43,116 @@ export class BlipMeetingOverlay {
       left: 50%;
       transform: translateX(-50%);
       z-index: 2147483640;
-      background: rgba(15, 23, 42, 0.92);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(139, 92, 246, 0.35);
-      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.7), 0 0 20px rgba(139, 92, 246, 0.25);
+      background: linear-gradient(135deg, rgba(28, 28, 32, 0.72) 0%, rgba(14, 14, 18, 0.85) 100%);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-top: 1px solid rgba(255, 255, 255, 0.28);
+      box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
       border-radius: 9999px;
       padding: 6px 14px;
       display: flex;
       align-items: center;
       gap: 8px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Google Sans", sans-serif;
       font-size: 13px;
-      color: #f8fafc;
+      color: #f1f3f5;
       user-select: none;
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     `;
 
-    // 1. Brand & Status badge
+    // 1. Brand Logo Container
     const brandContainer = document.createElement("div");
     brandContainer.style.cssText = `
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding-right: 6px;
+      gap: 8px;
+      padding-right: 10px;
+      margin-right: 2px;
       border-right: 1px solid rgba(255, 255, 255, 0.12);
       cursor: pointer;
     `;
 
-    const icon = document.createElement("span");
-    icon.textContent = "⚡";
-    icon.style.cssText = `
-      background: #8b5cf6;
-      color: white;
+    const logoImg = document.createElement("img");
+    try {
+      logoImg.src = chrome.runtime.getURL("icons/icon-48.png");
+    } catch {
+      logoImg.src = "icons/icon-48.png";
+    }
+    logoImg.alt = "Blip";
+    logoImg.style.cssText = `
       width: 22px;
       height: 22px;
+      object-fit: contain;
       border-radius: 50%;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 800;
+      display: inline-block;
+      user-select: none;
+      pointer-events: none;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
     `;
 
     this.statusBadge = document.createElement("span");
-    this.statusBadge.textContent = "● LIVE";
     this.statusBadge.style.cssText = `
-      font-size: 11px;
-      font-weight: 700;
-      color: #22c55e;
-      letter-spacing: 0.02em;
+      display: none;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
     `;
 
-    brandContainer.appendChild(icon);
+    brandContainer.appendChild(logoImg);
     brandContainer.appendChild(this.statusBadge);
 
-    // 2. Action Buttons
-    this.snapBtn = this.createButton("🤌 Snap Dust", "#8b5cf6", () => {
+    // 2. Action Buttons styled with metallic finish and hard glassmorphism
+    this.snapBtn = this.createButton("Snap Dust", "snap", () => {
       this.dispatchAction("BLIP_TRIGGER_SNAP");
     });
 
-    this.gokuBtn = this.createButton("⚡ Goku Flash", "#f59e0b", () => {
+    this.gokuBtn = this.createButton("Goku Flash", "goku", () => {
       this.dispatchAction("BLIP_TRIGGER_GOKU");
     });
 
-    this.reappearBtn = this.createButton("✨ Reappear", "#10b981", () => {
+    this.reappearBtn = this.createButton("Reappear", "reappear", () => {
       this.dispatchAction("BLIP_TRIGGER_REAPPEAR");
     });
     this.reappearBtn.style.display = "none"; // hidden until vanished
 
-    this.calibBtn = this.createButton("📸 Calibrate (3s)", "#2563eb", () => {
+    this.calibBtn = this.createButton("Calibrate (3s)", "calibrate", () => {
       this.handleCalibration();
     });
 
     // 3. Minimize / Expand button
     const minBtn = document.createElement("button");
-    minBtn.textContent = "✕";
+    minBtn.textContent = "\u2715";
     minBtn.title = "Minimize Blip toolbar";
     minBtn.style.cssText = `
-      background: transparent;
-      border: none;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       color: #94a3b8;
       cursor: pointer;
-      font-size: 12px;
-      width: 20px;
-      height: 20px;
+      font-size: 11px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 0;
       margin-left: 2px;
-      transition: background 0.15s ease, color 0.15s ease;
+      transition: all 0.18s ease;
     `;
     minBtn.onmouseenter = () => {
-      minBtn.style.background = "rgba(255, 255, 255, 0.1)";
-      minBtn.style.color = "#f8fafc";
+      minBtn.style.background = "rgba(255, 255, 255, 0.14)";
+      minBtn.style.borderColor = "rgba(255, 255, 255, 0.25)";
+      minBtn.style.color = "#ffffff";
     };
     minBtn.onmouseleave = () => {
-      minBtn.style.background = "transparent";
+      minBtn.style.background = "rgba(255, 255, 255, 0.04)";
+      minBtn.style.borderColor = "rgba(255, 255, 255, 0.08)";
       minBtn.style.color = "#94a3b8";
     };
     minBtn.onclick = () => {
@@ -162,32 +173,69 @@ export class BlipMeetingOverlay {
     this.dispatchAction("BLIP_STATUS_REQUEST");
   }
 
-  private createButton(text: string, bgColor: string, onClick: () => void): HTMLButtonElement {
+  private createButton(text: string, variant: "snap" | "goku" | "reappear" | "calibrate", onClick: () => void): HTMLButtonElement {
     const btn = document.createElement("button");
     btn.textContent = text;
+    
+    // Metallic glassmorphic button styling
+    const baseGradient = "linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.02) 100%)";
+    const hoverGradient = "linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.05) 100%)";
+    
+    let accentBorder = "rgba(255, 255, 255, 0.14)";
+    let accentHoverBorder = "rgba(255, 255, 255, 0.32)";
+    let accentColor = "#e2e8f0";
+    let accentHoverGlow = "rgba(255, 255, 255, 0.12)";
+
+    if (variant === "reappear") {
+      accentColor = "#86efac";
+      accentBorder = "rgba(134, 239, 172, 0.35)";
+      accentHoverBorder = "rgba(134, 239, 172, 0.6)";
+      accentHoverGlow = "rgba(134, 239, 172, 0.25)";
+    }
+
     btn.style.cssText = `
-      background: ${bgColor};
-      color: #ffffff;
-      border: none;
+      background: ${baseGradient};
+      color: ${accentColor};
+      border: 1px solid ${accentBorder};
+      border-top: 1px solid rgba(255, 255, 255, 0.22);
       border-radius: 9999px;
-      padding: 6px 12px;
+      padding: 6px 14px;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 500;
+      letter-spacing: 0.01em;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-      transition: transform 0.12s ease, opacity 0.12s ease;
+      gap: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     `;
+
     btn.onmouseenter = () => {
-      btn.style.opacity = "0.9";
-      btn.style.transform = "scale(1.03)";
+      btn.style.background = hoverGradient;
+      btn.style.borderColor = accentHoverBorder;
+      btn.style.boxShadow = `0 4px 12px rgba(0, 0, 0, 0.45), 0 0 10px ${accentHoverGlow}, inset 0 1px 0 rgba(255, 255, 255, 0.25)`;
+      btn.style.transform = "translateY(-1px)";
     };
+
     btn.onmouseleave = () => {
-      btn.style.opacity = "1";
-      btn.style.transform = "scale(1)";
+      btn.style.background = baseGradient;
+      btn.style.borderColor = accentBorder;
+      btn.style.borderTopColor = "rgba(255, 255, 255, 0.22)";
+      btn.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15)";
+      btn.style.transform = "translateY(0)";
     };
+
+    btn.onmousedown = () => {
+      btn.style.transform = "translateY(1px) scale(0.98)";
+    };
+
+    btn.onmouseup = () => {
+      btn.style.transform = "translateY(-1px)";
+    };
+
     btn.onclick = onClick;
     return btn;
   }
@@ -196,23 +244,23 @@ export class BlipMeetingOverlay {
     if (!this.calibBtn) return;
     let countdown = 3;
     this.calibBtn.disabled = true;
-    this.calibBtn.textContent = `Step aside! ${countdown}...`;
+    this.calibBtn.textContent = `Step aside: ${countdown}s`;
 
     this.dispatchAction("BLIP_CALIBRATE_START", { seconds: countdown });
 
     const timer = window.setInterval(() => {
       countdown--;
       if (countdown > 0 && this.calibBtn) {
-        this.calibBtn.textContent = `Step aside! ${countdown}...`;
+        this.calibBtn.textContent = `Step aside: ${countdown}s`;
       } else {
         clearInterval(timer);
         this.dispatchAction("BLIP_CALIBRATE");
         if (this.calibBtn) {
-          this.calibBtn.textContent = "✓ Room Captured!";
+          this.calibBtn.textContent = "Room Saved";
           setTimeout(() => {
             if (this.calibBtn) {
               this.calibBtn.disabled = false;
-              this.calibBtn.textContent = "📸 Calibrate (3s)";
+              this.calibBtn.textContent = "Calibrate (3s)";
             }
           }, 2500);
         }
@@ -225,29 +273,52 @@ export class BlipMeetingOverlay {
     this.isMinimized = !this.isMinimized;
 
     if (this.isMinimized) {
-      this.container.style.padding = "6px";
+      this.container.style.padding = "4px";
       this.container.style.borderRadius = "50%";
       this.container.style.bottom = "84px";
       this.container.style.left = "24px";
       this.container.style.transform = "none";
+      this.container.style.background = "linear-gradient(135deg, rgba(28, 28, 32, 0.75) 0%, rgba(14, 14, 18, 0.9) 100%)";
+      this.container.style.backdropFilter = "blur(24px) saturate(180%)";
+      this.container.style.border = "1px solid rgba(255, 255, 255, 0.18)";
+      this.container.style.borderTop = "1px solid rgba(255, 255, 255, 0.3)";
+      this.container.style.boxShadow = "0 8px 24px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2)";
+      
+      let logoUrl = "icons/icon-48.png";
+      try {
+        logoUrl = chrome.runtime.getURL("icons/icon-48.png");
+      } catch {}
+
       this.container.innerHTML = `
         <button id="blip-expand-btn" title="Expand Blip Toolbar" style="
-          background: #8b5cf6;
-          color: white;
-          width: 38px;
-          height: 38px;
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          width: 36px;
+          height: 36px;
           border-radius: 50%;
-          border: 1px solid rgba(255, 255, 255, 0.25);
           cursor: pointer;
-          font-size: 16px;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-        ">⚡</button>
+          padding: 6px;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+          transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+        ">
+          <img src="${logoUrl}" alt="Blip" style="width: 100%; height: 100%; object-fit: contain; pointer-events: none;" />
+        </button>
       `;
       const expandBtn = document.getElementById("blip-expand-btn");
       if (expandBtn) {
+        expandBtn.onmouseenter = () => {
+          expandBtn.style.background = "linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.06) 100%)";
+          expandBtn.style.borderColor = "rgba(255, 255, 255, 0.35)";
+          expandBtn.style.transform = "scale(1.06)";
+        };
+        expandBtn.onmouseleave = () => {
+          expandBtn.style.background = "linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%)";
+          expandBtn.style.borderColor = "rgba(255, 255, 255, 0.15)";
+          expandBtn.style.transform = "scale(1)";
+        };
         expandBtn.onclick = () => {
           if (this.container) {
             this.container.remove();
@@ -293,13 +364,16 @@ export class BlipMeetingOverlay {
     if (this.statusBadge) {
       if (state.currentEffect !== "none") {
         this.statusBadge.textContent = state.currentEffect === "snap" ? "● DISSOLVING..." : "● TELEPORTING...";
-        this.statusBadge.style.color = "#f59e0b";
+        this.statusBadge.style.color = "#f2994a";
+        this.statusBadge.style.display = "inline-block";
       } else if (state.isVanished) {
         this.statusBadge.textContent = "● VANISHED";
-        this.statusBadge.style.color = "#8b5cf6";
+        this.statusBadge.style.color = "#ea4335";
+        this.statusBadge.style.display = "inline-block";
       } else {
-        this.statusBadge.textContent = "● LIVE";
-        this.statusBadge.style.color = "#22c55e";
+        // Remove "LIVE" text as requested - keep clean logo indicator in normal live mode
+        this.statusBadge.textContent = "";
+        this.statusBadge.style.display = "none";
       }
     }
 
