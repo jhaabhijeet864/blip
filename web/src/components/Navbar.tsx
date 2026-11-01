@@ -41,20 +41,29 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Center: Navigation Links */}
-        <nav className="hidden md:flex items-center gap-7 text-xs font-medium text-zinc-400">
+        {/* Center: Clean & Authentic Navigation Links */}
+        <nav className="hidden md:flex items-center gap-6 lg:gap-7 text-xs font-medium text-zinc-400">
           <Link href="/demo/" className="hover:text-white transition-colors text-red-400/90 font-semibold">
-            Interactive Demo
+            Live Simulator
           </Link>
           <Link href="/#how-it-works" className="hover:text-white transition-colors">
-            How It Works
+            Architecture
           </Link>
-          <Link href="/#scenarios" className="hover:text-white transition-colors">
-            Everyday Uses
+          <Link href="/#effects" className="hover:text-white transition-colors">
+            Shaders &amp; FX
           </Link>
           <Link href="/download/" className="hover:text-white transition-colors font-semibold text-zinc-200">
             Download
           </Link>
+          {/* Non-clickable crossed-out Pricing item (100% Free) */}
+          <div className="relative flex items-center cursor-not-allowed select-none group" title="Blip is 100% free and open-source. No paid tiers.">
+            <span className="text-zinc-500 line-through decoration-red-500 decoration-[1.5px] transition-colors">
+              Pricing
+            </span>
+            <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+              FREE
+            </span>
+          </div>
           <Link href="/#faq" className="hover:text-white transition-colors">
             FAQ
           </Link>
