@@ -23,9 +23,9 @@ Snap your fingers like Thanos to dissolve into ash, or tap your temple like Goku
 
 <br/><br/>
 
-[![Watch Google Meet Live Demo](assets/videos/demo-poster.jpg)](https://jhaabhijeet864.github.io/blip)
+[![Watch Blip Live Demo on YouTube](https://img.youtube.com/vi/P_nakVxrFf0/maxresdefault.jpg)](https://youtu.be/P_nakVxrFf0)
 
-*Click the image above to watch the live Google Meet call demo on the [official showcase website](https://jhaabhijeet864.github.io/blip).*
+*Watch the live demo in action on [YouTube](https://youtu.be/P_nakVxrFf0) or test it in your browser on the [official showcase site](https://jhaabhijeet864.github.io/blip).*
 
 <br/>
 
