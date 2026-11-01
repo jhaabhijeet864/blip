@@ -2,6 +2,7 @@ import { BlipConfig, BlipMessage, BlipState, DEFAULT_BLIP_CONFIG } from "./types
 
 document.addEventListener("DOMContentLoaded", async () => {
   const toggleEnabled = document.getElementById("toggle-enabled") as HTMLInputElement;
+  const toggleAutoSnap = document.getElementById("toggle-autosnap") as HTMLInputElement;
   const toggleOverlay = document.getElementById("toggle-overlay") as HTMLInputElement;
   const btnSnap = document.getElementById("btn-snap") as HTMLButtonElement;
   const btnGoku = document.getElementById("btn-goku") as HTMLButtonElement;
@@ -25,6 +26,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Set initial UI values
   toggleEnabled.checked = config.enabled;
+  if (toggleAutoSnap) {
+    toggleAutoSnap.checked = config.autoSnapEnabled !== false;
+  }
   if (toggleOverlay) {
     toggleOverlay.checked = Boolean(config.showInMeetingOverlay);
   }
@@ -54,6 +58,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const cur = await chrome.storage.local.get("blip_config");
     const merged = { ...(cur.blip_config || DEFAULT_BLIP_CONFIG), ...updates };
     await chrome.storage.local.set({ blip_config: merged });
+    sendTabMessage("BLIP_UPDATE_CONFIG", merged);
   }
 
   // Send message to active tab
@@ -79,17 +84,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Event handlers
+  // Event listeners
   toggleEnabled.addEventListener("change", () => {
     saveConfig({ enabled: toggleEnabled.checked });
-    if (!toggleEnabled.checked) {
-      statusPill.textContent = "Disabled";
-      statusPill.classList.add("off");
-    } else {
-      statusPill.textContent = "Ready";
-      statusPill.classList.remove("off");
-    }
   });
+
+  if (toggleAutoSnap) {
+    toggleAutoSnap.addEventListener("change", () => {
+      saveConfig({ autoSnapEnabled: toggleAutoSnap.checked });
+    });
+  }
 
   if (toggleOverlay) {
     toggleOverlay.addEventListener("change", () => {
@@ -112,27 +116,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     sendTabMessage("BLIP_TRIGGER_REAPPEAR");
   });
 
-  let calibTimer: number | null = null;
   btnCalibrate.addEventListener("click", () => {
-    if (calibTimer !== null) return;
-
     let countdown = 3;
     btnCalibrate.disabled = true;
-    btnCalibrate.textContent = `Step aside! ${countdown}...`;
+    btnCalibrate.textContent = `Step out: ${countdown}s...`;
 
+    // Notify stream interceptor and overlay of countdown start
     sendTabMessage("BLIP_CALIBRATE_START", { seconds: countdown });
 
-    calibTimer = window.setInterval(() => {
+    const interval = setInterval(() => {
       countdown--;
       if (countdown > 0) {
-        btnCalibrate.textContent = `Step aside! ${countdown}...`;
+        btnCalibrate.textContent = `Step out: ${countdown}s...`;
       } else {
-        clearInterval(calibTimer!);
-        calibTimer = null;
-
-        // Perform plate snapshot now that user has stepped aside
+        clearInterval(interval);
+        btnCalibrate.textContent = "Capturing plate...";
         sendTabMessage("BLIP_CALIBRATE");
-        btnCalibrate.textContent = "Captured! Sit down";
 
         if (plateStatusText) {
           plateStatusText.textContent = "✓ Empty room plate active";

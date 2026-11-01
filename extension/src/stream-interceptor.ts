@@ -66,21 +66,39 @@ export class BlipStreamInterceptor {
   }
 
   constructor(options?: StreamInterceptorOptions) {
-    this.kinematics = new DualTriggerSnapKinematics(0.06, 1500);
+    this.kinematics = new DualTriggerSnapKinematics(0.06, 1200);
     this.audioDetector = new AudioClickDetector(this.config.audioClickThreshold);
     this.particlePool = new CanvasParticlePool(3000);
     this.plateManager = new BackgroundPlateManager();
     this.muteManager = new MeetingMuteManager();
 
+    // Direct spontaneous acoustic snap detection in calls
     this.audioDetector.setOnClickCallback((event) => {
       this.kinematics.registerAudioClick(event.timestamp);
+
+      // Spontaneous acoustic snap triggering (allows hands-free snapping in calls)
+      if (this.config.autoSnapEnabled) {
+        const now = event.timestamp;
+        if (now - this.state.lastGestureTime > 1200) {
+          this.state.lastGestureTime = now;
+          if (this.state.isVanished) {
+            this.triggerReappear();
+          } else {
+            this.triggerVanish(this.config.gestureMode || "snap");
+          }
+        }
+      }
     });
 
     this.kinematics.setOnGestureTriggered((event) => {
-      if (this.state.isVanished) {
-        this.triggerReappear();
-      } else {
-        this.triggerVanish(event.type);
+      const now = event.timestamp;
+      if (now - this.state.lastGestureTime > 1000) {
+        this.state.lastGestureTime = now;
+        if (this.state.isVanished) {
+          this.triggerReappear();
+        } else {
+          this.triggerVanish(event.type);
+        }
       }
     });
 
@@ -340,55 +358,47 @@ export class BlipStreamInterceptor {
       return;
     }
 
-    // Case 3: Fully Vanished (Empty Room Clean Plate)
+    // Case 3: Fully Vanished (Showing empty room background plate)
     if (this.state.isVanished) {
       if (this.state.hasBackgroundPlate && this.backgroundPlateCanvas) {
         this.processingCtx.drawImage(this.backgroundPlateCanvas, 0, 0, w, h);
       } else {
-        // Fallback plate: clean dark meeting ambience if plate not yet captured
-        this.processingCtx.fillStyle = "#090d16";
-        this.processingCtx.fillRect(0, 0, w, h);
-        this.processingCtx.fillStyle = "#64748b";
-        this.processingCtx.font = "14px monospace";
-        this.processingCtx.textAlign = "center";
-        this.processingCtx.fillText("Empty Room Plate (Vanished)", w / 2, h / 2);
+        // Fallback if plate hasn't been captured yet: gentle static freeze
+        this.processingCtx.drawImage(this.hiddenVideo, 0, 0, w, h);
       }
     }
   }
 
   private renderEffectFrame(w: number, h: number): void {
-    if (!this.processingCtx || !this.hiddenVideo) {
-      return;
-    }
+    if (!this.processingCtx) return;
 
     const now = performance.now();
-    const dt = this.lastEffectFrameTime > 0
-      ? Math.min(0.1, (now - this.lastEffectFrameTime) / 1000)
-      : 1 / 30;
+    const dt = this.lastEffectFrameTime > 0 ? (now - this.lastEffectFrameTime) / 1000 : 0.016;
     this.lastEffectFrameTime = now;
 
-    // 1. THANOS DUST SNAP DISSOLVE EFFECT
-    if (this.state.currentEffect === "snap") {
-      this.effectProgress += dt / (this.config.dustDurationMs / 1000);
-      const progress = this.effectProgress;
+    const duration = (this.config.dustDurationMs || 1500) / 1000;
+    this.effectProgress += dt / duration;
+    const progress = Math.min(1.0, this.effectProgress);
 
-      // Draw background plate underneath
+    if (this.state.currentEffect === "snap") {
+      // Background base plate
       if (this.state.hasBackgroundPlate && this.backgroundPlateCanvas) {
         this.processingCtx.drawImage(this.backgroundPlateCanvas, 0, 0, w, h);
       } else {
-        this.processingCtx.fillStyle = "#090d16";
+        this.processingCtx.fillStyle = "#000000";
         this.processingCtx.fillRect(0, 0, w, h);
       }
 
-      // Fade out live person silhouette simulation
-      this.processingCtx.save();
-      const alpha = Math.max(0, 1.0 - progress);
-      this.processingCtx.globalAlpha = alpha;
-      this.processingCtx.drawImage(this.hiddenVideo, 0, 0, w, h);
-      this.processingCtx.restore();
+      // Draw fading video frame as ash dissolves
+      if (this.hiddenVideo && progress < 0.8) {
+        this.processingCtx.save();
+        this.processingCtx.globalAlpha = Math.max(0, 1.0 - progress * 1.25);
+        this.processingCtx.drawImage(this.hiddenVideo, 0, 0, w, h);
+        this.processingCtx.restore();
+      }
 
-      // Render drifting ash particles with curl noise
-      this.particlePool.update(dt, now / 1000);
+      // Update and draw Thanos particle ash simulation
+      this.particlePool.update(dt, progress, "up");
       this.particlePool.render(this.processingCtx);
 
       if (progress >= 1.0) {
@@ -397,36 +407,24 @@ export class BlipStreamInterceptor {
         this.effectProgress = 0;
         this.broadcastState();
       }
-      return;
-    }
-
-    // 2. GOKU INSTANT TRANSMISSION ANIME FLASH EFFECT
-    if (this.state.currentEffect === "goku") {
-      this.effectProgress += dt / 0.85; // fast 850ms anime teleport
-      const progress = this.effectProgress;
-
-      // Draw background plate underneath
-      if (this.state.hasBackgroundPlate && this.backgroundPlateCanvas) {
+    } else if (this.state.currentEffect === "goku") {
+      // Goku Instant Transmission Anime Speedlines + Whiteout Flash
+      if (this.hiddenVideo && progress < 0.5) {
+        this.processingCtx.drawImage(this.hiddenVideo, 0, 0, w, h);
+      } else if (this.state.hasBackgroundPlate && this.backgroundPlateCanvas) {
         this.processingCtx.drawImage(this.backgroundPlateCanvas, 0, 0, w, h);
       } else {
-        this.processingCtx.fillStyle = "#090d16";
+        this.processingCtx.fillStyle = "#000000";
         this.processingCtx.fillRect(0, 0, w, h);
       }
 
-      // Fast vanish subject
-      this.processingCtx.save();
-      this.processingCtx.globalAlpha = Math.max(0, 1.0 - progress * 2);
-      this.processingCtx.drawImage(this.hiddenVideo, 0, 0, w, h);
-      this.processingCtx.restore();
-
-      // Anime radial speed lines
-      const cx = w / 2;
+      const cx = w * 0.5;
       const cy = h * 0.45;
-      const lineCount = 36;
+      const lineCount = 32;
 
       this.processingCtx.save();
-      this.processingCtx.strokeStyle = `rgba(255, 255, 255, ${Math.max(0, 1.0 - progress * 1.5)})`;
-      this.processingCtx.lineWidth = 2.5;
+      this.processingCtx.lineWidth = 3;
+      this.processingCtx.strokeStyle = "rgba(255, 255, 255, 0.85)";
 
       for (let i = 0; i < lineCount; i++) {
         const angle = (i * (Math.PI * 2)) / lineCount;
@@ -592,6 +590,9 @@ export class BlipStreamInterceptor {
 
   public updateConfig(newConfig: Partial<BlipConfig>): void {
     this.config = { ...this.config, ...newConfig };
+    if (typeof newConfig.audioClickThreshold === "number") {
+      this.audioDetector.setThreshold(newConfig.audioClickThreshold);
+    }
   }
 
   public getState(): BlipState {

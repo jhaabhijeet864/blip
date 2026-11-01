@@ -17,7 +17,7 @@ export class AudioClickDetector {
   private previousRms = 0;
   private clickThreshold = 0.65; // 0.0 to 1.0 normalized sensitivity
   private lastClickTime = 0;
-  private cooldownMs = 250; // Minimum time between consecutive acoustic clicks
+  private cooldownMs = 250; // Rapid acoustic click detector debounce (high-level triggers apply extra debounce)
 
   private onClickCallback: ClickCallback | null = null;
 
@@ -52,7 +52,7 @@ export class AudioClickDetector {
       this.audioContext = new AudioCtx();
       this.analyser = this.audioContext.createAnalyser();
       this.analyser.fftSize = 512;
-      this.analyser.smoothingTimeConstant = 0.1; // Fast transient response
+      this.analyser.smoothingTimeConstant = 0.05; // Ultra-fast transient attack response
 
       // High-pass filter to isolate finger snap high-frequency transient (2000Hz+)
       const highPassFilter = this.audioContext.createBiquadFilter();
@@ -100,8 +100,8 @@ export class AudioClickDetector {
     // Calculate RMS energy in snap band (approx bins 25 to 80 for 512 FFT at 48kHz)
     let sum = 0;
     let peak = 0;
-    const startBin = Math.floor(freqData.length * 0.15); // ~2 kHz
-    const endBin = Math.floor(freqData.length * 0.65); // ~8 kHz
+    const startBin = Math.floor(freqData.length * 0.15); // ~2.2 kHz
+    const endBin = Math.floor(freqData.length * 0.70); // ~8 kHz
     const binCount = endBin - startBin;
 
     for (let i = startBin; i < endBin; i++) {
@@ -114,11 +114,12 @@ export class AudioClickDetector {
 
     const rms = Math.sqrt(sum / binCount);
     const delta = rms - this.previousRms;
-    this.previousRms = rms * 0.7 + this.previousRms * 0.3; // Low-pass moving baseline
+    this.previousRms = rms * 0.6 + this.previousRms * 0.4; // Moving baseline
 
     // Sharp rise attack + peak threshold + cooldown
-    const sensitivityTrigger = (1.0 - this.clickThreshold) * 0.4 + 0.1;
-    const isTransientClick = delta > sensitivityTrigger && peak > 0.35 && now - this.lastClickTime > this.cooldownMs;
+    // Higher clickThreshold means more sensitive (lower required delta)
+    const sensitivityTrigger = (1.0 - this.clickThreshold) * 0.35 + 0.08;
+    const isTransientClick = delta > sensitivityTrigger && peak > 0.28 && (now - this.lastClickTime > this.cooldownMs || this.lastClickTime === 0);
 
     if (isTransientClick) {
       this.lastClickTime = now;
@@ -157,4 +158,3 @@ export class AudioClickDetector {
     }
   }
 }
-

@@ -1,4 +1,4 @@
-export type BlipActionType =
+export type BlipAction =
   | "BLIP_TRIGGER_SNAP"
   | "BLIP_TRIGGER_GOKU"
   | "BLIP_TRIGGER_REAPPEAR"
@@ -19,6 +19,7 @@ export interface BlipConfig {
   enabled: boolean;
   snapSensitivity: number; // 0.0 to 1.0
   audioClickThreshold: number; // 0.0 to 1.0
+  autoSnapEnabled: boolean; // Automatic snap detection via audio/gesture
   dustDurationMs: number; // e.g. 1500ms
   dustDirection: DustDirection;
   autoMute: boolean;
@@ -30,11 +31,12 @@ export const DEFAULT_BLIP_CONFIG: BlipConfig = {
   enabled: true,
   snapSensitivity: 0.75,
   audioClickThreshold: 0.65,
+  autoSnapEnabled: true, // Default ON for seamless snapping
   dustDurationMs: 1500,
   dustDirection: "up",
   autoMute: true,
   gestureMode: "snap",
-  showInMeetingOverlay: false, // Default opt-in: clean experience unless enabled
+  showInMeetingOverlay: false, // Default opt-in
 };
 
 export interface BlipState {
@@ -46,9 +48,8 @@ export interface BlipState {
   lastGestureTime: number;
 }
 
-export interface BlipMessage<T = unknown> {
-  source: "blip-extension-content" | "blip-extension-injected" | "blip-extension-popup" | "blip-extension-overlay";
-  action: BlipActionType;
-  payload?: T;
-  timestamp: number;
+export interface BlipMessage {
+  action: BlipAction;
+  payload?: any;
+  source?: string;
 }
