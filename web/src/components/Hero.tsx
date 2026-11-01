@@ -6,8 +6,11 @@ import { Download } from "lucide-react";
 
 export default function Hero() {
   return (
-    <section className="relative pt-28 pb-20 md:pt-36 md:pb-24 bg-[#000000] border-b border-zinc-800/80 bg-blueprint-grid">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-12">
+    <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 bg-[#000000] border-b border-zinc-800/80 bg-blueprint-grid overflow-hidden">
+      {/* Background Radial Glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-red-600/[0.07] blur-[140px] pointer-events-none rounded-full" />
+
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-12 relative z-10">
         {/* Asymmetrical Split Screen Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           
@@ -15,10 +18,10 @@ export default function Hero() {
           {/* LEFT COLUMN: Clean Typography & Consumer CTAs            */}
           {/* ========================================================= */}
           <div className="lg:col-span-6 flex flex-col justify-center">
-            {/* Main Headline */}
-            <h1 className="text-4xl sm:text-6xl lg:text-[64px] font-extrabold tracking-tight text-white leading-[1.04]">
+            {/* Main Headline with high-contrast text */}
+            <h1 className="text-4xl sm:text-6xl lg:text-[68px] font-black tracking-tight text-white leading-[1.04] drop-shadow-sm">
               Blip out of your next meeting.{" "}
-              <span className="text-red-500">Instantly.</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-400">Instantly.</span>
             </h1>
 
             {/* Description */}
@@ -30,18 +33,18 @@ export default function Hero() {
             <div className="mt-8 flex flex-wrap items-center gap-3 sm:gap-4">
               <Link
                 href="/download/"
-                className="h-[46px] inline-flex items-center justify-center gap-2.5 px-6 rounded-xl bg-red-500 hover:bg-red-600 text-white font-semibold text-sm tracking-normal transition-colors text-center shadow-sm select-none"
+                className="h-[46px] inline-flex items-center justify-center gap-2.5 px-6 rounded-xl bg-red-500 hover:bg-red-600 text-white font-semibold text-sm tracking-normal transition-all hover:scale-105 text-center shadow-[0_0_20px_rgba(239,68,68,0.35)] select-none"
               >
                 <Download className="w-4 h-4" />
                 <span>Download</span>
               </Link>
 
-              {/* Product Hunt Featured Badge matched exactly to button height */}
+              {/* Product Hunt Featured Badge */}
               <a
                 href="https://www.producthunt.com/products/blip-12?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-blip-13"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="h-[46px] inline-flex items-center justify-center transition-opacity hover:opacity-90 select-none"
+                className="h-[46px] inline-flex items-center justify-center transition-all hover:scale-105 select-none"
               >
                 <img
                   alt="Blip - Snap your fingers to vanish from your meetings. 100% Free. | Product Hunt"
@@ -58,22 +61,23 @@ export default function Hero() {
           {/* RIGHT COLUMN: Official Blip Hand Snap Logo Showcase      */}
           {/* ========================================================= */}
           <div className="lg:col-span-6 flex items-center justify-center relative">
-            <div className="relative w-full max-w-[460px] aspect-square flex items-center justify-center">
-              {/* Subtle ambient back-glow */}
-              <div className="absolute inset-0 rounded-full bg-red-500/10 blur-3xl pointer-events-none" />
+            <div className="relative w-full max-w-[480px] aspect-square flex items-center justify-center">
+              {/* Vibrant ambient back-glow behind the character */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-red-600/20 to-rose-500/10 blur-[90px] pointer-events-none animate-ambient-glow" />
 
-              {/* Clean blueprint container for logo */}
-              <div className="relative z-10 w-full h-full max-w-[380px] max-h-[380px] sm:max-w-[400px] sm:max-h-[400px] flex items-center justify-center p-8 rounded-2xl border border-zinc-800 bg-[#09090b]/80 backdrop-blur-sm shadow-2xl reticle-corner">
+              {/* Clean blueprint container with hard glass backdrop */}
+              <div className="relative z-10 w-full h-full max-w-[380px] max-h-[380px] sm:max-w-[420px] sm:max-h-[420px] flex items-center justify-center p-8 rounded-3xl border border-white/[0.08] bg-[#09090b]/85 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.9),inset_0_1px_1px_rgba(255,255,255,0.15)] reticle-corner group">
                 {/* Viewfinder corner accents */}
-                <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-zinc-700 pointer-events-none" />
-                <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-zinc-700 pointer-events-none" />
-                <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-zinc-700 pointer-events-none" />
-                <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-zinc-700 pointer-events-none" />
+                <div className="absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 border-zinc-700 pointer-events-none group-hover:border-red-500/70 transition-colors" />
+                <div className="absolute top-4 right-4 w-4 h-4 border-t-2 border-r-2 border-zinc-700 pointer-events-none group-hover:border-red-500/70 transition-colors" />
+                <div className="absolute bottom-4 left-4 w-4 h-4 border-b-2 border-l-2 border-zinc-700 pointer-events-none group-hover:border-red-500/70 transition-colors" />
+                <div className="absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 border-zinc-700 pointer-events-none group-hover:border-red-500/70 transition-colors" />
 
+                {/* Hand Logo Character with Gentle Floating Pop Animation */}
                 <img
                   src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/logo.svg`}
                   alt="Blip Gesture Hand Snap"
-                  className="w-full h-full object-contain filter drop-shadow-[0_10px_30px_rgba(0,0,0,0.85)] hover:scale-105 transition-transform duration-300 select-none pointer-events-none"
+                  className="w-full h-full object-contain filter drop-shadow-[0_15px_35px_rgba(0,0,0,0.9)] animate-subtle-float select-none pointer-events-none transition-transform duration-300"
                 />
               </div>
             </div>
