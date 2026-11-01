@@ -36,12 +36,15 @@ export default function PracticalUseCases() {
   ];
 
   return (
-    <section id="scenarios" className="py-24 bg-[#000000] border-b border-zinc-800">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-12">
+    <section id="scenarios" className="py-24 bg-[#000000] border-b border-zinc-800 relative overflow-hidden">
+      {/* Background red atmospheric tint */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-red-600/[0.04] blur-[120px] pointer-events-none rounded-full" />
+
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-12 relative z-10">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs uppercase tracking-wider font-bold text-red-500">
+          <span className="text-xs uppercase tracking-wider font-bold text-red-500 font-mono">
             Real-World Scenarios
           </span>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mt-2">
@@ -52,29 +55,29 @@ export default function PracticalUseCases() {
           </p>
         </div>
 
-        {/* 4 Cards Grid */}
+        {/* 4 Cards Grid with Hard Glassmorphism & Hover Pop Animation */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {useCases.map((item, idx) => {
             const Icon = item.icon;
             return (
               <div
                 key={idx}
-                className="rounded-2xl p-7 bg-[#09090b] border border-zinc-800/80 hover:border-zinc-700 transition-all flex flex-col justify-between"
+                className="hard-glass-card rounded-2xl p-7 flex flex-col justify-between cursor-default group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300">
-                      <Icon className="w-5 h-5 text-red-400" />
+                    <div className="w-10 h-10 rounded-xl bg-zinc-900/90 border border-white/10 group-hover:border-red-500/50 flex items-center justify-center text-zinc-300 transition-colors shadow-inner">
+                      <Icon className="w-5 h-5 text-red-400 group-hover:scale-110 transition-transform duration-200" />
                     </div>
-                    <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400">
+                    <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-zinc-900/90 border border-white/10 group-hover:border-red-500/30 text-zinc-300 transition-colors">
                       {item.tag}
                     </span>
                   </div>
 
-                  <h3 className="text-lg font-bold text-white mb-2">
+                  <h3 className="text-lg font-bold text-white mb-2 group-hover:text-red-300 transition-colors">
                     {item.title}
                   </h3>
-                  <p className="text-xs italic text-zinc-500 mb-4 border-l-2 border-zinc-800 pl-3">
+                  <p className="text-xs italic text-zinc-500 mb-4 border-l-2 border-red-500/40 pl-3">
                     "{item.quote}"
                   </p>
                   <p className="text-xs text-zinc-400 leading-relaxed font-normal">

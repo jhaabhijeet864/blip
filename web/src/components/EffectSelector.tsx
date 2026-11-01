@@ -7,12 +7,15 @@ export default function EffectSelector() {
   const [selectedEffect, setSelectedEffect] = useState<"thanos" | "goku">("thanos");
 
   return (
-    <section id="effects" className="py-24 bg-[#050507] border-b border-zinc-800">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-12">
+    <section id="effects" className="py-24 bg-[#050507] border-b border-zinc-800 relative overflow-hidden">
+      {/* Ambient background red hue */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[350px] bg-red-600/[0.05] blur-[130px] pointer-events-none rounded-full" />
+
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-12 relative z-10">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs uppercase tracking-wider font-bold text-red-500">
+          <span className="text-xs uppercase tracking-wider font-bold text-red-500 font-mono">
             Signature Exit Effects
           </span>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mt-2">
@@ -23,23 +26,23 @@ export default function EffectSelector() {
           </p>
         </div>
 
-        {/* 2 Effect Cards */}
+        {/* 2 Effect Cards with Glassmorphism & Pop Animation */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           
           {/* Effect 1: Thanos Dust Dissolve */}
           <div
             onClick={() => setSelectedEffect("thanos")}
-            className={`rounded-2xl p-8 sm:p-10 border cursor-pointer transition-all relative overflow-hidden ${
+            className={`hard-glass-card rounded-3xl p-8 sm:p-10 cursor-pointer relative overflow-hidden ${
               selectedEffect === "thanos"
-                ? "bg-zinc-950 border-red-500/60 shadow-[0_0_30px_-10px_rgba(239,68,68,0.25)]"
-                : "bg-[#09090b] border-zinc-800/80 hover:border-zinc-700"
+                ? "!border-red-500/70 !bg-zinc-950/90 shadow-[0_0_40px_-5px_rgba(239,68,68,0.35)]"
+                : ""
             }`}
           >
             <div className="flex items-center justify-between mb-8">
-              <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-red-400">
+              <div className="w-12 h-12 rounded-2xl bg-zinc-900/90 border border-white/10 flex items-center justify-center text-red-400 shadow-inner">
                 <Sparkles className="w-6 h-6" />
               </div>
-              <span className="text-xs font-medium px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300">
+              <span className="text-xs font-medium px-3 py-1 rounded-full bg-zinc-900/90 border border-white/10 text-zinc-300">
                 Gesture: Pinch &amp; Flick Snap
               </span>
             </div>
@@ -48,40 +51,48 @@ export default function EffectSelector() {
               Thanos Dust Dissolve
             </h3>
             <p className="text-sm sm:text-base text-zinc-400 leading-relaxed mb-8">
-              Your silhouette disintegrates into 2,500+ individual ash particles sampled directly from your clothes and skin. Particles drift upward with wind dynamics, cleanly revealing your empty chair.
+              Dissolve into 1,500+ cinematic ash particles that scatter into the breeze before leaving a pristine, empty room view.
             </p>
 
-            <div className="space-y-3 pt-6 border-t border-zinc-800/80 text-xs sm:text-sm text-zinc-300">
-              <div className="flex items-center gap-2.5">
-                <Check className="w-4 h-4 text-red-500 shrink-0" />
-                <span>Real-time color sampling from your camera feed</span>
+            {/* Spec details */}
+            <div className="space-y-3 border-t border-zinc-800/80 pt-6">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-500 font-mono">Particle Count</span>
+                <span className="text-white font-mono font-medium">1,500 local points</span>
               </div>
-              <div className="flex items-center gap-2.5">
-                <Check className="w-4 h-4 text-red-500 shrink-0" />
-                <span>Simulated wind turbulence &amp; progressive top-to-bottom erosion</span>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-500 font-mono">Turbulence Physics</span>
+                <span className="text-white font-mono font-medium">Trigonometric Curl Noise</span>
               </div>
-              <div className="flex items-center gap-2.5">
-                <Check className="w-4 h-4 text-red-500 shrink-0" />
-                <span>Seamlessly blends into your calibrated empty room plate</span>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-500 font-mono">Dissolve Timing</span>
+                <span className="text-white font-mono font-medium">1.8s progressive ash</span>
               </div>
             </div>
+
+            {selectedEffect === "thanos" && (
+              <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/50 text-red-400 text-xs font-mono">
+                <Check className="w-3.5 h-3.5" />
+                <span>Selected</span>
+              </div>
+            )}
           </div>
 
           {/* Effect 2: Goku Instant Transmission */}
           <div
             onClick={() => setSelectedEffect("goku")}
-            className={`rounded-2xl p-8 sm:p-10 border cursor-pointer transition-all relative overflow-hidden ${
+            className={`hard-glass-card rounded-3xl p-8 sm:p-10 cursor-pointer relative overflow-hidden ${
               selectedEffect === "goku"
-                ? "bg-zinc-950 border-red-500/60 shadow-[0_0_30px_-10px_rgba(239,68,68,0.25)]"
-                : "bg-[#09090b] border-zinc-800/80 hover:border-zinc-700"
+                ? "!border-red-500/70 !bg-zinc-950/90 shadow-[0_0_40px_-5px_rgba(239,68,68,0.35)]"
+                : ""
             }`}
           >
             <div className="flex items-center justify-between mb-8">
-              <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-yellow-400">
+              <div className="w-12 h-12 rounded-2xl bg-zinc-900/90 border border-white/10 flex items-center justify-center text-yellow-400 shadow-inner">
                 <Zap className="w-6 h-6" />
               </div>
-              <span className="text-xs font-medium px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300">
-                Gesture: Tap Temple with Two Fingers
+              <span className="text-xs font-medium px-3 py-1 rounded-full bg-zinc-900/90 border border-white/10 text-zinc-300">
+                Gesture: 2 Fingers to Forehead
               </span>
             </div>
 
@@ -89,23 +100,31 @@ export default function EffectSelector() {
               Goku Instant Transmission
             </h3>
             <p className="text-sm sm:text-base text-zinc-400 leading-relaxed mb-8">
-              Pay homage to Dragon Ball Z. Place index and middle finger on your forehead: screen speedlines flash across the frame, an electric aura pops, and you vanish in under 100ms.
+              Tap your temple with index and middle fingers to trigger anime radial speedlines, whiteout flash bloom, and an instant vanishing cut.
             </p>
 
-            <div className="space-y-3 pt-6 border-t border-zinc-800/80 text-xs sm:text-sm text-zinc-300">
-              <div className="flex items-center gap-2.5">
-                <Check className="w-4 h-4 text-red-500 shrink-0" />
-                <span>Geometric radial speedlines &amp; camera lens aura flare</span>
+            {/* Spec details */}
+            <div className="space-y-3 border-t border-zinc-800/80 pt-6">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-500 font-mono">Speedline Rays</span>
+                <span className="text-white font-mono font-medium">32 dynamic radial beams</span>
               </div>
-              <div className="flex items-center gap-2.5">
-                <Check className="w-4 h-4 text-red-500 shrink-0" />
-                <span>Instantaneous 100ms cutaway to empty chair</span>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-500 font-mono">Flash Duration</span>
+                <span className="text-white font-mono font-medium">200ms whiteout bloom</span>
               </div>
-              <div className="flex items-center gap-2.5">
-                <Check className="w-4 h-4 text-red-500 shrink-0" />
-                <span>Smooth audio continuation with zero call disconnect</span>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-500 font-mono">Camera Cut</span>
+                <span className="text-white font-mono font-medium">Instant empty plate switch</span>
               </div>
             </div>
+
+            {selectedEffect === "goku" && (
+              <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/50 text-red-400 text-xs font-mono">
+                <Check className="w-3.5 h-3.5" />
+                <span>Selected</span>
+              </div>
+            )}
           </div>
 
         </div>
