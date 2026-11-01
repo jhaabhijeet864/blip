@@ -118,37 +118,59 @@ export class AudioClickDetector {
   }
 
   public evaluateFrequencySpike(freqData: Uint8Array, now: number): boolean {
-    // Calculate RMS energy in snap band (approx bins 20 to 90 for 512 FFT at 48kHz)
-    let sum = 0;
-    let peak = 0;
-    const startBin = Math.floor(freqData.length * 0.12); // ~1.8 kHz
-    const endBin = Math.floor(freqData.length * 0.75); // ~8 kHz
-    const binCount = Math.max(1, endBin - startBin);
+    // Snap signature discrimination:
+    // Speech energy concentrates in voice fundamentals (<1.2 kHz) and vowel formants.
+    // Finger snaps produce an explosive impulsive burst heavily centered in 2.5 kHz - 7 kHz
+    // with virtually negligible low-frequency energy compared to high-frequency energy.
+    
+    const lowBinStart = 1;
+    const lowBinEnd = Math.floor(freqData.length * 0.10); // Voice band: ~100Hz - 1.2kHz
+    
+    const snapBinStart = Math.floor(freqData.length * 0.20); // Snap band: ~2.5kHz
+    const snapBinEnd = Math.floor(freqData.length * 0.70);   // Snap band: ~7.5kHz
+    
+    let lowEnergy = 0;
+    for (let i = lowBinStart; i < lowBinEnd; i++) {
+      const v = freqData[i] / 255;
+      lowEnergy += v * v;
+    }
+    const lowRms = Math.sqrt(lowEnergy / Math.max(1, lowBinEnd - lowBinStart));
 
-    for (let i = startBin; i < endBin; i++) {
+    let snapEnergy = 0;
+    let snapPeak = 0;
+    for (let i = snapBinStart; i < snapBinEnd; i++) {
       const val = freqData[i] / 255;
-      sum += val * val;
-      if (val > peak) {
-        peak = val;
+      snapEnergy += val * val;
+      if (val > snapPeak) {
+        snapPeak = val;
       }
     }
+    const snapRms = Math.sqrt(snapEnergy / Math.max(1, snapBinEnd - snapBinStart));
+    const delta = snapRms - this.previousRms;
+    this.previousRms = snapRms * 0.4 + this.previousRms * 0.6; // Moving baseline
 
-    const rms = Math.sqrt(sum / binCount);
-    const delta = rms - this.previousRms;
-    this.previousRms = rms * 0.5 + this.previousRms * 0.5; // Moving baseline
+    // Reject human speech: in speech, low voice energy dominates or equals high frequencies.
+    // In a finger snap, high-frequency snap energy is significantly higher than low speech fundamentals,
+    // or low energy is near silent background.
+    const isSpeech = lowRms > 0.18 && lowRms >= snapRms * 1.2;
+    if (isSpeech) {
+      return false;
+    }
 
-    // Sharp rise attack + peak threshold + cooldown
-    // Practical real-world microphone calibration:
-    // Sensitivity scale: higher threshold slider makes it more sensitive
-    const sensitivityTrigger = Math.max(0.04, (1.0 - this.clickThreshold) * 0.25 + 0.05);
-    const isTransientClick = delta > sensitivityTrigger && peak > 0.20 && (now - this.lastClickTime > this.cooldownMs || this.lastClickTime === 0);
+    // Dynamic sensitivity trigger for sharp transient rise attack
+    // Require substantial impulse rise and strong peak
+    const sensitivityTrigger = Math.max(0.08, (1.0 - this.clickThreshold) * 0.35 + 0.08);
+    const isTransientClick = 
+      delta > sensitivityTrigger && 
+      snapPeak > 0.32 && 
+      (now - this.lastClickTime > this.cooldownMs || this.lastClickTime === 0);
 
     if (isTransientClick) {
       this.lastClickTime = now;
       if (this.onClickCallback) {
         this.onClickCallback({
           timestamp: now,
-          intensity: peak,
+          intensity: snapPeak,
           frequencyBand: 4000,
         });
       }
