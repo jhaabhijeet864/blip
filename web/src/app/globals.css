@@ -197,6 +197,34 @@ html.dark .hard-glass-card:hover {
   animation: subtle-float 5s ease-in-out infinite;
 }
 
+/* Header Pop-up entrance animation */
+@keyframes header-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  70% {
+    transform: translateY(-2px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-header-pop {
+  animation: header-pop 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Glass sub-panel for walkthrough boxes and code blocks */
+.glass-subpanel {
+  background: rgba(8, 8, 12, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);
+}
+
 /* Subtle pulse glow for ambient red */
 @keyframes ambient-glow {
   0%, 100% {

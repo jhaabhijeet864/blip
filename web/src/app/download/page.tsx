@@ -45,12 +45,10 @@ export default function DownloadPage() {
         <div className="max-w-[1300px] mx-auto px-4 sm:px-8 lg:px-12">
           
           {/* Breadcrumb & Section Header */}
-          <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded border border-zinc-800 bg-zinc-950 font-mono text-[11px] text-zinc-400 mb-4">
+          <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-16 animate-header-pop">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-red-500/30 bg-red-500/10 backdrop-blur-md font-mono text-[11px] text-red-300 mb-5 shadow-[0_0_20px_rgba(239,68,68,0.15)]">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-              <span>GLOBAL DISTRIBUTION HUB</span>
-              <span className="text-zinc-600">·</span>
-              <span className="text-zinc-300 font-semibold">100% FREE &amp; OPEN SOURCE</span>
+              <span className="font-semibold tracking-wide">100% FREE &amp; OPEN SOURCE</span>
             </div>
 
             <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
@@ -69,8 +67,8 @@ export default function DownloadPage() {
             {/* ------------------------------------------------------- */}
             {/* CARD 1: CHROME EXTENSION (ZERO-INSTALL WEBRTC)          */}
             {/* ------------------------------------------------------- */}
-            <div className="relative rounded-2xl border-2 border-red-500/40 bg-[#09090b] p-7 sm:p-9 shadow-2xl flex flex-col justify-between reticle-corner overflow-hidden">
-              <div className="absolute top-0 right-0 px-4 py-1.5 bg-red-500/10 border-b border-l border-red-500/30 text-red-400 font-mono text-[11px] font-bold rounded-bl-xl">
+            <div className="hard-glass-card rounded-3xl p-7 sm:p-9 shadow-2xl flex flex-col justify-between reticle-corner overflow-hidden relative">
+              <div className="absolute top-0 right-0 px-4 py-1.5 bg-red-500/20 backdrop-blur-md border-b border-l border-red-500/40 text-red-300 font-mono text-[11px] font-bold rounded-bl-xl shadow-inner">
                 RECOMMENDED FOR MEET &amp; CHROMIUM
               </div>
 
@@ -116,7 +114,7 @@ export default function DownloadPage() {
                     href="https://github.com/jhaabhijeet864/blip/releases/latest"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-1.5 px-4 py-4 rounded-xl border border-zinc-800 bg-zinc-950 hover:bg-zinc-900 text-zinc-300 font-mono text-xs transition-colors"
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-4 rounded-xl border border-zinc-800 bg-zinc-950/80 hover:bg-zinc-900 text-zinc-300 font-mono text-xs transition-colors"
                     title="View GitHub Release"
                   >
                     <span>Mirrors</span>
@@ -125,7 +123,7 @@ export default function DownloadPage() {
                 </div>
 
                 {/* 3-Step Load Unpacked Walkthrough */}
-                <div className="rounded-xl border border-zinc-800/90 bg-[#050507] p-5 font-mono text-xs">
+                <div className="glass-subpanel rounded-2xl p-5 font-mono text-xs">
                   <div className="flex items-center gap-2 text-zinc-300 font-bold mb-3">
                     <Info className="w-4 h-4 text-red-400" />
                     <span>How to Install in 30 Seconds (Load Unpacked):</span>
@@ -136,7 +134,7 @@ export default function DownloadPage() {
                       Download and extract <span className="text-zinc-200 font-semibold">blip-extension.zip</span> to any folder.
                     </li>
                     <li>
-                      Open your browser and navigate to <code className="text-red-400 bg-zinc-900 px-1 py-0.5 rounded">chrome://extensions</code>.
+                      Open your browser and navigate to <code className="text-red-400 bg-zinc-900/90 px-1 py-0.5 rounded border border-zinc-800">chrome://extensions</code>.
                     </li>
                     <li>
                       Turn on <span className="text-zinc-200 font-semibold">Developer mode</span> (toggle in top-right corner).
@@ -149,7 +147,7 @@ export default function DownloadPage() {
               </div>
 
               {/* SHA256 Verification */}
-              <div className="mt-6 pt-4 border-t border-zinc-900 flex items-center justify-between font-mono text-[11px] text-zinc-500">
+              <div className="mt-6 pt-4 border-t border-zinc-800/80 flex items-center justify-between font-mono text-[11px] text-zinc-500">
                 <span className="truncate max-w-[280px]">
                   SHA256: {extensionSha256.slice(0, 16)}...
                 </span>
@@ -175,14 +173,14 @@ export default function DownloadPage() {
             {/* ------------------------------------------------------- */}
             {/* CARD 2: WINDOWS STANDALONE PORTABLE APP (.ZIP / .EXE)    */}
             {/* ------------------------------------------------------- */}
-            <div className="relative rounded-2xl border-2 border-zinc-800 bg-[#09090b] p-7 sm:p-9 shadow-2xl flex flex-col justify-between reticle-corner overflow-hidden">
-              <div className="absolute top-0 right-0 px-4 py-1.5 bg-zinc-800/60 border-b border-l border-zinc-700 text-zinc-300 font-mono text-[11px] font-bold rounded-bl-xl">
+            <div className="hard-glass-card rounded-3xl p-7 sm:p-9 shadow-2xl flex flex-col justify-between reticle-corner overflow-hidden relative">
+              <div className="absolute top-0 right-0 px-4 py-1.5 bg-white/10 backdrop-blur-md border-b border-l border-white/20 text-zinc-200 font-mono text-[11px] font-bold rounded-bl-xl shadow-inner">
                 SYSTEM-WIDE VIRTUAL CAMERA
               </div>
 
               <div>
                 <div className="flex items-center gap-3.5 mb-5">
-                  <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300 shadow-sm">
+                  <div className="w-12 h-12 rounded-xl bg-zinc-900/90 border border-zinc-800 flex items-center justify-center text-zinc-300 shadow-sm">
                     <Monitor className="w-6 h-6" />
                   </div>
                   <div>
@@ -219,7 +217,7 @@ export default function DownloadPage() {
 
                   <a
                     href="https://github.com/jhaabhijeet864/blip/releases/latest/download/Blip-Studio.exe"
-                    className="inline-flex items-center justify-center gap-1.5 px-4 py-4 rounded-xl border border-zinc-800 bg-zinc-950 hover:bg-zinc-900 text-zinc-300 font-mono text-xs transition-colors text-center"
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-4 rounded-xl border border-zinc-800 bg-zinc-950/80 hover:bg-zinc-900 text-zinc-300 font-mono text-xs transition-colors text-center"
                     title="Standalone Executable"
                   >
                     <Terminal className="w-3.5 h-3.5 text-zinc-400" />
@@ -228,7 +226,7 @@ export default function DownloadPage() {
                 </div>
 
                 {/* Portable Execution Walkthrough */}
-                <div className="rounded-xl border border-zinc-800/90 bg-[#050507] p-5 font-mono text-xs">
+                <div className="glass-subpanel rounded-2xl p-5 font-mono text-xs">
                   <div className="flex items-center gap-2 text-zinc-300 font-bold mb-3">
                     <ShieldCheck className="w-4 h-4 text-emerald-400" />
                     <span>Portable Standalone Setup (Zero Installer Wizard):</span>
@@ -239,7 +237,7 @@ export default function DownloadPage() {
                       Download <span className="text-zinc-200 font-semibold">Blip-Windows-x64.zip</span> and extract to any folder.
                     </li>
                     <li>
-                      Double click <code className="text-zinc-200 bg-zinc-900 px-1 py-0.5 rounded">Blip.exe</code> to start the camera engine.
+                      Double click <code className="text-zinc-200 bg-zinc-900/90 px-1 py-0.5 rounded border border-zinc-800">Blip.exe</code> to start the camera engine.
                     </li>
                     <li>
                       Select your physical webcam, click <span className="text-zinc-200 font-semibold">Start Camera</span>.
@@ -252,7 +250,7 @@ export default function DownloadPage() {
               </div>
 
               {/* SHA256 Verification */}
-              <div className="mt-6 pt-4 border-t border-zinc-900 flex items-center justify-between font-mono text-[11px] text-zinc-500">
+              <div className="mt-6 pt-4 border-t border-zinc-800/80 flex items-center justify-between font-mono text-[11px] text-zinc-500">
                 <span className="truncate max-w-[280px]">
                   SHA256: {windowsSha256.slice(0, 16)}...
                 </span>
@@ -278,7 +276,7 @@ export default function DownloadPage() {
           </div>
 
           {/* ========================================================= */}
-          {/* UPCOMING GLOBAL PLATFORMS (MACOS & LINUX - GRAYED OUT)    */}
+          {/* UPCOMING GLOBAL PLATFORMS (MACOS & LINUX - GLASS CARDS)   */}
           {/* ========================================================= */}
           <div className="mb-16">
             <div className="flex items-center gap-2 mb-6">
@@ -290,51 +288,51 @@ export default function DownloadPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              {/* Apple macOS (Grayed Out) */}
-              <div className="rounded-xl border border-zinc-900 bg-zinc-950/60 p-6 opacity-60 cursor-not-allowed relative overflow-hidden">
+              {/* Apple macOS (Glass Card) */}
+              <div className="hard-glass-card rounded-2xl p-6 opacity-80 hover:opacity-100 transition-all cursor-default relative overflow-hidden">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-500">
+                    <div className="w-10 h-10 rounded-lg bg-zinc-900/90 border border-zinc-800 flex items-center justify-center text-zinc-400">
                       <Apple className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="text-base font-bold text-zinc-300">Apple macOS Universal</h4>
+                      <h4 className="text-base font-bold text-zinc-200">Apple macOS Universal</h4>
                       <span className="text-[11px] font-mono text-zinc-500">Apple Silicon (M1-M4) &amp; Intel x64</span>
                     </div>
                   </div>
-                  <span className="px-2.5 py-0.5 rounded font-mono text-[10px] font-bold bg-zinc-900 text-zinc-400 border border-zinc-800">
+                  <span className="px-2.5 py-0.5 rounded font-mono text-[10px] font-bold bg-zinc-900/90 text-zinc-400 border border-zinc-800">
                     COMING SOON
                   </span>
                 </div>
-                <p className="text-xs text-zinc-500 leading-relaxed">
+                <p className="text-xs text-zinc-400 leading-relaxed">
                   Native macOS CoreMediaIO Camera Extension with hardware Metal shaders for macOS Sequoia &amp; Sonoma. Currently in active development.
                 </p>
-                <div className="mt-4 pt-3 border-t border-zinc-900/80 flex items-center justify-between text-[11px] font-mono text-zinc-600">
+                <div className="mt-4 pt-3 border-t border-zinc-800/80 flex items-center justify-between text-[11px] font-mono text-zinc-500">
                   <span>Target: macOS Universal (.dmg)</span>
                   <span>CoreMediaIO Sink</span>
                 </div>
               </div>
 
-              {/* Linux Desktop (Grayed Out) */}
-              <div className="rounded-xl border border-zinc-900 bg-zinc-950/60 p-6 opacity-60 cursor-not-allowed relative overflow-hidden">
+              {/* Linux Desktop (Glass Card) */}
+              <div className="hard-glass-card rounded-2xl p-6 opacity-80 hover:opacity-100 transition-all cursor-default relative overflow-hidden">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-500">
+                    <div className="w-10 h-10 rounded-lg bg-zinc-900/90 border border-zinc-800 flex items-center justify-center text-zinc-400">
                       <Terminal className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="text-base font-bold text-zinc-300">Linux Desktop</h4>
+                      <h4 className="text-base font-bold text-zinc-200">Linux Desktop</h4>
                       <span className="text-[11px] font-mono text-zinc-500">Ubuntu, Debian, Fedora &amp; Arch</span>
                     </div>
                   </div>
-                  <span className="px-2.5 py-0.5 rounded font-mono text-[10px] font-bold bg-zinc-900 text-zinc-400 border border-zinc-800">
+                  <span className="px-2.5 py-0.5 rounded font-mono text-[10px] font-bold bg-zinc-900/90 text-zinc-400 border border-zinc-800">
                     COMING SOON
                   </span>
                 </div>
-                <p className="text-xs text-zinc-500 leading-relaxed">
+                <p className="text-xs text-zinc-400 leading-relaxed">
                   V4L2 (Video4Linux2) loopback virtual camera sink with local ONNX inference. Standalone AppImage and source distributions in preparation.
                 </p>
-                <div className="mt-4 pt-3 border-t border-zinc-900/80 flex items-center justify-between text-[11px] font-mono text-zinc-600">
+                <div className="mt-4 pt-3 border-t border-zinc-800/80 flex items-center justify-between text-[11px] font-mono text-zinc-500">
                   <span>Target: Portable (.AppImage)</span>
                   <span>v4l2loopback Sink</span>
                 </div>
