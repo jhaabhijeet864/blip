@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { Terminal } from "lucide-react";
+import { Terminal, Linkedin, Twitter } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -28,7 +28,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Links & Product Hunt Badge */}
+          {/* Links & Socials */}
           <div className="flex flex-wrap items-center gap-6 text-zinc-400 text-sm">
             <a
               href="https://github.com/jhaabhijeet864/blip"
@@ -38,6 +38,24 @@ export default function Footer() {
             >
               <Terminal className="w-4 h-4 text-zinc-400" />
               <span>GitHub</span>
+            </a>
+            <a
+              href="https://x.com/jhaabhijeet864"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white transition-colors flex items-center gap-1.5"
+            >
+              <Twitter className="w-4 h-4 text-zinc-400" />
+              <span>X (Twitter)</span>
+            </a>
+            <a
+              href="https://www.linkedin.com/in/abhijeetcreates/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white transition-colors flex items-center gap-1.5"
+            >
+              <Linkedin className="w-4 h-4 text-zinc-400" />
+              <span>LinkedIn</span>
             </a>
             <a
               href="https://github.com/jhaabhijeet864/blip/releases"
@@ -54,14 +72,6 @@ export default function Footer() {
               className="hover:text-white transition-colors"
             >
               MIT License
-            </a>
-            <a
-              href="https://github.com/jhaabhijeet864/blip/issues"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-white transition-colors"
-            >
-              Support &amp; Issues
             </a>
             <a
               href="https://www.producthunt.com/products/blip-12?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-blip-13"
@@ -87,7 +97,16 @@ export default function Footer() {
             100% Local &amp; Private · Open Source Software
           </div>
           <div>
-            © {new Date().getFullYear()} Blip. Free &amp; Open Source.
+            Created by{" "}
+            <a
+              href="https://x.com/jhaabhijeet864"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-zinc-400 hover:text-white underline transition-colors"
+            >
+              Abhijeet Jha
+            </a>
+            . Distributed under MIT License.
           </div>
         </div>
       </div>
