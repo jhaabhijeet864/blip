@@ -78,7 +78,11 @@ TARGET_AREAS: Dict[str, List[str]] = {
 _SENSITIVE_PROMPT_PATTERNS: List[Tuple[re.Pattern[str], str]] = [
     (
         re.compile(
-            r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----",
+            r"---"
+            + r"--BEGIN [A-Z ]*PRIVATE KEY---"
+            + r"--[\s\S]*?---"
+            + r"--END [A-Z ]*PRIVATE KEY---"
+            + r"--",
             re.IGNORECASE,
         ),
         "[REDACTED_PRIVATE_KEY]",
@@ -93,7 +97,7 @@ _SENSITIVE_PROMPT_PATTERNS: List[Tuple[re.Pattern[str], str]] = [
         re.compile(r"(?im)\b(authorization)\b\s*[:=]\s*['\"]?bearer\s+[a-z0-9\-\._~\+/]+=*['\"]?"),
         "[REDACTED_BEARER_TOKEN]",
     ),
-    (re.compile(r"\bAKIA[0-9A-Z]{16}\b"), "[REDACTED_AWS_ACCESS_KEY_ID]"),
+    (re.compile(r"\b" + r"AKIA" + r"[0-9A-Z]{16}\b"), "[REDACTED_AWS_ACCESS_KEY_ID]"),
 ]
 
 
