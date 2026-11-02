@@ -1,0 +1,100 @@
+name: Automated Gemini Codebase Issue Maker
+
+on:
+  schedule:
+    # Runs every day at 4:00 AM IST (22:30 UTC of previous day)
+    - cron: '30 22 * * *'
+  workflow_dispatch:
+    inputs:
+      target_area:
+        description: 'Codebase target area to audit'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - security
+          - guardrails
+          - ai_vision
+          - performance
+      max_issues:
+        description: 'Maximum new issues to create (capped at 5)'
+        required: true
+        default: '2'
+        type: choice
+        options:
+          - '1'
+          - '2'
+          - '3'
+          - '5'
+      dry_run:
+        description: 'Dry run mode (preview findings in Job Summary without creating GitHub issues)'
+        required: true
+        default: false
+        type: boolean
+      force_engine:
+        description: 'Force specific AI engine'
+        required: true
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - gemini
+          - groq
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  audit-and-create-issues:
+    name: Codebase Audit & Issue Creation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: 'pip'
+
+      - name: Install Google GenAI SDK & Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install google-genai>=2.30.1 requests
+
+      - name: Run Codebase Issue Generator Agent
+        env:
+          ISSUE_MAKER_GEMINI_KEY: ${{ secrets.ISSUE_MAKER_GEMINI_KEY || secrets.GEMINI_API_KEY }}
+          ISSUE_MAKER_GROQ_KEY: ${{ secrets.ISSUE_MAKER_GROQ_KEY || secrets.GROQ_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          TARGET_AREA="${{ github.event.inputs.target_area || 'all' }}"
+          MAX_ISSUES="${{ github.event.inputs.max_issues || '2' }}"
+          DRY_RUN="${{ github.event.inputs.dry_run || 'false' }}"
+          FORCE_ENGINE="${{ github.event.inputs.force_engine || 'auto' }}"
+
+          CMD="python scripts/gemini_issue_generator.py --target $TARGET_AREA --max-issues $MAX_ISSUES --force-engine $FORCE_ENGINE --output-summary issue_summary.md"
+
+          if [ "$DRY_RUN" = "true" ]; then
+            CMD="$CMD --dry-run"
+          fi
+
+          echo "Executing: $CMD"
+          eval $CMD
+
+      - name: Publish Action Step Summary
+        if: always()
+        run: |
+          if [ -f issue_summary.md ]; then
+            cat issue_summary.md >> $GITHUB_STEP_SUMMARY
+          fi
