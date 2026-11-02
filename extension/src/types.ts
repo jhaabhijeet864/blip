@@ -52,4 +52,5 @@ export interface BlipMessage {
   action: BlipAction;
   payload?: any;
   source?: string;
+  timestamp?: number;
 }
