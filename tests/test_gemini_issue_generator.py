@@ -11,7 +11,6 @@ import os
 import unittest
 
 from scripts.gemini_issue_generator import (
-    TAG_PREFIX,
     build_analysis_prompt,
     format_issue_markdown,
     gather_code_context,
@@ -71,12 +70,17 @@ class TestGeminiIssueGenerator(unittest.TestCase):
             "suggested_code_diff": "+ try { ... } catch (e) { ... }",
         }
 
-        markdown = format_issue_markdown(dummy_issue, "Gemini 3.8 Flash (gemini-3.8-flash)")
+        markdown = format_issue_markdown(
+            dummy_issue, "Gemini 2.5 Flash (gemini-2.5-flash)", "jhaabhijeet864/blip"
+        )
         self.assertIn("<!-- BLIP-AUDIT-ID: webrtc-stream-unhandled-rejection -->", markdown)
         self.assertIn("Audit Finding: [Security] WebRTC Stream Unhandled Rejection", markdown)
-        self.assertIn("Gemini 3.8 Flash", markdown)
+        self.assertIn("Gemini 2.5 Flash", markdown)
         self.assertIn("`HIGH`", markdown)
-        self.assertIn("extension/src/stream-interceptor.ts", markdown)
+        self.assertIn(
+            "https://github.com/jhaabhijeet864/blip/blob/main/extension/src/stream-interceptor.ts",
+            markdown,
+        )
         self.assertIn("Proposed Remediation Diff", markdown)
 
     def test_deduplication_logic(self):

@@ -403,7 +403,7 @@ export class BlipStreamInterceptor {
       }
 
       // Update and draw Thanos particle ash simulation
-      this.particlePool.update(dt, progress, "up");
+      this.particlePool.update(dt, progress);
       this.particlePool.render(this.processingCtx);
 
       if (progress >= 1.0) {

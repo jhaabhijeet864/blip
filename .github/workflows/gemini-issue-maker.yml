@@ -59,6 +59,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+          persist-credentials: false
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
@@ -69,7 +70,7 @@ jobs:
       - name: Install Google GenAI SDK & Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install google-genai>=2.30.1 requests
+          pip install 'google-genai>=2.30.1'
 
       - name: Run Codebase Issue Generator Agent
         env:
@@ -77,20 +78,24 @@ jobs:
           ISSUE_MAKER_GROQ_KEY: ${{ secrets.ISSUE_MAKER_GROQ_KEY || secrets.GROQ_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          TARGET_AREA_INPUT: ${{ github.event.inputs.target_area || 'all' }}
+          MAX_ISSUES_INPUT: ${{ github.event.inputs.max_issues || '2' }}
+          DRY_RUN_INPUT: ${{ github.event.inputs.dry_run || 'false' }}
+          FORCE_ENGINE_INPUT: ${{ github.event.inputs.force_engine || 'auto' }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          TARGET_AREA="${{ github.event.inputs.target_area || 'all' }}"
-          MAX_ISSUES="${{ github.event.inputs.max_issues || '2' }}"
-          DRY_RUN="${{ github.event.inputs.dry_run || 'false' }}"
-          FORCE_ENGINE="${{ github.event.inputs.force_engine || 'auto' }}"
-
-          CMD="python scripts/gemini_issue_generator.py --target $TARGET_AREA --max-issues $MAX_ISSUES --force-engine $FORCE_ENGINE --output-summary issue_summary.md"
-
-          if [ "$DRY_RUN" = "true" ]; then
-            CMD="$CMD --dry-run"
+          DRY_RUN_FLAG=""
+          # Policy gate: scheduled runs must never create issues unattended.
+          if [ "$EVENT_NAME" = "schedule" ] || [ "$DRY_RUN_INPUT" = "true" ]; then
+            DRY_RUN_FLAG="--dry-run"
           fi
 
-          echo "Executing: $CMD"
-          eval $CMD
+          python scripts/gemini_issue_generator.py \
+            --target "$TARGET_AREA_INPUT" \
+            --max-issues "$MAX_ISSUES_INPUT" \
+            --force-engine "$FORCE_ENGINE_INPUT" \
+            --output-summary issue_summary.md \
+            $DRY_RUN_FLAG
 
       - name: Publish Action Step Summary
         if: always()
@@ -98,3 +103,4 @@ jobs:
           if [ -f issue_summary.md ]; then
             cat issue_summary.md >> $GITHUB_STEP_SUMMARY
           fi
+
