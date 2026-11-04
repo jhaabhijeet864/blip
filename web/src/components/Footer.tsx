@@ -2,7 +2,37 @@
 
 import React from "react";
 import Image from "next/image";
-import { Terminal, Linkedin, Twitter } from "lucide-react";
+import { Terminal } from "lucide-react";
+
+function TwitterIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+    >
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 24.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
+function LinkedinIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+      <rect x="2" y="9" width="4" height="12" />
+      <circle cx="4" cy="4" r="2" />
+    </svg>
+  );
+}
 
 export default function Footer() {
   return (
@@ -45,7 +75,7 @@ export default function Footer() {
               rel="noopener noreferrer"
               className="hover:text-white transition-colors flex items-center gap-1.5"
             >
-              <Twitter className="w-4 h-4 text-zinc-400" />
+              <TwitterIcon className="w-4 h-4 text-zinc-400" />
               <span>X (Twitter)</span>
             </a>
             <a
@@ -54,7 +84,7 @@ export default function Footer() {
               rel="noopener noreferrer"
               className="hover:text-white transition-colors flex items-center gap-1.5"
             >
-              <Linkedin className="w-4 h-4 text-zinc-400" />
+              <LinkedinIcon className="w-4 h-4 text-zinc-400" />
               <span>LinkedIn</span>
             </a>
             <a

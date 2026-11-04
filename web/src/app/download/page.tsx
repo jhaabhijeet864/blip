@@ -12,7 +12,6 @@ import {
   ShieldCheck,
   Check,
   Copy,
-  Chrome,
   Monitor,
   Apple,
   FolderArchive,
@@ -22,6 +21,26 @@ import {
   Sparkles,
   Zap,
 } from "lucide-react";
+
+function ChromeIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="4" />
+      <line x1="21.17" y1="8" x2="12" y2="8" />
+      <line x1="3.95" y1="6.06" x2="8.54" y2="14" />
+      <line x1="10.88" y1="21.94" x2="15.46" y2="14" />
+    </svg>
+  );
+}
 
 export default function DownloadPage() {
   const [copiedPip, setCopiedPip] = useState(false);
@@ -75,7 +94,7 @@ export default function DownloadPage() {
               <div>
                 <div className="flex items-center gap-3.5 mb-5">
                   <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 shadow-sm">
-                    <Chrome className="w-6 h-6" />
+                    <ChromeIcon className="w-6 h-6" />
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-white tracking-tight">
