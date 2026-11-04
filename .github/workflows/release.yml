@@ -215,25 +215,25 @@ jobs:
           echo "Selected Release Tag: $TAG"
 
       - name: Download Windows Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: windows-release-assets
           path: release_assets
 
       - name: Download Tauri Desktop Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: tauri-release-assets
           path: release_assets
 
       - name: Download Python Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: python-release-assets
           path: release_assets
 
       - name: Download Extension Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: extension-release-assets
           path: release_assets
