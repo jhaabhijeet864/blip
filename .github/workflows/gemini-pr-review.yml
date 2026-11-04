@@ -48,7 +48,7 @@ jobs:
           python scripts/gemini_pr_reviewer.py --output pr_review.md
 
       - name: Publish or Update Sticky PR Review Comment
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
