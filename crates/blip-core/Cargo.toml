@@ -17,6 +17,6 @@ ndarray = "0.16"
 ort = { version = "2.0.0-rc.15", features = ["download-binaries", "copy-dylibs", "ndarray"] }
 glam = "0.29"
 rayon = "1.10"
-rand = "0.8"
+rand = "0.10"
 
 [dev-dependencies]
